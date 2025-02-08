@@ -1,0 +1,43 @@
+{% extends "base.html" %} {% block content %}
+<h2>Agregar Items a la Orden #{{ order.order_number }}</h2>
+
+<!-- Formulario para agregar un item a la orden -->
+<form
+  method="POST"
+  action="{{ url_for('main.add_order_items', order_id=order.id) }}"
+>
+  <label for="item_id">Seleccionar Item:</label>
+  <select id="item_id" name="item_id" required>
+    {% for item in items %}
+    <option value="{{ item.id }}">
+      {{ item.name }} (${{ "%.2f"|format(item.price) }})
+    </option>
+    {% endfor %}
+  </select>
+  <label for="quantity">Cantidad:</label>
+  <input type="number" id="quantity" name="quantity" min="1" required />
+  <button type="submit">Agregar Item</button>
+</form>
+
+<!-- Listado de items ya agregados a la orden -->
+<h3>Items Agregados</h3>
+<table>
+  <tr>
+    <th>Nombre</th>
+    <th>Precio Unitario</th>
+    <th>Cantidad</th>
+    <th>Total</th>
+  </tr>
+  {% for item in order.items %}
+  <tr>
+    <td>{{ item.item.name }}</td>
+    <td>${{ "%.2f"|format(item.item.price) }}</td>
+    <td>{{ item.quantity }}</td>
+    <td>${{ "%.2f"|format(item.item.price * item.quantity) }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<!-- Botón para regresar al listado de órdenes -->
+<a href="{{ url_for('main.orders') }}">Regresar al Listado de Órdenes</a>
+{% endblock %}

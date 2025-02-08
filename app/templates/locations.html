@@ -1,0 +1,36 @@
+{% extends "base.html" %} {% block content %}
+<h2>Gestión de Locales</h2>
+
+<!-- Formulario para agregar un nuevo local -->
+<form method="POST" action="{{ url_for('main.locations') }}">
+  <h3>Agregar Nuevo Local</h3>
+  <label for="name">Nombre:</label>
+  <input type="text" id="name" name="name" required />
+  <label for="description">Descripción:</label>
+  <input type="text" id="description" name="description" />
+  <button type="submit">Agregar Local</button>
+</form>
+
+<!-- Listado de locales -->
+<h3>Listado de Locales</h3>
+<table>
+  <tr>
+    <th>ID</th>
+    <th>Nombre</th>
+    <th>Descripción</th>
+    <th>Acciones</th>
+  </tr>
+  {% for location in locations %}
+  <tr>
+    <td>{{ location.id }}</td>
+    <td>{{ location.name }}</td>
+    <td>{{ location.description }}</td>
+    <td>
+      <a href="{{ url_for('main.location_details', location_id=location.id) }}"
+        >Ver Detalles</a
+      >
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

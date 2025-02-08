@@ -1,0 +1,48 @@
+{% extends "base.html" %} {% block content %}
+<h2>Gestión de Órdenes</h2>
+
+<!-- Formulario para agregar una nueva orden -->
+<form method="POST" action="{{ url_for('main.orders') }}">
+  <h3>Agregar Nueva Orden</h3>
+  <label for="order_number">Número de Orden:</label>
+  <input type="text" id="order_number" name="order_number" required />
+  <label for="date">Fecha:</label>
+  <input type="date" id="date" name="date" required />
+  <button type="submit">Crear Orden</button>
+</form>
+
+<!-- Listado de órdenes agrupadas por mes -->
+{% if orders_by_months %} {% for month, orders_by_month in
+orders_by_months.items() %}
+<div class="month-section">
+  <h3>Mes: {{ month }}</h3>
+  <p>
+    <strong>Ingreso Total del Mes:</strong> ${{
+    "%.2f"|format(month_totals[month]) }}
+  </p>
+  <table>
+    <tr>
+      <th>Fecha</th>
+      <th>Cantidad de Items Vendidos</th>
+      <th>Ingresos Totales</th>
+      <th>Órdenes</th>
+    </tr>
+    {% for date, data in orders_by_month.items() %}
+    <tr>
+      <td>{{ date }}</td>
+      <td>{{ data.total_items }}</td>
+      <td>${{ "%.2f"|format(data.total_income) }}</td>
+      <td>
+        {% for order in data.orders %}
+        <a href="{{ url_for('main.order_details', order_id=order.id) }}"
+          >[{{ order.order_number }}]</a
+        >
+        {% endfor %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endfor %} {% else %}
+<p>No hay órdenes registradas.</p>
+{% endif %} {% endblock %}

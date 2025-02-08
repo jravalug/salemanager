@@ -1,60 +1,34 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/styles.css') }}"
-    />
-    <title>Restaurant Orders</title>
-  </head>
-  <body>
-    <div class="container">
-      <h1>Welcome to Restaurant Orders</h1>
-      <h2>Order Management</h2>
-      <form action="/create_order" method="POST">
-        <label for="menu_item">Menu Item:</label>
-        <select id="menu_item" name="menu_item">
-          <!-- Dynamic menu items will be populated here -->
-        </select>
-        <label for="quantity">Quantity:</label>
-        <input type="number" id="quantity" name="quantity" required />
-        <button type="submit">Place Order</button>
-      </form>
-      <h2>Current Orders</h2>
-      <ul>
-        <!-- Dynamic list of current orders will be populated here -->
-      </ul>
-      <h2>Menu Items</h2>
-      <ul class="menu-list">
-        {% for item in menu_items %}
-        <li class="menu-item">
-          <span>{{ item.name }} - ${{ item.price }}</span>
-          <form
-            action="{{ url_for('orders.delete_menu_item', item_id=item.id) }}"
-            method="post"
-            style="display: inline"
-          >
-            <input type="hidden" name="_method" value="DELETE" />
-            <button type="submit" class="delete-button">Delete</button>
-          </form>
-        </li>
-        {% endfor %}
-      </ul>
-      <h2>Add Menu Item</h2>
-      <form
-        action="{{ url_for('orders.create_menu_item') }}"
-        method="post"
-        class="add-form"
-      >
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required />
-        <label for="price">Price:</label>
-        <input type="number" id="price" name="price" step="0.01" required />
-        <button type="submit" class="add-button">Add</button>
-      </form>
-    </div>
-    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
-  </body>
-</html>
+{% extends "base.html" %} {% block content %}
+<h2>Resumen de Ventas</h2>
+
+<!-- Resumen General -->
+<div class="summary">
+  <p><strong>Total General:</strong> ${{ "%.2f"|format(total_general) }}</p>
+</div>
+
+<!-- Gráfica de Desempeño Mensual -->
+<div class="chart">
+  <h3>Desempeño Mensual</h3>
+  <img
+    src="{{ url_for('static', filename='chart.png') }}"
+    alt="Gráfica de Desempeño Mensual"
+  />
+</div>
+
+<!-- Tabla de Totales Mensuales -->
+<div class="monthly-totals">
+  <h3>Totales por Mes</h3>
+  <table>
+    <tr>
+      <th>Mes</th>
+      <th>Total</th>
+    </tr>
+    {% for month, total in monthly_totals.items() %}
+    <tr>
+      <td>{{ month }}</td>
+      <td>${{ "%.2f"|format(total) }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}
