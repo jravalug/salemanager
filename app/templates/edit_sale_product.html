@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>Editar Producto en la Venta</h2>
+    <p>Venta: {{ sale.sale_number }}</p>
+    <p>Producto: {{ sale_product.product.name }}</p>
+    <form method="post">
+        {{ form.hidden_tag() }}
+        <div>
+            {{ form.quantity.label }}
+            {{ form.quantity }}
+            {% for error in form.quantity.errors %}<span style="color: red;">{{ error }}</span>{% endfor %}
+        </div>
+        <div>{{ form.submit }}</div>
+    </form>
+    <a href="{{ url_for('main.sale_details', business_id=business.id, sale_id=sale.id) }}">Regresar a los Detalles de la Venta</a>
+{% endblock content %}

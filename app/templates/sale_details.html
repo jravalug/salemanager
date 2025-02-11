@@ -16,6 +16,7 @@
       <th>Precio Unitario</th>
       <th>Cantidad</th>
       <th>Total</th>
+      <th>Acciones</th>
     </tr>
     {% for sale_product in sale.products %}
       <tr>
@@ -23,6 +24,17 @@
         <td>${{ "%.2f"|format(sale_product.product.price) }}</td>
         <td>{{ sale_product.quantity }}</td>
         <td>${{ "%.2f"|format(sale_product.product.price * sale_product.quantity) }}</td>
+        <td>
+          <a href="{{ url_for('main.edit_sale_product', business_id=business.id, sale_id=sale.id, product_id=sale_product.product.id) }}">
+            Editar
+          </a>
+          <form action="{{ url_for('main.remove_product_from_sale', business_id=business.id, sale_id=sale.id, product_id=sale_product.product.id) }}"
+                method="post"
+                style="display:inline">
+            <button type="submit"
+                    onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?');">Eliminar</button>
+          </form>
+        </td>
       </tr>
     {% endfor %}
   </table>

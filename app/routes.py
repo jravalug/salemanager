@@ -11,7 +11,7 @@ from flask import (
     current_app,
 )
 from werkzeug.utils import secure_filename
-from app.forms import BusinessForm
+from app.forms import BusinessForm, EditSaleProductForm
 from app.models import db, Business, Product, Sale, SaleProduct
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
@@ -21,6 +21,7 @@ from io import BytesIO
 from openpyxl import Workbook
 import json
 import logging
+
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -328,6 +329,44 @@ def add_sale_products(business_id, sale_id):
     )
 
 
+@bp.route(
+    "/business/<int:business_id>/sale/<int:sale_id>/edit-product/<int:product_id>",
+    methods=["GET", "POST"],
+)
+def edit_sale_product(business_id, sale_id, product_id):
+    # Obtener el negocio
+    business = Business.query.get_or_404(business_id)
+
+    # Obtener la venta y el producto específico
+    sale = Sale.query.get_or_404(sale_id)
+    sale_product = SaleProduct.query.filter_by(
+        sale_id=sale_id, product_id=product_id
+    ).first_or_404()
+
+    # Crear el formulario
+    form = EditSaleProductForm(
+        obj=sale_product
+    )  # Prellenar el formulario con los datos actuales
+
+    if form.validate_on_submit():
+        # Actualizar los datos del producto en la venta
+        sale_product.quantity = form.quantity.data
+        db.session.commit()
+
+        flash("El producto ha sido actualizado correctamente.", "success")
+        return redirect(
+            url_for("main.sale_details", business_id=business_id, sale_id=sale_id)
+        )
+
+    return render_template(
+        "edit_sale_product.html",
+        business=business,
+        sale=sale,
+        sale_product=sale_product,
+        form=form,
+    )
+
+
 @bp.route("/business/<int:business_id>/sales/<int:sale_id>")
 def sale_details(business_id, sale_id):
     business = Business.query.get_or_404(business_id)
@@ -339,6 +378,35 @@ def sale_details(business_id, sale_id):
     )
     return render_template(
         "sale_details.html", business=business, sale=sale, total=total
+    )
+
+
+@bp.route(
+    "/business/<int:business_id>/sale/<int:sale_id>/remove-product/<int:product_id>",
+    methods=["POST"],
+)
+def remove_product_from_sale(business_id, sale_id, product_id):
+    # Obtener el negocio
+    business = Business.query.get_or_404(business_id)
+
+    # Obtener la venta y el producto específico
+    sale_product = SaleProduct.query.filter_by(
+        sale_id=sale_id, product_id=product_id
+    ).first_or_404()
+
+    # Acceder al nombre del producto antes de eliminarlo
+    product_name = sale_product.product.name
+
+    # Eliminar el producto de la venta
+    db.session.delete(sale_product)
+    db.session.commit()
+
+    flash(
+        f"El producto '{sale_product.product.name}' ha sido eliminado de la venta.",
+        "success",
+    )
+    return redirect(
+        url_for("main.sale_details", business_id=business_id, sale_id=sale_id)
     )
 
 
