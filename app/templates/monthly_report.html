@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="report-container">
+        <h2>Reporte Mensual de Ventas - {{ business.name }}</h2>
+        <!-- Formulario para seleccionar el mes -->
+        <form method="post" class="mb-4">
+            <label for="month">Seleccionar Mes:</label>
+            <input type="month"
+                   id="month"
+                   name="month"
+                   value="{{ selected_month.strftime('%Y-%m') if selected_month else '' }}"
+                   required>
+            <button type="submit" class="btn btn-primary">Generar Reporte</button>
+        </form>
+        {% if daily_sales %}
+            <h3>Resultados para {{ selected_month.strftime("%B %Y") }}</h3>
+            <!-- Botón para exportar a Excel por Dia -->
+            <form action="{{ url_for('main.export_to_excel_sales_by_day', business_id=business.id) }}"
+                  method="post">
+                <input type="hidden"
+                       name="daily_sales_export"
+                       value="{{ daily_sales_json }}">
+                <button type="submit" class="btn btn-success">Exportar a Excel Ventas Diarias</button>
+            </form>
+            <!-- Botón para exportar a Excel por Producto -->
+            <form action="{{ url_for('main.export_to_excel_sales_by_product', business_id=business.id) }}"
+                  method="post">
+                <input type="hidden"
+                       name="daily_sales_export"
+                       value="{{ daily_sales_json }}">
+                <button type="submit" class="btn btn-success">Exportar a Excel Ventas por Producto</button>
+            </form>
+            {% for day in daily_sales %}
+                <div class="day-report">
+                    <h4>{{ day.date }}</h4>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cantidad: {{ day.total_products }}</th>
+                                <th>Importe Total : {{ day.total_income | currency }}</th>
+                                <th>ordenes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in day.products %}
+                                <tr>
+                                    <td>{{ product.name }}</td>
+                                    <td>{{ product.quantity }}</td>
+                                    <td>{{ product.total_amount | currency }}</td>
+                                    <td>
+                                        {% for sale_id, sale_number in product.orders %}
+                                            <a href="{{ url_for('main.sale_details', business_id=business.id, sale_id=sale_id) }}">[{{ sale_number }}]</a>
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No hay datos disponibles para este mes.</p>
+        {% endif %}
+    </div>
+{% endblock content %}

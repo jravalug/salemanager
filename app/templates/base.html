@@ -1,32 +1,50 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Restaurante</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/styles.css') }}"
-    />
-  </head>
-  <body>
-    <header>
-      <h1>Sistema de Órdenes del Restaurante</h1>
-      <nav>
-        <a href="{{ url_for('main.index') }}">Inicio</a>
-        <a href="{{ url_for('main.items') }}">Items</a>
-        <a href="{{ url_for('main.orders') }}">Órdenes</a>
-      </nav>
-    </header>
-    <main>
-      {% with messages = get_flashed_messages(with_categories=true) %} {% if
-      messages %}
-      <ul>
-        {% for category, message in messages %}
-        <li class="{{ category }}">{{ message }}</li>
-        {% endfor %}
-      </ul>
-      {% endif %} {% endwith %} {% block content %}{% endblock %}
-    </main>
-  </body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="keywords"
+              content="Inventory Management, Accounting Software, Business Solutions, Financial Applications, Data Analysis Tools" />
+        <meta name="description"
+              content="Bienvenido a su Sistema de Control de Ventas y Contabilidad." />
+        <meta name="keywords"
+              content="Inventory Management, Accounting Software, Business Solutions, Financial Applications, Data Analysis Tools" />
+        <title>Sistema de Control de Ventas y Contabilidad</title>
+        <link rel="stylesheet"
+              href="{{ url_for('static', filename='css/styles.css') }}" />
+    </head>
+    <body>
+        <header>
+            <h1>Control de Negocios</h1>
+            <p>Sistema de Gestión de Ventas y Contabilidad</p>
+            <nav>
+                <a href="{{ url_for('main.index') }}">Inicio</a>
+                {% if business %}
+                    <a href="{{ url_for('main.business_dashboard', business_id=business.id) }}">Dashboard</a>
+                    <a href="{{ url_for('main.sales', business_id=business.id) }}">Ventas</a>
+                    <a href="{{ url_for('main.products', business_id=business.id) }}">Productos</a>
+                {% else %}
+                    <a href="{{ url_for('main.businesses') }}">Negocios</a>
+                {% endif %}
+            </nav>
+        </header>
+        <main>
+            <!-- Mensajes Flash -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}<div class="flash-message {{ category }}">{{ message }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            <!-- Contenido Principal -->
+            {% block content %}
+            {% endblock content %}
+        </main>
+        <footer>
+            <p>
+                © {{ now().year }} Sistema de Control de Ventas y
+                Contabilidad
+            </p>
+        </footer>
+    </body>
 </html>

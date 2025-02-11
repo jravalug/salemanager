@@ -1,0 +1,19 @@
+{
+  "files.autoSave": "onFocusChange",
+  "files.associations": {
+    ".env*": "dotenv",
+    "*.tailwind.css": "tailwindcss",
+    "*.jinja": "jinja",
+    "*.jinja2": "jinja",
+    "*.j2": "jinja",
+    "*.html.jinja": "jinja",
+    "*.html": "jinja-html"
+  },  
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "editor.formatOnSave": true,
+  "[html][django-html][handlebars][hbs][mustache][jinja][jinja-html][nj][njk][nunjucks][twig]": {
+  "editor.defaultFormatter": "monosans.djlint"
+}
+}

@@ -1,6 +1,6 @@
-# Restaurant Orders Management System
+# Business Sales Management System
 
-This project is a Flask application designed to manage restaurant orders efficiently. It allows users to create, view, and update orders, as well as manage menu items.
+This project is a Flask application designed to manage business sales efficiently. It allows users to create, view, and update sales, as well as manage products.
 
 ## Project Structure
 
@@ -25,23 +25,27 @@ restaurant-orders
 ## Setup Instructions
 
 1. **Clone the repository:**
+
    ```
    git clone <repository-url>
-   cd restaurant-orders
+   cd business-sales
    ```
 
 2. **Create a virtual environment:**
+
    ```
    python -m venv venv
    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
    ```
 
 3. **Install dependencies:**
+
    ```
    pip install -r requirements.txt
    ```
 
 4. **Run the application:**
+
    ```
    python run.py
    ```
@@ -49,7 +53,7 @@ restaurant-orders
 ## Usage
 
 - Access the application in your web browser at `http://127.0.0.1:5000`.
-- Use the interface to manage restaurant orders and menu items.
+- Use the interface to manage business sales and producs.
 
 ## Contributing
 

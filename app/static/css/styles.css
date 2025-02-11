@@ -1,88 +1,865 @@
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f9f9f9;
+/* Variables de Colores */
+:root {
+  /* Colores Principales */
+  --primary-color: #2c3e50;
+  /* Azul oscuro (color principal) */
+  --secondary-color: #ecf0f1;
+  /* Gris claro (color secundario) */
+  --accent-color: #007bff;
+  /* Azul brillante (enlaces, botones principales) */
+
+  /* Colores de Estado */
+  --success-color: #28a745;
+  /* Verde (éxito) */
+  --error-color: #dc3545;
+  /* Rojo (error) */
+  --warning-color: #ffc107;
+  /* Amarillo (advertencia) */
+  --info-color: #17a2b8;
+  /* Turquesa (información) */
+
+  /* Fondo y Texto */
+  --background-color: #f9f9f9;
+  /* Fondo claro */
+  --text-color: #333;
+  /* Color de texto principal */
+
+  --light-text-color: #bdc3c7;
+  /* Color de texto secundario */
+
+  /* Bordes y Sombras */
+  --border-color: #ddd;
+  /* Color de bordes */
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  /* Sombra suave */
 }
 
+/* Estilos Globales */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+a {
+  text-decoration: none;
+  color: var(--accent-color);
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Encabezado */
 header {
-  background-color: #333;
+  background-color: var(--primary-color);
   color: white;
   padding: 1rem;
   text-align: center;
+  box-shadow: var(--box-shadow);
+}
+
+header h1 {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+}
+
+header p {
+  font-size: 1rem;
+  color: var(--light-text-color);
+}
+
+nav {
+  margin-top: 1rem;
 }
 
 nav a {
   color: white;
   margin: 0 10px;
+  font-weight: bold;
+}
+
+nav a:hover {
   text-decoration: none;
+  color: var(--light-text-color);
 }
 
+/* Contenido Principal */
 main {
-  padding: 20px;
+  padding: 4rem;
+  /* Padding para separar el contenido del header y footer */
+  padding-bottom: 8rem;
+  /* Espacio adicional para el footer fijo */
+  max-width: 1200px;
+  /* Límite de ancho para pantallas grandes */
+  margin: 0 auto;
+  /* Centra el contenido horizontalmente */
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
+  /* Evita desbordamientos innecesarios */
+  min-height: calc(100vh - 100px);
+  /* Ajusta el contenido para dejar espacio al footer */
 }
 
+main h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--primary-color);
+}
+
+main p {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  color: var(--text-color);
+}
+
+/* Botones */
+.button {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  margin-right: 0.5rem;
+  /* Espaciado entre botones */
+}
+
+.button:hover {
+  background-color: #34495e;
+  /* Variación más oscura del color principal */
+  transform: scale(1.05);
+}
+
+.button-secondary {
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 1.5rem;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.button-secondary:hover {
+  background-color: var(--primary-color);
+  color: white;
+  transform: scale(1.05);
+}
+
+/* Tablas */
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 1rem;
+  margin: 1rem 0;
+  font-size: 0.9rem;
 }
 
-table,
-th,
-td {
-  border: 1px solid #ddd;
-}
-
-th,
-td {
-  padding: 8px;
+table th,
+table td {
+  padding: 0.8rem;
   text-align: left;
+  border-bottom: 1px solid var(--border-color);
 }
 
-th {
-  background-color: #f2f2f2;
+table th {
+  background-color: var(--primary-color);
+  color: white;
 }
 
-button,
+table tr:hover {
+  background-color: var(--secondary-color);
+}
+
+/* Mensajes Flash */
+.flash-messages {
+  margin-bottom: 1rem;
+}
+
+.flash-message {
+  padding: 0.8rem;
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.flash-message.success {
+  background-color: var(--success-color);
+  color: white;
+  border: 1px solid darken(var(--success-color), 10%);
+}
+
+.flash-message.error {
+  background-color: var(--error-color);
+  color: white;
+  border: 1px solid darken(var(--error-color), 10%);
+}
+
+.flash-message.warning {
+  background-color: var(--warning-color);
+  color: black;
+  border: 1px solid darken(var(--warning-color), 10%);
+}
+
+.flash-message.info {
+  background-color: var(--info-color);
+  color: white;
+  border: 1px solid darken(var(--info-color), 10%);
+}
+
+/* Pie de Página Fijo */
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  padding: 1rem;
+  background-color: var(--primary-color);
+  color: white;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+/* Hero Section */
+.hero {
+  text-align: center;
+  padding: 4rem 1rem;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  box-shadow: var(--box-shadow);
+}
+
+.hero h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.hero p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  color: #78b8c4;
+}
+
+.hero .button {
+  padding: 1rem 2rem;
+  font-size: 1rem;
+}
+
+/* Locales Grid */
+.business-grid,
+.business-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.business-card {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow);
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.business-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+}
+
+.business-card h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+}
+
+.business-card p {
+  font-size: 0.9rem;
+  color: var(--text-color);
+  margin-bottom: 1rem;
+}
+
+.business-logo {
+  max-width: 100px;
+  height: auto;
+  margin: 0 auto 1rem;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow);
+}
+
+/* Estilos Generales para Formularios */
+form {
+  margin: 0 auto;
+  /* Centra el formulario horizontalmente */
+  padding: 2rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow);
+  /* Sombra suave para destacar el formulario */
+}
+
+fieldset {
+  border: none;
+  /* Elimina el borde predeterminado */
+  padding: 0;
+  margin: 0;
+}
+
+legend {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: var(--text-color);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+textarea,
+select {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--primary-color);
+  outline: none;
+  box-shadow: 0 0 4px rgba(44, 62, 80, 0.3);
+  /* Resalta el campo activo */
+}
+
+textarea {
+  resize: vertical;
+  /* Permite ajustar solo verticalmente */
+  min-height: 100px;
+}
+
+button[type="submit"],
 input[type="submit"] {
-  background-color: #28a745;
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary-color);
   color: white;
   border: none;
-  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+button[type="submit"]:hover,
+input[type="submit"]:hover {
+  background-color: #34495e;
+  /* Variación más oscura del color principal */
+  transform: scale(1.05);
+}
+
+button[type="reset"],
+input[type="reset"] {
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
+  border: 1px solid var(--border-color);
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+button[type="reset"]:hover,
+input[type="reset"]:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Mensajes de Validación */
+.error {
+  color: var(--error-color);
+  font-size: 0.9rem;
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+}
+
+.success {
+  color: var(--success-color);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+/* Campos Deshabilitados */
+input:disabled,
+textarea:disabled,
+select:disabled {
+  background-color: var(--secondary-color);
+  color: var(--light-text-color);
+  cursor: not-allowed;
+}
+
+/* Checkbox y Radio Buttons */
+input[type="checkbox"],
+input[type="radio"] {
+  margin-right: 0.5rem;
+}
+
+/* Botones de Archivo */
+input[type="file"] {
+  margin-bottom: 1rem;
+}
+
+/* Estilos para el Campo de Archivo */
+.file-input-container {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.file-input-container input[type="file"] {
+  opacity: 0;
+  /* Oculta el campo de archivo predeterminado */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   cursor: pointer;
 }
 
-button:hover,
-input[type="submit"]:hover {
-  background-color: #218838;
+.file-input-container .custom-file-button {
+  display: inline-block;
+  color: var(--primary-color);
+  padding: 0.3rem 0.75rem;
+  background-color: var(--secondary-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
-.summary {
-  margin-bottom: 20px;
-  font-size: 1.2em;
-  color: #333;
+.file-input-container .custom-file-button:hover {
+  background-color: #34495e;
+  /* Variación más oscura del color principal */
+  transform: scale(1.05);
 }
 
-.chart img {
-  max-width: 100%;
-  height: auto;
-  margin-top: 10px;
+.file-input-container .file-name {
+  margin-left: 1rem;
+  font-size: 1rem;
+  color: var(--text-color);
 }
 
-.monthly-totals table {
+/* Estilos para Formulario en Línea */
+.form-inline {
+  display: flex;
+  gap: 0.5rem;
+  /* Espaciado entre los elementos */
+  margin-bottom: 1rem;
+  margin: 0;
+}
+
+.form-inline label {
+  flex: 0 0 auto;
+  /* Etiquetas tienen un ancho fijo */
+  margin-right: 0.5rem;
+  font-weight: bold;
+  color: var(--text-color);
+}
+
+.form-inline input[type="text"],
+.form-inline input[type="email"],
+.form-inline input[type="password"],
+.form-inline input[type="number"],
+.form-inline textarea,
+.form-inline select,
+.form-inline .file-input-container {
+  flex: 1 1 auto;
+  /* Campos ocupan el espacio restante */
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-inline button {
+  flex: 0 0 auto;
+  /* Botones tienen un ancho fijo */
+  padding: 0.5rem 1rem;
+}
+
+.form-inline .file-input-container {
+  flex: 1 1 auto;
+  /* Campos ocupan el espacio restante */
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.file-input-container input[type="file"] {
+  opacity: 0;
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.file-input-container .custom-file-button {
+  padding: 0.3rem 0.5rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background-color 0.3s ease;
+}
+
+.file-input-container .custom-file-button:hover {
+  background-color: #34495e;
+}
+
+.file-input-container .file-name {
+  font-size: 0.8rem;
+  color: var(--text-color);
+}
+
+/* Estilos Generales */
+.dashboard-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboard-title {
+  font-size: 1.8rem;
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+}
+
+/* Tarjetas de Resumen */
+.summary-card {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow);
+  text-align: center;
+  margin-bottom: 1.5rem;
+  transition: transform 0.3s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-5px);
+}
+
+.summary-card h3 {
+  font-size: 1.2rem;
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+}
+
+.summary-card p {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--accent-color);
+}
+
+/* Tabla de Desempeño Mensual */
+.monthly-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
+  margin-top: 2rem;
 }
 
-.monthly-totals th,
-.monthly-totals td {
-  border: 1px solid #ddd;
-  padding: 8px;
+.monthly-table th,
+.monthly-table td {
+  padding: 0.8rem;
   text-align: left;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.monthly-totals th {
-  background-color: #f2f2f2;
+.monthly-table th {
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: bold;
+}
+
+.monthly-table tr:hover {
+  background-color: var(--secondary-color);
+}
+
+/* Botones */
+.dashboard-button {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  margin-right: 0.5rem;
+}
+
+.dashboard-button:hover {
+  background-color: #34495e;
+  transform: scale(1.05);
+}
+
+.dashboard-button-secondary {
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
+  border: 1px solid var(--border-color);
+}
+
+.dashboard-button-secondary:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Estilos Generales */
+.business-detail-container {
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.business-title {
+  font-size: 2rem;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.business-logo {
+  max-width: 150px;
+  height: auto;
+  margin: 0 auto 1rem;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow);
+  display: block;
+}
+
+.business-description {
+  font-size: 1rem;
+  color: var(--text-color);
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+/* Botones */
+.business-button {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  margin-right: 0.5rem;
+}
+
+.business-button:hover {
+  background-color: #34495e;
+  transform: scale(1.05);
+}
+
+.business-button-secondary {
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
+  border: 1px solid var(--border-color);
+}
+
+.business-button-secondary:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Formulario */
+.business-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.business-form label {
+  font-weight: bold;
+  color: var(--text-color);
+}
+
+.business-form input[type="text"],
+.business-form textarea,
+.business-form .file-input-container {
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.business-form input[type="text"]:focus,
+.business-form textarea:focus {
+  border-color: var(--primary-color);
+  outline: none;
+  box-shadow: 0 0 4px rgba(44, 62, 80, 0.3);
+}
+
+.file-input-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.file-input-container input[type="file"] {
+  opacity: 0;
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.file-input-container .custom-file-button {
+  padding: 0.5rem 1rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.file-input-container .custom-file-button:hover {
+  background-color: #34495e;
+}
+
+.file-input-container .file-name {
+  font-size: 1rem;
+  color: var(--text-color);
+}
+
+@media (max-width: 768px) {
+  .form-inline {
+    flex-direction: column;
+    /* Apila los elementos verticalmente en pantallas pequeñas */
+    gap: 0.5rem;
+  }
+
+  .form-inline label {
+    margin-bottom: 0.25rem;
+  }
+
+  .form-inline input[type="text"],
+  .form-inline input[type="email"],
+  .form-inline input[type="password"],
+  .form-inline input[type="number"],
+  .form-inline textarea,
+  .form-inline select,
+  .form-inline .file-input-container {
+    width: 100%;
+    /* Ocupa todo el ancho disponible */
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  form {
+    padding: 1rem;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  textarea,
+  select {
+    font-size: 0.9rem;
+  }
+
+  button[type="submit"],
+  button[type="reset"] {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  header h1 {
+    font-size: 1.5rem;
+  }
+
+  table {
+    font-size: 0.8rem;
+  }
+
+  .button {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+
+  .hero h1 {
+    font-size: 1.5rem;
+  }
+
+  .hero p {
+    font-size: 1rem;
+  }
+
+  .business-grid,
+  .business-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  main {
+    padding: 2rem;
+    padding-bottom: 6rem;
+  }
+
+  .business-card {
+    padding: 1rem;
+  }
+
+  .business-logo {
+    max-width: 80px;
+  }
 }

@@ -1,34 +1,25 @@
-{% extends "base.html" %} {% block content %}
-<h2>Resumen de Ventas</h2>
-
-<!-- Resumen General -->
-<div class="summary">
-  <p><strong>Total General:</strong> ${{ "%.2f"|format(total_general) }}</p>
-</div>
-
-<!-- Gráfica de Desempeño Mensual -->
-<div class="chart">
-  <h3>Desempeño Mensual</h3>
-  <img
-    src="{{ url_for('static', filename='chart.png') }}"
-    alt="Gráfica de Desempeño Mensual"
-  />
-</div>
-
-<!-- Tabla de Totales Mensuales -->
-<div class="monthly-totals">
-  <h3>Totales por Mes</h3>
-  <table>
-    <tr>
-      <th>Mes</th>
-      <th>Total</th>
-    </tr>
-    {% for month, total in monthly_totals.items() %}
-    <tr>
-      <td>{{ month }}</td>
-      <td>${{ "%.2f"|format(total) }}</td>
-    </tr>
-    {% endfor %}
-  </table>
-</div>
-{% endblock %}
+{% extends "base.html" %}
+{% block content %}
+  <div class="hero">
+    <h1>Sistema para el Control de Ventas de los Negocios</h1>
+    <p>Gestiona los Negocios, Ventas y Productos de manera eficiente.</p>
+    <a href="{{ url_for('main.businesses') }}" class="button">Gestionar Negocio</a>
+  </div>
+  <!-- Listado de Negocios -->
+  <h2>Negocios Disponibles</h2>
+  {% if businesses %}
+    <div class="business-grid">
+      {% for business in businesses %}
+        <div class="business-card">
+          <h3>{{ business.name }}</h3>
+          <p>{{ business.description or "Sin descripción" }}</p>
+          <a href="{{ url_for('main.business_dashboard', business_id=business.id) }}"
+             class="button-secondary">Dashboard</a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No hay Negocios registrados. Por favor, agrega un negocio.</p>
+    <a href="{{ url_for('main.businesses') }}" class="button">Agregar Nuevo Negocio</a>
+  {% endif %}
+{% endblock content %}

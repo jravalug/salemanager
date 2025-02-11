@@ -1,39 +1,63 @@
 from . import db  # Importar la instancia de db desde __init__.py
 
-class Location(db.Model):
+
+class Business(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False, unique=True)  # Nombre del local
-    description = db.Column(db.String(255))  # Descripción opcional del local
+    name = db.Column(db.String(100), nullable=False, unique=True)  # Nombre del negocio
+    description = db.Column(db.String(255))  # Descripción opcional del negocio
+    logo = db.Column(db.String(255))  # Ruta del archivo del logo
+    products = db.relationship(
+        "Product", backref="business", lazy=True
+    )  # Relacion de Productos
+    sales = db.relationship("Sale", backref="business", lazy=True)  # Relacion de Ventas
 
-    # Relaciones
-    items = db.relationship('Item', backref='location', lazy=True)
-    orders = db.relationship('Order', backref='location', lazy=True)
 
-class Item(db.Model):
+class Sale(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sale_number = db.Column(db.Integer, nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    business_id = db.Column(
+        db.Integer, db.ForeignKey("business.id"), nullable=False
+    )  # Asociación con el negocio
+    products = db.relationship("SaleProduct", back_populates="sale")
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "business_id",
+            "sale_number",
+            "year",
+            name="unique_sale_per_business_per_year",
+        ),
+    )
+
+    def __repr__(self):
+        return f"Sale #{self.sale_number} - Business: {self.business.name} - Year: {self.year} - Date: {self.date}"
+
+
+class SaleProduct(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sale_id = db.Column(db.Integer, db.ForeignKey("sale.id"), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey("product.id"), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    product = db.relationship("Product", back_populates="sale_products")
+    sale = db.relationship("Sale", back_populates="products")
+
+
+class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     price = db.Column(db.Float, nullable=False)
-    location_id = db.Column(db.Integer, db.ForeignKey('location.id'), nullable=False)  # Asociación con el local
+    business_id = db.Column(
+        db.Integer, db.ForeignKey("business.id"), nullable=False
+    )  # Asociación con el negocio
+    sale_products = db.relationship("SaleProduct", back_populates="product")
 
-class Order(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    order_number = db.Column(db.String(50), unique=True, nullable=False)
-    date = db.Column(db.Date, nullable=False)
-    location_id = db.Column(db.Integer, db.ForeignKey('location.id'), nullable=False)  # Asociación con el local
 
-class OrderItem(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
-    item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=False)
-    quantity = db.Column(db.Integer, nullable=False)
-
-    order = db.relationship('Order', backref=db.backref('items', lazy=True))
-    item = db.relationship('Item', backref=db.backref('orders', lazy=True))
-
-# Función para cargar datos iniciales
-def load_initial_data():
-    """Carga los items iniciales en la base de datos si no existen."""
-    initial_items = [
+# Función para cargar datos iniciales de arquitecto
+def load_initial_data_arquitecto():
+    """Carga los productos iniciales en la base de datos si no existen."""
+    initial_products = [
         {"name": "AGUA", "price": 200.00},
         {"name": "ALBONDIGAS DE CERDO", "price": 1500.00},
         {"name": "ARROZ BLANCO", "price": 300.00},
@@ -92,9 +116,107 @@ def load_initial_data():
         {"name": "TOSTON RELLENO JQ", "price": 450.00},
     ]
 
-    for item_data in initial_items:
-        item = Item.query.filter_by(name=item_data["name"]).first()
-        if not item:
-            new_item = Item(name=item_data["name"], price=item_data["price"])
-            db.session.add(new_item)
+    business = Business.query.filter_by(name="La Casa del Arquitecto").first()
+    if not business:
+        business = Business(
+            name="La Casa del Arquitecto",
+            description="Restaurante la Casa del Arquitecto",
+        )
+        db.session.add(business)
+        db.session.commit()
+
+    for product_data in initial_products:
+        product = Product.query.filter_by(
+            name=product_data["name"], business_id=1
+        ).first()
+        if not product:
+            new_product = Product(
+                name=product_data["name"],
+                price=product_data["price"],
+                business_id=business.id,
+            )
+            db.session.add(new_product)
+    db.session.commit()
+
+
+# Función para cargar datos iniciales de solar
+def load_initial_data_solar():
+    """Carga los productos iniciales en la base de datos si no existen."""
+    initial_products = [
+        {"name": "AGREGO CEBOLLA", "price": 350.00},
+        {"name": "AGREGO LIMON", "price": 200.00},
+        {"name": "AGUA", "price": 250.00},
+        {"name": "AJIACO CAMAGÜEYANO", "price": 150.00},
+        {"name": "ARROZ FRITO", "price": 405.00},
+        {"name": "ARROZ BLANCO", "price": 125.00},
+        {"name": "ARROZ CON POLLO", "price": 440.00},
+        {"name": "ARROZ IMPERIAL", "price": 950.00},
+        {"name": "ARROZ MOROS Y CRISTIANO", "price": 165.00},
+        {"name": "BATIDO FRUTA BOMBBA", "price": 190.00},
+        {"name": "BATIDO MAMEY", "price": 190.00},
+        {"name": "BISTEC DE CERDO GRILLET", "price": 975.00},
+        {"name": "BISTEC DE CERDO URUGUAYO", "price": 1350.00},
+        {"name": "BISTEC DE POLLO GRILLET", "price": 975.00},
+        {"name": "BISTEC DE RES", "price": 850.00},
+        {"name": "BONIATO FRITO", "price": 500.00},
+        {"name": "CAFÉ EXPRESO", "price": 100.00},
+        {"name": "CERVEZA", "price": 300.00},
+        {"name": "CHICHARRITAS", "price": 500.00},
+        {"name": "CHILINDRON DE CARNERO", "price": 1095.00},
+        {"name": "ENSALADA MIXTA", "price": 350.00},
+        {"name": "ENSALADA TOMATE", "price": 500.00},
+        {"name": "FILETE DE PESCADO", "price": 975.00},
+        {"name": "FRIJOLES NEGROS", "price": 500.00},
+        {"name": "FUFU DE PLATANO", "price": 250.00},
+        {"name": "JABA", "price": 10.00},
+        {"name": "JUGO CAJA", "price": 300.00},
+        {"name": "JUGO FRUTA BOMBA", "price": 155.00},
+        {"name": "JUGO GUALLABA", "price": 155.00},
+        {"name": "JUGO MAMEY", "price": 155.00},
+        {"name": "JUGO TOMATE", "price": 240.00},
+        {"name": "LIMONADA FRAPE", "price": 250.00},
+        {"name": "MALTA", "price": 300.00},
+        {"name": "MASA DE CERDO", "price": 975.00},
+        {"name": "MATA JIBARO", "price": 315.00},
+        {"name": "MICHELADA", "price": 540.00},
+        {"name": "PAELLA", "price": 1500.00},
+        {"name": "PAPA FRITAS", "price": 500.00},
+        {"name": "PASTA NATURAL (ESPAGUETI)", "price": 440.00},
+        {"name": "PESCADO FRITO", "price": 975.00},
+        {"name": "PIERNA DE CERDO AZADA", "price": 1625.00},
+        {"name": "PIÑA COLADA", "price": 250.00},
+        {"name": "PLATANO MADURO FRITO", "price": 500.00},
+        {"name": "POLLO FRITO", "price": 815.00},
+        {"name": "POLLO GORDONBLUE", "price": 1315.00},
+        {"name": "POZUELO", "price": 90.00},
+        {"name": "PUDIN", "price": 390.00},
+        {"name": "REFRESCO LATA", "price": 300.00},
+        {"name": "ROPA VIEJA", "price": 850.00},
+        {"name": "SOPA DE PESCADO", "price": 440.00},
+        {"name": "SOPA DE POLLO", "price": 440.00},
+        {"name": "SOPA DE VEGETALES", "price": 190.00},
+        {"name": "SPAG JAMÓN Y QUESO", "price": 575.00},
+        {"name": "TAMAL EN HOJAS", "price": 250.00},
+        {"name": "TOSTONES DE PLATANO VERDE", "price": 500.00},
+        {"name": "TOSTONES RELLENOS", "price": 475.00},
+        {"name": "YUCA CON MOJO", "price": 500.00},
+    ]
+
+    business = Business.query.filter_by(name="El Solar").first()
+    if not business:
+        business = Business(name="El Solar", description="Restaurante el Solar")
+        db.session.add(business)
+        db.session.commit()
+
+    for product_data in initial_products:
+        product = Product.query.filter_by(
+            name=product_data["name"], business_id=2
+        ).first()
+        if not product:
+            new_product = Product(
+                name=product_data["name"],
+                price=product_data["price"],
+                business_id=business.id,
+            )
+            db.session.add(new_product)
     db.session.commit()

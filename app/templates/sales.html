@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Gestión de Ventas - {{ business.name }}</h2>
+  <!-- Formulario para agregar una nueva venta -->
+  <form method="post"
+        action="{{ url_for('main.sales', business_id=business.id) }}">
+    <h3>Agregar Nuevo Productos</h3>
+    <form-group>
+      <label for="date">Fecha:</label>
+      <input type="date" id="date" name="date" required />
+    </form-group>
+    <button type="submit">Crear Producto</button>
+  </form>
+  <!-- Listado de Ventas agrupadas por mes -->
+  {% if sales_by_months %}
+    {% for month, sales_by_month in sales_by_months.items()
+      %}
+      <div class="month-section">
+        <h3>Mes: {{ month }}</h3>
+        <p>
+          <strong>Ingreso Total del Mes:</strong> ${{ "%.2f"|format(month_totals[month]) }}
+        </p>
+        <table>
+          <tr>
+            <th>Fecha</th>
+            <th>Cantidad de Productos Vendidos</th>
+            <th>Ingresos Totales</th>
+            <th>Ventas</th>
+          </tr>
+          {% for date, data in sales_by_month.items() %}
+            <tr>
+              <td>{{ date }}</td>
+              <td>{{ data.total_products }}</td>
+              <td>${{ "%.2f"|format(data.total_income) }}</td>
+              <td>
+                {% for sale in data.sales %}
+                  <a href="{{ url_for('main.sale_details', business_id=business.id, sale_id=sale.id) }}">[{{ sale.sale_number }}]</a>
+                {% endfor %}
+              </td>
+            </tr>
+          {% endfor %}
+        </table>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>No hay ventas registradas.</p>
+  {% endif %}
+  <a href="{{ url_for('main.business_dashboard', business_id=business.id) }}">Regresar al Dashboard</a>
+{% endblock content %}

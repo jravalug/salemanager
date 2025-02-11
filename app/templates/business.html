@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Listado de Negocios</h2>
+  <!-- Formulario para Crear un Nuevo Negocio -->
+  <form method="post" enctype="multipart/form-data">
+    <script>
+    function updateFileName(input) {
+      const fileNameElement = document.getElementById("file-name");
+      if (input.files.length > 0) {
+        fileNameElement.textContent = input.files[0].name;
+      } else {
+        fileNameElement.textContent = "Ningún archivo seleccionado";
+      }
+    }
+    </script>
+    {{ form.hidden_tag() }}
+    <!-- Incluir token CSRF -->
+    <div class="form-inline">
+      <div>
+        {{ form.name.label }} {{ form.name(size=32, placeholder="Nombre") }} {%
+        for error in form.name.errors %}
+        <span class="error">{{ error }}</span>
+      {% endfor %}
+    </div>
+    <div>
+      {{ form.description.label }} {{ form.description(cols=40, rows=1,
+       placeholder="Descripción") }}
+      {% for error in form.description.errors %}<span class="error">{{ error }}</span>{% endfor %}
+    </div>
+    <div>
+      {{ form.logo.label }}
+      <div class="file-input-container">
+        {{ form.logo(id="logo", onchange="updateFileName(this)") }}
+        <label for="logo" class="custom-file-button">Seleccionar Archivo</label>
+        <span class="file-name" id="file-name">Ningún archivo seleccionado</span>
+      </div>
+      {% for error in form.logo.errors %}<span class="error">{{ error }}</span>{% endfor %}
+    </div>
+  </div>
+  <button type="submit" class="button">Agregar Negocio</button>
+</form>
+<!-- Listado de Negocios -->
+{% if businesses %}
+  <div class="business-list">
+    {% for business in businesses %}
+      <div class="business-card">
+        <h3>{{ business.name }}</h3>
+        <p>{{ business.description or "Sin descripción" }}</p>
+        {% if business.logo %}
+          <div>
+            <img src="{{ url_for('static', filename=business.logo) }}"
+                 alt="Logo de {{ business.name }}"
+                 class="business-logo"
+                 width="300"
+                 height="300" />
+          </div>
+        {% endif %}
+        <a href="{{ url_for('main.business_dashboard', business_id=business.id) }}"
+           class="button-secondary">Dashboard</a>
+        <a href="{{ url_for('main.business_detail_or_edit', business_id=business.id) }}"
+           class="button-secondary">Detalles</a>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p>No hay negocios registrados. Por favor, agrega uno.</p>
+{% endif %}
+{% endblock content %}

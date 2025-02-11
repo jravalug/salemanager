@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Detalles de la Venta #{{ sale.sale_number }}</h2>
+  <!-- Información de la Venta -->
+  <p>
+    <strong>Fecha:</strong> {{ sale.date.strftime("%Y-%m-%d") }}
+  </p>
+  <p>
+    <strong>Total General:</strong> ${{ "%.2f"|format(total) }}
+  </p>
+  <!-- Listado de products en la venta -->
+  <h3>Productos en la Venta</h3>
+  <table>
+    <tr>
+      <th>Nombre</th>
+      <th>Precio Unitario</th>
+      <th>Cantidad</th>
+      <th>Total</th>
+    </tr>
+    {% for sale_product in sale.products %}
+      <tr>
+        <td>{{ sale_product.product.name }}</td>
+        <td>${{ "%.2f"|format(sale_product.product.price) }}</td>
+        <td>{{ sale_product.quantity }}</td>
+        <td>${{ "%.2f"|format(sale_product.product.price * sale_product.quantity) }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+  <!-- Botón para agregar más products -->
+  <a href="{{ url_for('main.add_sale_products', business_id=business.id, sale_id=sale.id) }}">Agregar Más products</a>
+{% endblock content %}
