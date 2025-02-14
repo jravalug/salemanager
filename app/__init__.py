@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from config import Config
 from datetime import datetime
@@ -11,6 +11,10 @@ db = SQLAlchemy()
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+
+    @app.route("/node_modules/<path:filename>")
+    def node_modules(filename):
+        return send_from_directory("../node_modules", filename)
 
     # Filtro personalizado para formatear moneda
 
@@ -38,9 +42,9 @@ def create_app():
     with app.app_context():
         db.create_all()  # Crea las tablas en la base de datos
         # Importar load_initial_data dentro del contexto para evitar circular imports
-        from .models import load_initial_data_arquitecto, load_initial_data_solar
+        # from .models import load_initial_data_arquitecto, load_initial_data_solar
 
-        load_initial_data_arquitecto()
-        load_initial_data_solar()
+        # load_initial_data_arquitecto()
+        # load_initial_data_solar()
 
     return app
