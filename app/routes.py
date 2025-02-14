@@ -34,13 +34,13 @@ logging.basicConfig(level=logging.DEBUG)
 @bp.route("/")
 def index():
     # Esta función muestra la lista de negocios en la página principal
-    businesses = Business.query.all()
+    business_list = Business.query.all()
     # Realiza una consulta a todos los registros de negocios en la base de datos
-    return render_template("index.html", businesses=businesses)
+    return render_template("index.html", business_list=business_list)
 
 
-@bp.route("/business", methods=["GET", "POST"])
-def businesses():
+@bp.route("/business_list", methods=["GET", "POST"])
+def business_list():
     # Inicializar el formulario para la entrada de datos
     form = BusinessForm()
 
@@ -70,11 +70,11 @@ def businesses():
         db.session.commit()
 
         flash("Negocio agregado correctamente", "success")
-        return redirect(url_for("main.businesses"))
+        return redirect(url_for("main.business_list"))
 
     # Si no hay validación o es una solicitud GET, mostrar la lista de negocios
     business_list = Business.query.all()
-    return render_template("business.html", businesses=business_list, form=form)
+    return render_template("business.html", business_list=business_list, form=form)
 
 
 @bp.route("/business/<int:business_id>", methods=["GET", "POST"])
@@ -105,6 +105,7 @@ def business_detail_or_edit(business_id):
                 logo_file.save(full_path)
                 business.logo = logo_path
 
+            form.populate_obj(business)
             # Guardar los cambios en la base de datos
             db.session.commit()
 
@@ -114,11 +115,13 @@ def business_detail_or_edit(business_id):
             )
 
         return render_template(
-            "business_detail_or_edit.html", business=business, form=form, edit=edit
+            "business_detail_or_edit.html", business=business, form=form, edit=True
         )
 
     # Si no estamos en modo "editar", mostrar los detalles
-    return render_template("business_detail_or_edit.html", business=business, edit=edit)
+    return render_template(
+        "business_detail_or_edit.html", business=business, edit=False
+    )
 
 
 @bp.route("/business/<int:business_id>/dashboard")
@@ -180,7 +183,9 @@ def products(business_id):
         flash("Producto agregado correctamente", "success")
         return redirect(url_for("main.products", business_id=business.id))
 
-    products_list = Product.query.filter_by(business_id=business.id).all()
+    products_list = (
+        Product.query.filter_by(business_id=business.id).order_by(Product.name).all()
+    )
     return render_template("products.html", business=business, products=products_list)
 
 
@@ -193,7 +198,7 @@ def update_product(business_id, product_id):
     product.price = float(request.form["price"])
     db.session.commit()
     flash("Producto actualizado correctamente", "success")
-    return redirect(url_for("main.products", business=business))
+    return redirect(url_for("main.products", business_id=business.id))
 
 
 @bp.route("/business/<int:business_id>/sales", methods=["GET", "POST"])
