@@ -16,11 +16,15 @@
       href="{{ url_for('static', filename='css/styles.css') }}"
       rel="stylesheet"
     />
+    <!-- Style de Flowbite -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.css"
+      rel="stylesheet"
+    />
     <!-- Script de Flowbite -->
     <script src="/node_modules/flowbite/dist/flowbite.min.js" defer></script>
     {% block vendor_javascript %}
     {% endblock vendor_javascript %}
-    <script src="/node_modules/simple-datatables/dist/index.js" defer></script>
   </head>
   <body
     class="bg-gray-100 font-sans text-gray-800 dark:bg-gray-900 dark:text-white transition-colors duration-300"
