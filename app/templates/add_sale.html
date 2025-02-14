@@ -1,40 +1,133 @@
 {% extends "base.html" %}
+
 {% block content %}
-  <h2>Agregar Productos a la Venta #{{ sale.sale_number }}</h2>
-  <!-- Formulario para agregar un productos a las ventas -->
-  <form method="post"
-        action="{{ url_for('main.add_sale_products',business_id=business.id, sale_id=sale.id) }}">
-    <label for="product_id">Seleccionar Producto:</label>
-    <select id="product_id" name="product_id" required>
-      {% for product in products %}
-        <option value="{{ product.id }}">{{ product.name }} (${{ "%.2f"|format(product.price) }})</option>
-      {% endfor %}
-    </select>
-    <label for="quantity">Cantidad:</label>
-    <input type="number" id="quantity" name="quantity" min="1" required />
-    <button type="submit">Agregar Producto</button>
-  </form>
-  <!-- Listado de products ya agregados a la Venta -->
-  <h3>Productos Agregados</h3>
-  <p>
-    <strong>Total General:</strong> ${{ "%.2f"|format(total) }}
-  </p>
-  <table>
-    <tr>
-      <th>Nombre</th>
-      <th>Precio Unitario</th>
-      <th>Cantidad</th>
-      <th>Total</th>
-    </tr>
-    {% for sale_product in sale.products %}
-      <tr>
-        <td>{{ sale_product.product.name }}</td>
-        <td>${{ "%.2f"|format(sale_product.product.price) }}</td>
-        <td>{{ sale_product.quantity }}</td>
-        <td>${{ "%.2f"|format(sale_product.product.price * sale_product.quantity) }}</td>
-      </tr>
-    {% endfor %}
-  </table>
-  <!-- Botón para regresar al listado de órdenes -->
-  <a href="{{ url_for('main.sales', business_id=business.id) }}">Regresar al Listado de Ventas</a>
-{% endblock content %}
+  <!-- Hero Section -->
+  <section class="py-12">
+    <div class="container mx-auto px-4 text-center">
+      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
+        Agregar Productos del dia {{ sale.date }} a la Venta
+        #{{ sale.sale_number }}
+      </h1>
+      <p class="text-lg text-gray-600 dark:text-gray-300 mt-2">
+        Administra los productos de esta venta.
+      </p>
+    </div>
+  </section>
+
+  <!-- Formulario para Agregar un Producto a la Venta -->
+  <section class="bg-white py-12 dark:bg-gray-800">
+    <div class="container mx-auto px-4">
+      <h2
+        class="text-2xl font-bold text-gray-800 dark:text-white mb-6 text-center"
+      >
+        Agregar Producto
+      </h2>
+      <form
+        method="post"
+        action="{{ url_for('main.add_sale_products', business_id=business.id, sale_id=sale.id) }}"
+        class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md dark:bg-gray-700"
+      >
+        <!-- Campo Cantidad -->
+        <div class="mb-4">
+          <label
+            for="quantity"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Cantidad:</label
+          >
+          <input
+            type="number"
+            id="quantity"
+            name="quantity"
+            min="1"
+            autofocus
+            required
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          />
+        </div>
+        <!-- Campo Seleccionar Producto -->
+        <div class="mb-4">
+          <label
+            for="product_id"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Seleccionar Producto:</label
+          >
+          <select
+            id="product_id"
+            name="product_id"
+            required
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          >
+            {% for product in products %}
+              <option value="{{ product.id }}">
+                {{ product.name }} ({{ product.price | currency }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <!-- Botón de Envío -->
+        <button
+          type="submit"
+          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+        >
+          Agregar Producto
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Listado de Productos Agregados a la Venta -->
+  <section class="bg-gray-100 py-12 dark:bg-gray-800">
+    <div class="container mx-auto px-4">
+      <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">
+        Productos Agregados
+      </h3>
+      <p class="text-gray-600 dark:text-gray-300 mb-6">
+        <strong>Total General:</strong> {{ total | currency }}
+      </p>
+      <div class="overflow-x-auto relative">
+        <table
+          class="w-full text-sm text-left text-gray-500 dark:text-gray-400"
+        >
+          <thead
+            class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+          >
+            <tr>
+              <th scope="col" class="py-3 px-6">Nombre</th>
+              <th scope="col" class="py-3 px-6">Precio Unitario</th>
+              <th scope="col" class="py-3 px-6">Cantidad</th>
+              <th scope="col" class="py-3 px-6">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sale_product in sale.products %}
+              <tr
+                class="bg-white border-b dark:bg-gray-800 dark:border-gray-700"
+              >
+                <td class="py-4 px-6">{{ sale_product.product.name }}</td>
+                <td class="py-4 px-6">
+                  {{ sale_product.product.price | currency }}
+                </td>
+                <td class="py-4 px-6">{{ sale_product.quantity }}</td>
+                <td class="py-4 px-6">
+                  {{ (sale_product.product.price * sale_product.quantity) | currency }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Botón para Regresar al Listado de Ventas -->
+  <section class="bg-white py-6 dark:bg-gray-800">
+    <div class="container mx-auto px-4 text-center">
+      <a
+        href="{{ url_for('main.sales', business_id=business.id) }}"
+        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+      >
+        Regresar al Listado de Ventas
+      </a>
+    </div>
+  </section>
+{% endblock %}

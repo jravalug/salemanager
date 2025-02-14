@@ -1,44 +1,121 @@
-{% extends "base.html" %}
-{% block content %}
-  <div class="business-detail-container">
-    <h1 class="business-title">{{ business.name }}</h1>
-    <!-- Logo del Negocio -->
+{% extends "base.html" %} {% block content %}
+<div class="container mx-auto px-4 py-6">
+  <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
+    {{ business.name }}
+  </h1>
+  <!-- Logo del Negocio -->
+  <div class="flex justify-left mt-6 bg-">
     {% if business.logo %}
-      <img src="{{ url_for('static', filename=business.logo) }}"
-           alt="Logo de {{ business.name }}"
-           class="business-logo">
-    {% endif %}
-    <!-- Descripción del Negocio -->
-    <p class="business-description">Descripción: {{ business.description or "Sin descripción" }}</p>
-    {% if not edit %}
-      <!-- Modo Detalle -->
-      <div style="text-align: center;">
-        <a href="{{ url_for('main.business_dashboard', business_id=business.id) }}"
-           class="business-button">Dashboard</a>
-        <a href="{{ url_for('main.business_detail_or_edit', business_id=business.id, edit=True) }}"
-           class="business-button">Editar</a>
-      </div>
+    <img
+      src="{{ url_for('static', filename=business.logo) }}"
+      alt="{{ business.name }}"
+      class="w-48 h-48 object-cover rounded-lg te"
+      width="192"
+      height="192"
+    />
     {% else %}
-      <!-- Modo Edición -->
-      <form method="post" enctype="multipart/form-data" class="business-form">
-        {{ form.hidden_tag() }}
-        <label for="name">{{ form.name.label.text }}</label>
-        {{ form.name(size=32, placeholder="Nombre del Negocio") }}
-        {% for error in form.name.errors %}<span class="error">{{ error }}</span>{% endfor %}
-        <label for="description">{{ form.description.label.text }}</label>
-        {{ form.description(cols=40, rows=3, placeholder="Descripción") }}
-        {% for error in form.description.errors %}<span class="error">{{ error }}</span>{% endfor %}
-        <label for="logo">{{ form.logo.label.text }}</label>
-        <div class="file-input-container">
-          {{ form.logo(id="logo", onchange="updateFileName(this)") }}
-          <label for="logo" class="custom-file-button">Seleccionar Archivo</label>
-          <span class="file-name" id="file-name">Ningún archivo seleccionado</span>
-        </div>
-        {% for error in form.logo.errors %}<span class="error">{{ error }}</span>{% endfor %}
-        <button type="submit" class="business-button">Actualizar Negocio</button>
-        <a href="{{ url_for('main.business_detail_or_edit', business_id=business.id) }}"
-           class="business-button-secondary">Regresar a los Detalles</a>
-      </form>
+    <div
+      class="w-48 h-48 bg-gray-200 flex items-center justify-center rounded-lg dark:bg-gray-600"
+    >
+      <span class="text-gray-500 dark:text-gray-300">Sin logo</span>
+    </div>
     {% endif %}
   </div>
+  <p class="text-gray-600 dark:text-gray-300 bg-">
+    Descripción: {{ business.description or "Sin descripción" }}
+  </p>
+  <!-- Botones de Acción -->
+
+  {% if not edit %}
+  <div class="flex space-x-4 mt-6">
+    <a
+      href="{{ url_for('main.business_dashboard', business_id=business.id) }}"
+      class="text-blue-500 hover:underline dark:text-blue-400"
+      >Dashboard</a
+    >
+    <a
+      href="{{ url_for('main.business_detail_or_edit', business_id=business.id, edit=True) }}"
+      class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+    >
+      Editar
+    </a>
+  </div>
+  {% else %}
+  <!-- Formulario de Edición -->
+  <form method="post" enctype="multipart/form-data" class="mt-6">
+    {{ form.hidden_tag() }}
+    <!-- Campo Nombre -->
+    <div class="mb-4">
+      <label
+        for="{{ form.name.id }}"
+        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+        >{{ form.name.label }}</label
+      >
+      {{ form.name(class="bg-gray-50 border border-gray-300 text-gray-900
+      text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full
+      p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400
+      dark:text-white") }} {% for error in form.name.errors %}
+      <p class="text-red-500 text-sm">{{ error }}</p>
+      {% endfor %}
+    </div>
+    <!-- Campo Descripción -->
+    <div class="mb-4">
+      <label
+        for="{{ form.description.id }}"
+        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+      >
+        {{ form.description.label }}
+      </label>
+      {{ form.description(class="bg-gray-50 border border-gray-300 text-gray-900
+      text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full
+      p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400
+      dark:text-white") }} {% for error in form.description.errors %}
+      <p class="text-red-500 text-sm">{{ error }}</p>
+      {% endfor %}
+    </div>
+    <!-- Campo Logo -->
+    <div class="mb-4">
+      <label
+        for="{{ form.logo.id }}"
+        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+        >{{ form.logo.label }}</label
+      >
+      <input
+        type="file"
+        id="{{ form.logo.id }}"
+        name="{{ form.logo.name }}"
+        onchange="updateFileName(this)"
+        class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+      />
+      <span class="text-gray-500 text-sm">Ningún archivo seleccionado</span>
+      {% for error in form.logo.errors %}
+      <p class="text-red-500 text-sm">{{ error }}</p>
+      {% endfor %}
+    </div>
+    <!-- Botón de Envío -->
+    <button
+      type="submit"
+      class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+    >
+      Actualizar Negocio
+    </button>
+    <!-- Botón para Regresar -->
+    <a
+      href="{{ url_for('main.business_detail_or_edit', business_id=business.id) }}"
+      class="ml-4 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100"
+    >
+      Regresar a los Detalles del Negocio
+    </a>
+  </form>
+  {% endif %}
+</div>
+<!-- Script para Actualizar el Nombre del Archivo -->
+<script>
+  function updateFileName(input) {
+    const fileNameSpan = input.nextElementSibling;
+    fileNameSpan.textContent = input.files[0]
+      ? input.files[0].name
+      : "Ningún archivo seleccionado";
+  }
+</script>
 {% endblock content %}

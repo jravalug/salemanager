@@ -1,66 +1,94 @@
 {% extends "base.html" %}
+
 {% block content %}
-    <div class="report-container">
-        <h2>Reporte Mensual de Ventas - {{ business.name }}</h2>
-        <!-- Formulario para seleccionar el mes -->
-        <form method="post" class="mb-4">
-            <label for="month">Seleccionar Mes:</label>
-            <input type="month"
-                   id="month"
-                   name="month"
-                   value="{{ selected_month.strftime('%Y-%m') if selected_month else '' }}"
-                   required>
-            <button type="submit" class="btn btn-primary">Generar Reporte</button>
+<!-- Hero Section -->
+<section class="py-12">
+  <div class="container mx-auto px-4 text-center">
+    <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Reporte Mensual de Ventas - {{ business.name }}</h1>
+    <p class="text-lg text-gray-600 dark:text-gray-300 mt-2">Genera reportes mensuales detallados de tus ventas.</p>
+  </div>
+</section>
+
+<!-- Formulario para Seleccionar el Mes -->
+<section class="bg-white py-12 dark:bg-gray-800">
+  <div class="container mx-auto px-4">
+    <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">Seleccionar Mes</h2>
+    <form method="post" class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md dark:bg-gray-700">
+      <!-- Campo Mes -->
+      <div class="mb-4">
+        <label for="month" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Seleccionar Mes:</label>
+        <input type="month"
+               id="month"
+               name="month"
+               value="{{ selected_month.strftime('%Y-%m') if selected_month else '' }}"
+               required
+               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+      </div>
+      <!-- Botón de Envío -->
+      <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+        Generar Reporte
+      </button>
+    </form>
+  </div>
+</section>
+
+<!-- Resultados del Reporte -->
+<section class="bg-gray-100 py-12 dark:bg-gray-800">
+  <div class="container mx-auto px-4">
+    {% if daily_sales %}
+      <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">Resultados para {{ selected_month.strftime("%B %Y") }}</h3>
+      
+      <!-- Botones para Exportar a Excel -->
+      <div class="flex space-x-4 mb-6">
+        <form action="{{ url_for('main.export_to_excel_sales_by_day', business_id=business.id) }}" method="post">
+          <input type="hidden" name="daily_sales_export" value="{{ daily_sales_json }}">
+          <button type="submit" class="text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+            Exportar a Excel (Ventas Diarias)
+          </button>
         </form>
-        {% if daily_sales %}
-            <h3>Resultados para {{ selected_month.strftime("%B %Y") }}</h3>
-            <!-- Botón para exportar a Excel por Dia -->
-            <form action="{{ url_for('main.export_to_excel_sales_by_day', business_id=business.id) }}"
-                  method="post">
-                <input type="hidden"
-                       name="daily_sales_export"
-                       value="{{ daily_sales_json }}">
-                <button type="submit" class="btn btn-success">Exportar a Excel Ventas Diarias</button>
-            </form>
-            <!-- Botón para exportar a Excel por Producto -->
-            <form action="{{ url_for('main.export_to_excel_sales_by_product', business_id=business.id) }}"
-                  method="post">
-                <input type="hidden"
-                       name="daily_sales_export"
-                       value="{{ daily_sales_json }}">
-                <button type="submit" class="btn btn-success">Exportar a Excel Ventas por Producto</button>
-            </form>
-            {% for day in daily_sales %}
-                <div class="day-report">
-                    <h4>{{ day.date }}</h4>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Producto</th>
-                                <th>Cantidad: {{ day.total_products }}</th>
-                                <th>Importe Total : {{ day.total_income | currency }}</th>
-                                <th>ordenes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for product in day.products %}
-                                <tr>
-                                    <td>{{ product.name }}</td>
-                                    <td>{{ product.quantity }}</td>
-                                    <td>{{ product.total_amount | currency }}</td>
-                                    <td>
-                                        {% for sale_id, sale_number in product.orders %}
-                                            <a href="{{ url_for('main.sale_details', business_id=business.id, sale_id=sale_id) }}">[{{ sale_number }}]</a>
-                                        {% endfor %}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% endfor %}
-        {% else %}
-            <p>No hay datos disponibles para este mes.</p>
-        {% endif %}
-    </div>
-{% endblock content %}
+        <form action="{{ url_for('main.export_to_excel_sales_by_product', business_id=business.id) }}" method="post">
+          <input type="hidden" name="daily_sales_export" value="{{ daily_sales_json }}">
+          <button type="submit" class="text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+            Exportar a Excel (Ventas por Producto)
+          </button>
+        </form>
+      </div>
+
+      <!-- Listado de Ventas por Día -->
+      {% for day in daily_sales %}
+        <div class="day-report mb-8">
+          <h4 class="text-xl font-bold text-gray-800 dark:text-white">{{ day.date }}</h4>
+          <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+              <tr>
+                <th scope="col" class="py-3 px-6">Producto</th>
+                <th scope="col" class="py-3 px-6">Cantidad: {{ day.total_products }}</th>
+                <th scope="col" class="py-3 px-6">Importe Total: ${{ "%.2f"|format(day.total_income) }}</th>
+                <th scope="col" class="py-3 px-6">Órdenes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for product in day.products %}
+                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                  <td class="py-4 px-6">{{ product.name }}</td>
+                  <td class="py-4 px-6">{{ product.quantity }}</td>
+                  <td class="py-4 px-6">${{ "%.2f"|format(product.total_amount) }}</td>
+                  <td class="py-4 px-6">
+                    {% for sale_id, sale_number in product.orders %}
+                      <a href="{{ url_for('main.sale_details', business_id=business.id, sale_id=sale_id) }}" class="text-blue-500 hover:underline dark:text-blue-400">[{{ sale_number }}]</a>
+                    {% endfor %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="text-center text-gray-600 dark:text-gray-300">
+        <p>No hay datos disponibles para este mes.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

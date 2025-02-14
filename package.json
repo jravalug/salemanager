@@ -1,0 +1,28 @@
+{
+  "name": "salemanager",
+  "version": "1.0.0",
+  "description": "This project is a Flask application designed to manage business sales efficiently. It allows users to create, view, and update sales, as well as manage products.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jravalug/salemanager.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jravalug/salemanager/issues"
+  },
+  "homepage": "https://github.com/jravalug/salemanager#readme",
+  "devDependencies": {
+    "prettier-plugin-jinja-template": "^2.0.0",
+    "tailwindcss": "^3.4.17"
+  },
+  "dependencies": {
+    "flowbite": "^3.1.2",
+    "simple-datatables": "^10.0.0"
+  }
+}

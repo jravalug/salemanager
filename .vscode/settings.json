@@ -1,19 +1,15 @@
 {
-  "files.autoSave": "onFocusChange",
-  "files.associations": {
-    ".env*": "dotenv",
-    "*.tailwind.css": "tailwindcss",
-    "*.jinja": "jinja",
-    "*.jinja2": "jinja",
-    "*.j2": "jinja",
-    "*.html.jinja": "jinja",
-    "*.html": "jinja-html"
-  },  
+  "editor.formatOnSave": true,
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter"
   },
-  "editor.formatOnSave": true,
-  "[html][django-html][handlebars][hbs][mustache][jinja][jinja-html][nj][njk][nunjucks][twig]": {
-  "editor.defaultFormatter": "monosans.djlint"
-}
+  "files.associations": {
+    "*.html": "jinja-html"
+  },
+  "tailwindCSS.includeLanguages": {
+    "jinja-html": "html"
+  },
+  "emmet.includeLanguages": {
+    "jinja-html": "html"
+  }
 }

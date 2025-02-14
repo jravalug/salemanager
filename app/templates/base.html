@@ -1,50 +1,145 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="keywords"
-              content="Inventory Management, Accounting Software, Business Solutions, Financial Applications, Data Analysis Tools" />
-        <meta name="description"
-              content="Bienvenido a su Sistema de Control de Ventas y Contabilidad." />
-        <meta name="keywords"
-              content="Inventory Management, Accounting Software, Business Solutions, Financial Applications, Data Analysis Tools" />
-        <title>Sistema de Control de Ventas y Contabilidad</title>
-        <link rel="stylesheet"
-              href="{{ url_for('static', filename='css/styles.css') }}" />
-    </head>
-    <body>
-        <header>
-            <h1>Control de Negocios</h1>
-            <p>Sistema de Gestión de Ventas y Contabilidad</p>
-            <nav>
-                <a href="{{ url_for('main.index') }}">Inicio</a>
-                {% if business %}
-                    <a href="{{ url_for('main.business_dashboard', business_id=business.id) }}">Dashboard</a>
-                    <a href="{{ url_for('main.sales', business_id=business.id) }}">Ventas</a>
-                    <a href="{{ url_for('main.products', business_id=business.id) }}">Productos</a>
-                {% else %}
-                    <a href="{{ url_for('main.businesses') }}">Negocios</a>
-                {% endif %}
-            </nav>
-        </header>
-        <main>
-            <!-- Mensajes Flash -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <div class="flash-messages">
-                        {% for category, message in messages %}<div class="flash-message {{ category }}">{{ message }}</div>{% endfor %}
-                    </div>
-                {% endif %}
-            {% endwith %}
-            <!-- Contenido Principal -->
-            {% block content %}
-            {% endblock content %}
-        </main>
-        <footer>
-            <p>
-                © {{ now().year }} Sistema de Control de Ventas y
-                Contabilidad
-            </p>
-        </footer>
-    </body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {% block title %}
+        SALEManager | Gestión Integral
+      {% endblock title %}
+    </title>
+    <!-- Enlazar el archivo CSS compilado de Tailwind -->
+    <link
+      href="{{ url_for('static', filename='css/styles.css') }}"
+      rel="stylesheet"
+    />
+    <!-- Script de Flowbite -->
+    <script src="/node_modules/flowbite/dist/flowbite.min.js" defer></script>
+    <script src="/node_modules/simple-datatables/dist/index.js" defer></script>
+  </head>
+  <body
+    class="bg-gray-100 font-sans text-gray-800 dark:bg-gray-900 dark:text-white transition-colors duration-300"
+  >
+    <!-- Barra de navegación fija -->
+    <header
+      class="bg-white shadow-md fixed top-0 left-0 right-0 z-50 dark:bg-gray-800"
+    >
+      <div
+        class="container mx-auto px-4 py-3 flex justify-between items-center"
+      >
+        <h1 class="text-xl font-bold text-gray-800 dark:text-white">
+          <a href="{{ url_for('main.index') }}" class="">SALEManager</a>
+        </h1>
+        <nav class="flex items-center space-x-4">
+          <!-- Menú principal -->
+          <ul class="flex space-x-4">
+            {% if business %}
+              <li>
+                <a
+                  href="{{ url_for('main.business_dashboard', business_id=business.id) }}"
+                  class="text-muted-foreground transition-colors hover:text-foreground"
+                  >Dashboard</a
+                >
+              </li>
+              <li>
+                <a
+                  href="{{ url_for('main.sales', business_id=business.id) }}"
+                  class="text-muted-foreground transition-colors hover:text-foreground"
+                  >Ventas</a
+                >
+              </li>
+              <li>
+                <a
+                  href="{{ url_for('main.products', business_id=business.id) }}"
+                  class="text-muted-foreground transition-colors hover:text-foreground"
+                  >Productos</a
+                >
+              </li>
+            {% else %}
+              <li>
+                <a
+                  href="{{ url_for('main.business_list') }}"
+                  class="text-foreground transition-colors hover:text-foreground"
+                  >Negocios</a
+                >
+              </li>
+            {% endif %}
+          </ul>
+          <!-- Botón para cambiar entre light mode y dark mode -->
+          <button
+            id="theme-toggle"
+            data-tooltip-target="tooltip-dark-mode"
+            type="button"
+            class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5"
+          >
+            <svg
+              id="theme-toggle-dark-icon"
+              class="hidden w-5 h-5"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
+              ></path>
+            </svg>
+            <svg
+              id="theme-toggle-light-icon"
+              class="hidden w-5 h-5"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486a1 1 0 01-1.414 0l-.707-.707a1 1 0 011.414-1.414l.707.707zM9 11a1 1 0 110-2H8a1 1 0 110 2h1z"
+              ></path>
+            </svg>
+          </button>
+          <div
+            id="tooltip-dark-mode"
+            role="tooltip"
+            class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700"
+          >
+            Cambiar Modo
+            <div class="tooltip-arrow" data-popper-arrow></div>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Contenido principal con márgenes -->
+    <main class="container mx-auto px-4 py-6 mt-20 mb-20">
+      <!-- Mensajes flash -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="mb-8">
+            {% for category, message in messages %}
+              <div
+                class="p-3 rounded {{ 'bg-green-200 text-green-800' if category == 'success' else 'bg-red-200 text-red-800' }} dark:bg-green-800 dark:text-white"
+              >
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      <!-- Bloque de contenido -->
+      {% block content %}
+      {% endblock content %}
+    </main>
+
+    <!-- Pie de página fijo -->
+    <footer
+      class="bg-white shadow-md fixed bottom-0 left-0 right-0 py-4 dark:bg-gray-800 dark:text-gray-300"
+    >
+      <div
+        class="container mx-auto px-4 text-center text-gray-600 dark:text-gray-300"
+      >
+        © {{ now().year }} SALEManager | Grupo CONFIANZA.
+      </div>
+    </footer>
+
+    <!-- Script para cambiar entre light mode y dark mode -->
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+  </body>
 </html>

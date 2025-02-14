@@ -1,68 +1,123 @@
 {% extends "base.html" %}
+{% block title %}Listado de Negocios - SALEManager{% endblock %}
 {% block content %}
-  <h2>Listado de Negocios</h2>
-  <!-- Formulario para Crear un Nuevo Negocio -->
-  <form method="post" enctype="multipart/form-data">
-    <script>
-    function updateFileName(input) {
-      const fileNameElement = document.getElementById("file-name");
-      if (input.files.length > 0) {
-        fileNameElement.textContent = input.files[0].name;
-      } else {
-        fileNameElement.textContent = "Ningún archivo seleccionado";
-      }
-    }
-    </script>
-    {{ form.hidden_tag() }}
-    <!-- Incluir token CSRF -->
-    <div class="form-inline">
-      <div>
-        {{ form.name.label }} {{ form.name(size=32, placeholder="Nombre") }} {%
-        for error in form.name.errors %}
-        <span class="error">{{ error }}</span>
-      {% endfor %}
+  <!-- Hero Section (Opcional) -->
+  <section class="py-12">
+    <div class="container mx-auto px-4 text-center">
+      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Listado de Negocios</h1>
+      <p class="text-lg text-gray-600 dark:text-gray-300 mt-2">Administra y organiza todos tus negocios desde aquí.</p>
     </div>
-    <div>
-      {{ form.description.label }} {{ form.description(cols=40, rows=1,
-       placeholder="Descripción") }}
-      {% for error in form.description.errors %}<span class="error">{{ error }}</span>{% endfor %}
+  </section>
+  <!-- Botón para Abrir el Modal de Agregar Negocio -->
+  <section class="bg-white py-6 dark:bg-gray-800">
+    <div class="container mx-auto px-4 text-center">
+      <button data-modal-target="add-business-modal"
+              data-modal-toggle="add-business-modal"
+              class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+        Agregar Nuevo Negocio
+      </button>
     </div>
-    <div>
-      {{ form.logo.label }}
-      <div class="file-input-container">
-        {{ form.logo(id="logo", onchange="updateFileName(this)") }}
-        <label for="logo" class="custom-file-button">Seleccionar Archivo</label>
-        <span class="file-name" id="file-name">Ningún archivo seleccionado</span>
+  </section>
+  <!-- Listado de Negocios -->
+  <section class="bg-gray-100 py-12 dark:bg-gray-800">
+    <div class="container mx-auto px-4">
+      <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">Negocios Registrados</h2>
+      {% if business_list %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {% for business in business_list %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden dark:bg-gray-700">
+              <div class="p-6">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-white">{{ business.name }}</h3>
+                <p class="text-gray-600 dark:text-gray-300">{{ business.description or "Sin descripción" }}</p>
+                {% if business.logo %}
+                  <img src="{{ url_for('static', filename=business.logo) }}"
+                       alt="{{ business.name }}"
+                       class="w-full h-48 object-cover mt-4">
+                {% endif %}
+              </div>
+              <div class="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-600">
+                <a href="{{ url_for('main.business_dashboard', business_id=business.id) }}"
+                   class="text-blue-500 hover:underline dark:text-blue-400">Dashboard</a>
+                <a href="{{ url_for('main.business_detail_or_edit', business_id=business.id) }}"
+                   class="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100">Detalles</a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center text-gray-600 dark:text-gray-300">
+          <p>No hay negocios registrados. Por favor, agrega uno.</p>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+  <!-- Modal para Agregar Nuevo Negocio -->
+  <div id="add-business-modal"
+       tabindex="-1"
+       aria-hidden="true"
+       class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+      <!-- Contenido del Modal -->
+      <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+        <button type="button"
+                class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                data-modal-hide="add-business-modal">
+          <svg class="w-3 h-3"
+               aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg"
+               fill="none"
+               viewBox="0 0 14 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+          </svg>
+          <span class="sr-only">Cerrar modal</span>
+        </button>
+        <div class="p-4 md:p-5">
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white">Agregar Nuevo Negocio</h3>
+          <form method="POST" enctype="multipart/form-data" class="mt-4">
+            {{ form.hidden_tag() }}
+            <!-- Campo Nombre -->
+            <div class="mb-4">
+              <label for="{{ form.name.id }}"
+                     class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.name.label }}</label>
+              {{ form.name(class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white") }}
+              {% for error in form.name.errors %}<p class="text-red-500 text-sm">{{ error }}</p>{% endfor %}
+            </div>
+            <!-- Campo Descripción -->
+            <div class="mb-4">
+              <label for="{{ form.description.id }}"
+                     class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                {{ form.description.label }}
+              </label>
+              {{ form.description(class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white") }}
+              {% for error in form.description.errors %}<p class="text-red-500 text-sm">{{ error }}</p>{% endfor %}
+            </div>
+            <!-- Campo Logo -->
+            <div class="mb-4">
+              <label for="{{ form.logo.id }}"
+                     class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.logo.label }}</label>
+              <input type="file"
+                     id="{{ form.logo.id }}"
+                     name="{{ form.logo.name }}"
+                     onchange="updateFileName(this)"
+                     class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
+              <span class="text-gray-500 text-sm">Ningún archivo seleccionado</span>
+              {% for error in form.logo.errors %}<p class="text-red-500 text-sm">{{ error }}</p>{% endfor %}
+            </div>
+            <!-- Botón de Envío -->
+            <button type="submit"
+                    class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+              Agregar Negocio
+            </button>
+          </form>
+        </div>
       </div>
-      {% for error in form.logo.errors %}<span class="error">{{ error }}</span>{% endfor %}
     </div>
   </div>
-  <button type="submit" class="button">Agregar Negocio</button>
-</form>
-<!-- Listado de Negocios -->
-{% if businesses %}
-  <div class="business-list">
-    {% for business in businesses %}
-      <div class="business-card">
-        <h3>{{ business.name }}</h3>
-        <p>{{ business.description or "Sin descripción" }}</p>
-        {% if business.logo %}
-          <div>
-            <img src="{{ url_for('static', filename=business.logo) }}"
-                 alt="Logo de {{ business.name }}"
-                 class="business-logo"
-                 width="300"
-                 height="300" />
-          </div>
-        {% endif %}
-        <a href="{{ url_for('main.business_dashboard', business_id=business.id) }}"
-           class="button-secondary">Dashboard</a>
-        <a href="{{ url_for('main.business_detail_or_edit', business_id=business.id) }}"
-           class="button-secondary">Detalles</a>
-      </div>
-    {% endfor %}
-  </div>
-{% else %}
-  <p>No hay negocios registrados. Por favor, agrega uno.</p>
-{% endif %}
-{% endblock content %}
+  <!-- Script para Actualizar el Nombre del Archivo -->
+  <script>
+  function updateFileName(input) {
+    const fileNameSpan = input.nextElementSibling;
+    fileNameSpan.textContent = input.files[0] ? input.files[0].name : 'Ningún archivo seleccionado';
+  }
+  </script>
+{% endblock %}

@@ -1,3 +1,4 @@
-app/static/images/*
-instance/*
+app/static/images/**
+instance/**
 **/__pycache__/**
+node_modules/**
