@@ -18,6 +18,8 @@
     />
     <!-- Script de Flowbite -->
     <script src="/node_modules/flowbite/dist/flowbite.min.js" defer></script>
+    {% block vendor_javascript %}
+    {% endblock vendor_javascript %}
     <script src="/node_modules/simple-datatables/dist/index.js" defer></script>
   </head>
   <body
@@ -144,5 +146,7 @@
 
     <!-- Script para cambiar entre light mode y dark mode -->
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    {% block custom_javascript %}
+    {% endblock custom_javascript %}
   </body>
 </html>
