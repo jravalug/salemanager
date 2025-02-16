@@ -1,8 +1,8 @@
-**/__pycache__/**
+**/__pycache__/
 
 node_modules
 instance
 
-app/static/css/styles.css
-app/static/images/**
-app/utils/load_initial_data.py
+**/styles.css
+**/images
+**/load_initial_data.py
