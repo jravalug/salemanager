@@ -1,7 +1,7 @@
 **/__pycache__/**
 
-node_modules/**
-instance/**
+node_modules
+instance
 
 app/static/css/styles.css
 app/static/images/**
