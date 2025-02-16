@@ -155,7 +155,7 @@
         <section class="bg-white py-6 dark:bg-gray-800">
           <div class="container mx-auto px-4 text-center">
             <form
-              action="{{ url_for('main.export_to_excel_sales_by_day', business_id=business.id) }}"
+              action="{{ url_for('report.export_to_excel_sales_by_day', business_id=business.id) }}"
               method="post"
             >
               <input

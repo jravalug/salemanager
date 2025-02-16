@@ -31,7 +31,7 @@
     </script>
     <!-- Script de Flowbite -->
     <script
-      src="{{ url_for('node_modules', filename='flowbite/dist/flowbite.min.js') }}"
+      src="{{ url_for('main.node_modules', filename='flowbite/dist/flowbite.min.js') }}"
       defer
     ></script>
     {% block vendor_javascript %}
@@ -56,21 +56,21 @@
             {% if business %}
               <li>
                 <a
-                  href="{{ url_for('main.business_dashboard', business_id=business.id) }}"
+                  href="{{ url_for('business.dashboard', business_id=business.id) }}"
                   class="text-muted-foreground transition-colors hover:text-foreground"
                   >Dashboard</a
                 >
               </li>
               <li>
                 <a
-                  href="{{ url_for('main.sales', business_id=business.id) }}"
+                  href="{{ url_for('sale.list', business_id=business.id) }}"
                   class="text-muted-foreground transition-colors hover:text-foreground"
                   >Ventas</a
                 >
               </li>
               <li>
                 <a
-                  href="{{ url_for('main.products', business_id=business.id) }}"
+                  href="{{ url_for('product.list', business_id=business.id) }}"
                   class="text-muted-foreground transition-colors hover:text-foreground"
                   >Productos</a
                 >
@@ -78,7 +78,7 @@
             {% else %}
               <li>
                 <a
-                  href="{{ url_for('main.business_list') }}"
+                  href="{{ url_for('business.list') }}"
                   class="text-foreground transition-colors hover:text-foreground"
                   >Negocios</a
                 >
