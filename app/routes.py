@@ -9,6 +9,8 @@ from flask import (
     url_for,
     flash,
     current_app,
+    jsonify,
+    session,
 )
 from werkzeug.utils import secure_filename
 from app.forms import BusinessForm, EditSaleProductForm
@@ -423,6 +425,8 @@ def monthly_report(business_id):
     # Inicializar variables
     daily_sales = []
     selected_month = None
+    excluded_sales = []
+    excluded_products = []
 
     if request.method == "POST":
         # Obtener el mes seleccionado desde el formulario
@@ -451,7 +455,6 @@ def monthly_report(business_id):
                 )
                 .join(Sale.products)  # Join con SaleProduct
                 .join(SaleProduct.product)  # Join con Product
-                # .join(Product.sale_products)  # Join con Product
                 .order_by(
                     Sale.date.asc(),  # Primero por fecha
                 )
@@ -473,7 +476,7 @@ def monthly_report(business_id):
                 sorted_products = sorted(
                     sale.products, key=lambda sale_product: sale_product.product.name
                 )
-                logging.debug("Datos generados para el reporte: %s", sale.products)
+                # logging.debug("Datos generados para el reporte: %s", sale.products)
 
                 for sale_product in sorted_products:
                     product_key = sale_product.product.name
@@ -550,12 +553,161 @@ def monthly_report(business_id):
     )
 
 
+@bp.route("/business/<int:business_id>/monthly-report-by-date", methods=["GET", "POST"])
+def monthly_report_by_date(business_id):
+    # Obtener el negocio
+    business = Business.query.get_or_404(business_id)
+
+    # Inicializar variables
+    all_sales = []
+    daily_sales = []
+    excluded_sales = [  # Ventas excluidas almacenadas en la sesión
+        int(excluded_sale) for excluded_sale in session.get("excluded_sales", [])
+    ]
+    selected_month = None
+
+    if request.method == "POST":
+        # Obtener el mes seleccionado desde el formulario
+        month_str = request.form.get("month")
+        if not month_str:
+            flash("Por favor, selecciona un mes.", "error")
+            return render_template(
+                "monthly_report_by_date.html",
+                business=business,
+                daily_sales=daily_sales,
+                excluded_sales=excluded_sales,
+                selected_month=selected_month,
+            )
+
+        try:
+            # Convertir el mes a un objeto datetime
+            selected_month = datetime.strptime(month_str, "%Y-%m").date()
+            start_date = selected_month.replace(day=1)
+            end_date = start_date + relativedelta(months=1, days=-1)
+
+            # Consultar todas las órdenes dentro del rango de fechas
+            all_sales = (
+                Sale.query.filter(
+                    Sale.business_id == business.id,
+                    Sale.date.between(start_date, end_date),
+                )
+                .join(Sale.products)  # Join con SaleProduct
+                .join(SaleProduct.product)  # Join con Product
+                .order_by(Sale.date.asc())  # Ordenar por fecha
+                .all()
+            )
+
+            # Filtrar las ventas excluidas
+            filtered_sales = [
+                sale for sale in all_sales if sale.sale_number not in excluded_sales
+            ]
+
+            # Procesar los datos
+            sales_by_day = defaultdict(
+                lambda: {"sales": [], "total_products": 0, "total_income": 0}
+            )
+
+            for sale in filtered_sales:
+                date_key = sale.date.strftime("%Y-%m-%d")
+
+                # Calcular totales para esta venta
+                total_products = sum(sp.quantity for sp in sale.products)
+                total_income = sum(
+                    sp.quantity * sp.product.price for sp in sale.products
+                )
+                sorted_products = sorted(
+                    sale.products,
+                    key=lambda sale_product: sale_product.product.name,
+                )
+                # Crear un diccionario para acumular las cantidades por producto
+                reduced_products_dict = defaultdict(
+                    lambda: {"quantity": 0, "import": 0}
+                )
+
+                # Recorrer la lista de productos y acumular las cantidades
+                for sale_product in sorted_products:
+                    name = sale_product.product.name
+                    quantity = sale_product.quantity
+                    price = sale_product.product.price
+
+                    # Acumular la cantidad y asignar el precio (asumiendo que el precio es el mismo para cada producto)
+                    reduced_products_dict[name]["quantity"] += quantity
+                    reduced_products_dict[name]["import"] = quantity * price
+
+                # Convertir el diccionario a una lista de productos reducidos
+                saled_products = [
+                    {
+                        "name": name,
+                        "quantity": data["quantity"],
+                        "import": data["import"],
+                    }
+                    for name, data in reduced_products_dict.items()
+                ]
+
+                # Agregar la venta a la lista de ventas del día
+                sales_by_day[date_key]["sales"].append(
+                    {
+                        "sale_number": sale.sale_number,
+                        "total_products": total_products,
+                        "total_income": total_income,
+                        "products": saled_products,
+                    }
+                )
+
+                # Actualizar totales acumulados para el día
+                sales_by_day[date_key]["total_products"] += total_products
+                sales_by_day[date_key]["total_income"] += total_income
+
+            # Formatear los datos para la plantilla
+            for date, data in sales_by_day.items():
+                daily_sales.append(
+                    {
+                        "date": date,
+                        "sales": data["sales"],
+                        "total_products": data["total_products"],
+                        "total_income": data["total_income"],
+                    }
+                )
+
+        except ValueError:
+            # Manejar errores si el formato del mes es incorrecto
+            flash("Por favor, selecciona un mes válido.", "error")
+
+    # Logging para depuración
+    # logging.debug("Ventas en json: %s", json.dumps(daily_sales))
+
+    return render_template(
+        "monthly_report_by_date.html",
+        business=business,
+        all_sales=all_sales,
+        daily_sales=daily_sales,
+        daily_sales_json=json.dumps(daily_sales),
+        excluded_sales=excluded_sales,
+        selected_month=selected_month,
+    )
+
+
+@bp.route("/exclude-sales", methods=["POST"])
+def exclude_sales():
+    data = request.get_json()
+    selected_sales = data.get("sales", [])
+
+    # Guardar las ventas excluidas en la sesión
+    session["excluded_sales"] = selected_sales
+
+    # Logging para depuración
+    # logging.debug("Ventas excluidas en exclude_sales: %s", session["excluded_sales"])
+
+    return jsonify({"message": "Ventas excluidas correctamente"}), 200
+
+
 @bp.route("/business/<int:business_id>/export-to-excel-sales-by-day", methods=["POST"])
 def export_to_excel_sales_by_day(business_id):
     # Obtener el negocio
     business = Business.query.get_or_404(business_id)
 
     # Recuperar los datos del reporte mensual
+    selected_month = request.form.get("selected_month")
     daily_sales_json = request.form.get("daily_sales_export")
     if not daily_sales_json:
         flash("No hay datos disponibles para exportar.", "error")
@@ -576,6 +728,7 @@ def export_to_excel_sales_by_day(business_id):
     # Encabezados
     headers = [
         "Fecha",
+        "Orden",
         "Producto",
         "Cantidad",
         "Importe",
@@ -585,14 +738,17 @@ def export_to_excel_sales_by_day(business_id):
     # Rellenar el archivo con los datos
     for day in data:
         date = day["date"]
-        for product in day["products"]:
-            row = [
-                date,
-                product["name"],
-                product["quantity"],
-                product["total_amount"],
-            ]
-            sheet.append(row)
+        for sale in day["sales"]:
+            sale_number = sale["sale_number"]
+            for product in sale["products"]:
+                row = [
+                    date,
+                    sale_number,
+                    product["name"],
+                    product["quantity"],
+                    product["import"],
+                ]
+                sheet.append(row)
 
     # Guardar el archivo en memoria
     excel_file = BytesIO()
@@ -604,7 +760,7 @@ def export_to_excel_sales_by_day(business_id):
         excel_file,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         as_attachment=True,
-        download_name=f"reporte_mensual_por_dia_{business.name}.xlsx",
+        download_name=f"{selected_month}_reporte_mensual_por_dia_{business.name}.xlsx",
     )
 
 
@@ -657,7 +813,7 @@ def export_to_excel_sales_by_product(business_id):
                 product_summary[product_name]["orders"].add(order[1])
 
     # Logging de los datos generados
-    logging.debug("Datos generados para el reporte: %s", dict(product_summary))
+    # logging.debug("Datos generados para el reporte: %s", dict(product_summary))
 
     # Crear un archivo Excel
     workbook = Workbook()
@@ -691,4 +847,56 @@ def export_to_excel_sales_by_product(business_id):
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         as_attachment=True,
         download_name=f"reporte_mensual_por_producto_{business.name}.xlsx",
+    )
+
+
+@bp.route("/business/<int:business_id>/export-to-excel-exclude-sales", methods=["POST"])
+def export_to_excel_exclude_sales(business_id):
+    # Obtener el negocio
+    business = Business.query.get_or_404(business_id)
+
+    # Recuperar las ventas excluidas de la sesión
+    excluded_sales = session.get("excluded_sales", [])
+
+    # Obtener todas las ventas del negocio
+    all_sales = Sale.query.filter_by(business_id=business.id).all()
+
+    # Filtrar las ventas excluidas
+    filtered_sales = [sale for sale in all_sales if sale.id not in excluded_sales]
+
+    # Crear un archivo Excel
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = datetime.now().strftime("%m-%Y")
+
+    # Encabezados
+    headers = [
+        "FECHA",
+        "CANTIDAD DE PRODUCTOS POR FECHA",
+        "IMPORTE POR FECHA",
+        "VENTAS POR FECHA",
+    ]
+    sheet.append(headers)
+
+    # Rellenar el archivo con los datos
+    for sale in filtered_sales:
+        row = [
+            sale.date,
+            sum(sp.quantity for sp in sale.products),
+            sum(sp.quantity * sp.product.price for sp in sale.products),
+            len(sale.products),
+        ]
+        sheet.append(row)
+
+    # Guardar el archivo en memoria
+    excel_file = BytesIO()
+    workbook.save(excel_file)
+    excel_file.seek(0)
+
+    # Enviar el archivo como respuesta
+    return send_file(
+        excel_file,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name=f"reporte-{datetime.now().strftime('%m-%Y')}.xlsx",
     )

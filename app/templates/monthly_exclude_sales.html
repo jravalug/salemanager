@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>PRUEBAAAAAAAAAAAAAAAAAAAAAAAAA</h1>
+  <!-- Hero Section -->
+  <section class="py-12">
+    <div class="container mx-auto px-4 text-center">
+      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
+        Generar Reporte Mensual
+      </h1>
+      <p class="text-lg text-gray-600 dark:text-gray-300 mt-2">
+        Selecciona un mes y excluye ventas específicas antes de exportar el
+        reporte.
+      </p>
+    </div>
+  </section>
+
+  <!-- Selector de Mes -->
+  <section class="bg-white py-12 dark:bg-gray-800">
+    <div class="container mx-auto px-4">
+      <form
+        id="month-form"
+        method="POST"
+        action="{{ url_for('main.monthly_report_exclude_sales', business_id=business.id) }}"
+        class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md dark:bg-gray-700"
+      >
+        <label
+          for="month"
+          class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+          >Seleccionar Mes:</label
+        >
+        <input
+          type="month"
+          id="month"
+          name="month"
+          required
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+        />
+        <button
+          type="submit"
+          class="mt-4 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+        >
+          Generar Reporte
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <button
+    id="open-modal-btn"
+    class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+  >
+    Excluir Ventas
+  </button>
+
+  <!-- Botón para Exportar a Excel -->
+  <form
+    id="export-form"
+    method="POST"
+    action="{{ url_for('main.export_to_excel_exclude_sales', business_id=business.id) }}"
+  >
+    <button
+      type="submit"
+      class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+    >
+      Exportar a Excel
+    </button>
+  </form>
+{% endblock %}

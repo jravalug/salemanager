@@ -58,7 +58,7 @@
        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
     <div class="relative p-4 w-full max-w-md max-h-full">
       <!-- Contenido del Modal -->
-      <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+      <div class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
         <button type="button"
                 class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
                 data-modal-hide="add-business-modal">
@@ -99,7 +99,7 @@
                      id="{{ form.logo.id }}"
                      name="{{ form.logo.name }}"
                      onchange="updateFileName(this)"
-                     class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
+                     class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-hidden dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
               <span class="text-gray-500 text-sm">Ningún archivo seleccionado</span>
               {% for error in form.logo.errors %}<p class="text-red-500 text-sm">{{ error }}</p>{% endfor %}
             </div>

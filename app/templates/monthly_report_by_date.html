@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+{% block content %}
+  <!-- Hero Section -->
+  <section class="py-12">
+    <div class="container mx-auto px-4 text-center">
+      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
+        Reporte Mensual de Ventas - {{ business.name }}
+      </h1>
+      <p class="text-lg text-gray-600 dark:text-gray-300 mt-2">
+        Genera reportes mensuales detallados de tus ventas.
+      </p>
+    </div>
+  </section>
+
+  <!-- Formulario para Seleccionar el Mes -->
+  <section class="bg-white py-12 dark:bg-gray-800">
+    <div class="container mx-auto px-4">
+      <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">
+        Seleccionar Mes
+      </h2>
+      <form
+        method="post"
+        class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md dark:bg-gray-700"
+      >
+        <!-- Campo Mes -->
+        <div class="mb-4">
+          <label
+            for="month"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Seleccionar Mes:</label
+          >
+          <input
+            type="month"
+            id="month"
+            name="month"
+            value="{{ selected_month.strftime('%Y-%m') if selected_month else '' }}"
+            required
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          />
+        </div>
+        <!-- Botón de Envío -->
+        <button
+          type="submit"
+          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+        >
+          Generar Reporte
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Resultados del Reporte -->
+  <section class="bg-gray-100 py-12 dark:bg-gray-800">
+    <div class="container mx-auto px-4">
+      {% if daily_sales %}
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">
+          Resultados para {{ selected_month.strftime("%B %Y") }}
+        </h3>
+
+        <!-- Modal para Excluir Ventas -->
+        <div
+          id="exclude-sales-modal"
+          tabindex="-1"
+          aria-hidden="true"
+          class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full"
+        >
+          <div class="relative p-4 w-full max-w-2xl max-h-full">
+            <!-- Modal Content -->
+            <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+              <div
+                class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600"
+              >
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                  Seleccionar Ventas para Excluir
+                </h3>
+                <button
+                  type="button"
+                  class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                  data-modal-hide="exclude-sales-modal"
+                >
+                  <svg
+                    class="w-3 h-3"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                  >
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                    />
+                  </svg>
+                  <span class="sr-only">Close modal</span>
+                </button>
+              </div>
+              <div class="p-4 md:p-5 space-y-4">
+                <table
+                  id="sales-table"
+                  class="w-full text-sm text-left text-gray-500 dark:text-gray-400"
+                >
+                  <thead
+                    class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+                  >
+                    <tr>
+                      <th scope="col" class="py-3 px-6">Seleccionar</th>
+                      <th scope="col" class="py-3 px-6">Número de Venta</th>
+                      <th scope="col" class="py-3 px-6">Fecha</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for sale in all_sales %}
+                      <tr
+                        class="bg-white border-b dark:bg-gray-800 dark:border-gray-700"
+                      >
+                        <td class="py-4 px-6">
+                          <input
+                            type="checkbox"
+                            class="sale-checkbox"
+                            value="{{ sale.sale_number }}"
+                            {% if sale.sale_number in excluded_sales %}checked{% endif %}
+                          />
+                        </td>
+                        <td class="py-4 px-6">{{ sale.sale_number }}</td>
+                        <td class="py-4 px-6">{{ sale.date }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              <div
+                class="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600"
+              >
+                <button
+                  id="exclude-sales-btn"
+                  type="button"
+                  class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800"
+                >
+                  Excluir Ventas Seleccionadas
+                </button>
+                <button
+                  data-modal-hide="exclude-sales-modal"
+                  type="button"
+                  class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:ring-gray-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <section class="bg-white py-6 dark:bg-gray-800">
+          <div class="container mx-auto px-4 text-center">
+            <form
+              action="{{ url_for('main.export_to_excel_sales_by_day', business_id=business.id) }}"
+              method="post"
+            >
+              <input
+                type="hidden"
+                name="selected_month"
+                value="{{ selected_month.strftime('%B_%Y') }}"
+              />
+              <input
+                type="hidden"
+                name="daily_sales_export"
+                value="{{ daily_sales_json }}"
+              />
+              <button
+                type="submit"
+                class="text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+              >
+                Exportar a Excel (Ventas Diarias)
+              </button>
+            </form>
+            <button
+              data-modal-target="exclude-sales-modal"
+              data-modal-toggle="exclude-sales-modal"
+              class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            >
+              Excluir Ventas
+            </button>
+          </div>
+        </section>
+        <!-- Script para Actualizar el Nombre del Archivo -->
+        <script>
+          // Excluir Ventas
+          document
+            .getElementById("exclude-sales-btn")
+            .addEventListener("click", function () {
+              const selectedSales = Array.from(
+                document.querySelectorAll(".sale-checkbox:checked"),
+              ).map((cb) => cb.value);
+              fetch("/exclude-sales", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ sales: selectedSales }),
+              }).then(() => {
+                location.reload();
+              });
+            });
+        </script>
+
+        <!-- Listado de Ventas por Día -->
+        {% for day in daily_sales %}
+          <div class="day-report mb-8">
+            <h4 class="text-xl font-bold text-gray-800 dark:text-white">
+              {{ day.date }}
+            </h4>
+            <table
+              class="w-full text-sm text-left text-gray-500 dark:text-gray-400"
+            >
+              <thead
+                class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+              >
+                <tr>
+                  <th scope="col" class="py-3 px-6">NUMERO DE VENTA</th>
+                  <th scope="col" class="py-3 px-6">TOTAL DE PRODUCTOS</th>
+                  <th scope="col" class="py-3 px-6">IMPORTE</th>
+                  <th scope="col" class="py-3 px-6">PRODUCTOS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for sale in day.sales %}
+                  <tr
+                    class="bg-white border-b dark:bg-gray-800 dark:border-gray-700"
+                  >
+                    <td class="py-4 px-6">{{ sale.sale_number }}</td>
+                    <td class="py-4 px-6">{{ sale.total_products }}</td>
+                    <td class="py-4 px-6">
+                      ${{ "%.2f"|format(sale.total_income) }}
+                    </td>
+                    <td class="py-4 px-6">
+                      {% for product in sale.products %}
+                        {{ product.name }}
+                        - {{ product.quantity }} -
+                        {{ product.import | currency }} <br />
+                      {% endfor %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <div class="mt-4 text-right">
+              <p class="text-lg font-bold text-gray-800 dark:text-white">
+                Total de Productos: {{ day.total_products }} | Importe Total:
+                ${{ "%.2f"|format(day.total_income) }}
+              </p>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="text-center text-gray-600 dark:text-gray-300">
+          <p>No hay datos disponibles para este mes.</p>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}

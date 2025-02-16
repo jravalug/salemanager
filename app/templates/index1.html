@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="keywords"
+        content="Inventory Management, Accounting Software, Business Solutions, Financial Applications, Data Analysis Tools" />
+    <meta name="description" content="Bienvenido a su Sistema de Control de Ventas y Contabilidad." />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SALEManager - Gestión Integral</title>
+    <!-- Enlazar el archivo CSS compilado de Tailwind -->
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+    <!-- Script de Flowbite -->
+    <script src="/node_modules/flowbite/dist/flowbite.min.js" defer></script>
+</head>
+
+<body class="bg-gray-100 font-sans text-gray-800 dark:bg-gray-900 dark:text-white transition-colors duration-300">
+    <!-- Header Transparente -->
+    <header id="header"
+        class="fixed top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-md transition-all duration-300">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-white">
+                <a href="{{ url_for('main.index') }}" class="">SALEManager</a>
+            </h1>
+            <nav>
+                <ul class="flex space-x-4">
+                    <li>
+                        <!-- Botón para cambiar entre light mode y dark mode -->
+                        <button id="theme-toggle" data-tooltip-target="tooltip-dark-mode" type="button"
+                            class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-hidden rounded-lg text-sm">
+                            <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor"
+                                viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                            </svg>
+                            <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor"
+                                viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486a1 1 0 01-1.414 0l-.707-.707a1 1 0 011.414-1.414l.707.707zM9 11a1 1 0 110-2H8a1 1 0 110 2h1z">
+                                </path>
+                            </svg>
+                        </button>
+                        <div id="tooltip-dark-mode" role="tooltip"
+                            class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-xs opacity-0 tooltip dark:bg-gray-700">
+                            Cambiar Modo
+                            <div class="tooltip-arrow" data-popper-arrow></div>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <!-- Hero Section a Todo el Ancho -->
+    {% set landing_image = url_for('static', filename='images/landing/1.jpg') %}
+    <section class="bg-cover bg-center bg-no-repeat relative" style="background-image: url('{{ landing_image }}');
+                        height: 100vh">
+        <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div class="text-center text-white px-4">
+                <h1 class="text-6xl font-bold mb-6">Bienvenido a SALEManager</h1>
+                <p class="text-xl mb-8">Tu herramienta integral para la gestión financiera y operativa.</p>
+                <!-- Botón Más Llamativo -->
+                <a href="{{ url_for('main.business_list') }}"
+                    class="inline-block bg-linear-to-r from-blue-500 to-purple-500 text-white px-8 py-4 rounded-full text-lg font-semibold shadow-lg hover:scale-105 transition-transform duration-300">
+                    Comenzar Ahora
+                </a>
+            </div>
+        </div>
+    </section>
+    <!-- Sección de Características Principales (Dentro de un Contenedor) -->
+    <section class="bg-white py-20 dark:bg-gray-800">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-gray-800 text-center mb-12 dark:text-white">¿Por Qué Elegir SALEManager?
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <!-- Característica 1 -->
+                <div
+                    class="flex flex-col items-center text-center p-6 bg-gray-100 rounded-lg shadow-md dark:bg-gray-700 dark:text-white">
+                    <svg class="w-12 h-12 text-blue-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0h6">
+                        </path>
+                    </svg>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4 dark:text-white">Gestión Financiera</h3>
+                    <p class="text-gray-600 dark:text-gray-300">Controla ingresos, egresos y balances financieros de
+                        manera eficiente.</p>
+                </div>
+                <!-- Característica 2 -->
+                <div
+                    class="flex flex-col items-center text-center p-6 bg-gray-100 rounded-lg shadow-md dark:bg-gray-700 dark:text-white">
+                    <svg class="w-12 h-12 text-blue-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.752z">
+                        </path>
+                    </svg>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4 dark:text-white">Reportes Personalizados</h3>
+                    <p class="text-gray-600 dark:text-gray-300">Genera informes detallados para tomar decisiones
+                        estratégicas.</p>
+                </div>
+                <!-- Característica 3 -->
+                <div
+                    class="flex flex-col items-center text-center p-6 bg-gray-100 rounded-lg shadow-md dark:bg-gray-700 dark:text-white">
+                    <svg class="w-12 h-12 text-blue-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                        </path>
+                    </svg>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4 dark:text-white">Automatización de Procesos</h3>
+                    <p class="text-gray-600 dark:text-gray-300">Simplifica tareas repetitivas con herramientas
+                        automatizadas.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Llamado a la Acción -->
+    <section class="bg-blue-500 py-20 dark:bg-blue-700">
+        <div class="container mx-auto px-4 text-center text-white">
+            <h2 class="text-4xl font-bold mb-6">¿Listo para optimizar tu gestión?</h2>
+            <p class="text-lg mb-8">Registra tus negocios hoy y comienza a gestionar de manera eficiente.</p>
+            <a href="{{ url_for('main.business_list') }}"
+                class="inline-block bg-white text-blue-500 px-8 py-4 rounded-full text-lg hover:bg-gray-200 transition duration-300">
+                Registra tu Primer Negocio
+            </a>
+        </div>
+    </section>
+    <!-- Pie de Página Fijo -->
+    <footer class="bg-white shadow-md fixed bottom-0 left-0 right-0 py-4 dark:bg-gray-800 dark:text-gray-300">
+        <div class="container mx-auto px-4 text-center text-gray-600 dark:text-gray-300">
+            © {{ now().year }} SALEManager | Grupo CONFIANZA.
+        </div>
+    </footer>
+    <!-- Script para Cambiar el Color del Header al Hacer Scroll -->
+    <script>
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                header.classList.add('bg-gray-900', 'shadow-md');
+                header.classList.remove('bg-transparent', 'backdrop-blur-md');
+            } else {
+                header.classList.remove('bg-gray-900', 'shadow-md');
+                header.classList.add('bg-transparent', 'backdrop-blur-md');
+            }
+        });
+    </script>
+
+
+
+    <script>
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+        const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+        const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+
+        // Verificar el modo actual almacenado en localStorage
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            body.classList.add('dark');
+            themeToggleDarkIcon.classList.add('hidden');
+            themeToggleLightIcon.classList.remove('hidden');
+        } else {
+            themeToggleDarkIcon.classList.remove('hidden');
+            themeToggleLightIcon.classList.add('hidden');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark');
+            if (body.classList.contains('dark')) {
+                localStorage.setItem('theme', 'dark');
+                themeToggleDarkIcon.classList.add('hidden');
+                themeToggleLightIcon.classList.remove('hidden');
+            } else {
+                localStorage.setItem('theme', 'light');
+                themeToggleDarkIcon.classList.remove('hidden');
+                themeToggleLightIcon.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+
+</html>
