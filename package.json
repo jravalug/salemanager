@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "This project is a Flask application designed to manage business sales efficiently. It allows users to create, view, and update sales, as well as manage products.",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
