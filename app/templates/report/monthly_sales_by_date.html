@@ -22,21 +22,25 @@
         method="post"
         class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md dark:bg-gray-700"
       >
+        {{ form.hidden_tag() }}
         <!-- Campo Mes -->
         <div class="mb-4">
           <label
             for="month"
             class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-            >Seleccionar Mes:</label
+            >Selecciona un mes</label
           >
           <input
             type="month"
             id="month"
             name="month"
-            value="{{ selected_month.strftime('%Y-%m') if selected_month else '' }}"
+            value="{{ form.month.data }}"
             required
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
           />
+          {% for error in form.month.errors %}
+            <p class="mt-2 text-sm text-red-600">{{ error }}</p>
+          {% endfor %}
         </div>
         <!-- Botón de Envío -->
         <button
@@ -52,10 +56,22 @@
   <!-- Resultados del Reporte -->
   <section class="bg-gray-100 py-12 dark:bg-gray-800">
     <div class="container mx-auto px-4">
-      {% if daily_sales %}
+      {% if filtered_sales %}
         <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">
-          Resultados para {{ selected_month.strftime("%B %Y") }}
+          {% if selected_month %}
+            {% if selected_month is string %}
+              <h2>Resultados para {{ selected_month }}</h2>
+            {% else %}
+              <h2>Resultados para {{ selected_month.strftime("%B %Y") }}</h2>
+            {% endif %}
+          {% else %}
+            <p>Selecciona un mes para ver los resultados.</p>
+          {% endif %}
         </h3>
+        <p class="text-lg font-bold text-gray-800 dark:text-white">
+          Total de Productos: {{ month_totals.total_products }} | Importe Total:
+          {{ month_totals.total_income | currency }}
+        </p>
 
         <!-- Modal para Excluir Ventas -->
         <div
@@ -106,12 +122,12 @@
                   >
                     <tr>
                       <th scope="col" class="py-3 px-6">Seleccionar</th>
-                      <th scope="col" class="py-3 px-6">Número de Venta</th>
                       <th scope="col" class="py-3 px-6">Fecha</th>
+                      <th scope="col" class="py-3 px-6">Número de Venta</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {% for sale in all_sales %}
+                    {% for sale in daily_sales %}
                       <tr
                         class="bg-white border-b dark:bg-gray-800 dark:border-gray-700"
                       >
@@ -119,12 +135,12 @@
                           <input
                             type="checkbox"
                             class="sale-checkbox"
-                            value="{{ sale.sale_number }}"
-                            {% if sale.sale_number in excluded_sales %}checked{% endif %}
+                            value="{{ sale.id }}"
+                            {% if sale.id in excluded_sales %}checked{% endif %}
                           />
                         </td>
-                        <td class="py-4 px-6">{{ sale.sale_number }}</td>
                         <td class="py-4 px-6">{{ sale.date }}</td>
+                        <td class="py-4 px-6">{{ sale.sale_number }}</td>
                       </tr>
                     {% endfor %}
                   </tbody>
@@ -161,12 +177,12 @@
               <input
                 type="hidden"
                 name="selected_month"
-                value="{{ selected_month.strftime('%B_%Y') }}"
+                value="{{ selected_month }}"
               />
               <input
                 type="hidden"
                 name="daily_sales_export"
-                value="{{ daily_sales_json }}"
+                value="{{ selected_month }}"
               />
               <button
                 type="submit"
@@ -193,22 +209,34 @@
               const selectedSales = Array.from(
                 document.querySelectorAll(".sale-checkbox:checked"),
               ).map((cb) => cb.value);
-              fetch("/exclude-sales", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ sales: selectedSales }),
-              }).then(() => {
+              fetch(
+                "{{ url_for('report.exclude_sales', business_id=business.id) }}",
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ sales: selectedSales }),
+                },
+              ).then(() => {
+                console.log(
+                  "Ventas excluidas con éxito. Recargando la página...",
+                );
                 location.reload();
               });
             });
         </script>
 
         <!-- Listado de Ventas por Día -->
-        {% for day in daily_sales %}
+        {% for day in filtered_sales %}
           <div class="day-report mb-8">
             <h4 class="text-xl font-bold text-gray-800 dark:text-white">
               {{ day.date }}
             </h4>
+            <div class="mt-4 text-right">
+              <p class="text-lg font-bold text-gray-800 dark:text-white">
+                Total de Productos: {{ day.total_products }} | Importe Total:
+                {{ day.total_income | currency }}
+              </p>
+            </div>
             <table
               class="w-full text-sm text-left text-gray-500 dark:text-gray-400"
             >
@@ -230,7 +258,7 @@
                     <td class="py-4 px-6">{{ sale.sale_number }}</td>
                     <td class="py-4 px-6">{{ sale.total_products }}</td>
                     <td class="py-4 px-6">
-                      ${{ "%.2f"|format(sale.total_income) }}
+                      {{ sale.total_income | currency }}
                     </td>
                     <td class="py-4 px-6">
                       {% for product in sale.products %}
@@ -243,12 +271,6 @@
                 {% endfor %}
               </tbody>
             </table>
-            <div class="mt-4 text-right">
-              <p class="text-lg font-bold text-gray-800 dark:text-white">
-                Total de Productos: {{ day.total_products }} | Importe Total:
-                ${{ "%.2f"|format(day.total_income) }}
-              </p>
-            </div>
           </div>
         {% endfor %}
       {% else %}

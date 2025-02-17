@@ -1,50 +1,48 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
+
+from sqlalchemy.orm import joinedload
 from collections import defaultdict
 from datetime import datetime
 from sqlite3 import IntegrityError
 from app.extensions import db
-from app.forms import EditSaleProductForm
+from app.forms import SaleForm, EditSaleProductForm
 from app.models import Business, Product, Sale, SaleProduct
+from app.utils.sale_utils import calculate_month_totals, group_sales_by_month
+import logging
 
 bp = Blueprint("sale", __name__, url_prefix="/business/<int:business_id>/sale")
+
+# Obtener el logger de la aplicación
+logger = logging.getLogger(__name__)
 
 
 @bp.route("/list", methods=["GET", "POST"])
 def list(business_id):
+    """
+    Muestra la lista de ventas y maneja la creación de nuevas ventas.
+    """
+    # Obtener el negocio
     business = Business.query.get_or_404(business_id)
 
-    if request.method == "POST":
-        date_str = request.form["date"]
-        date = datetime.strptime(date_str, "%Y-%m-%d").date()
+    # Crear una instancia del formulario
+    form = SaleForm()
+    logger.debug(f"Formulario de venta creado para negocio {business.name}")
 
-        # Obtener el último número de venta para esta ubicación y año
-        last_sale = (
-            Sale.query.filter_by(
-                business_id=business.id,
-                # date=date  # Asegúrate de que sea del mismo año si es necesario
-            )
-            .order_by(Sale.sale_number.desc())
-            .first()
-        )
+    if form.validate_on_submit():  # Validar el formulario
+        date = form.date.data  # Obtener la fecha validada
 
-        year = date.year
+        # Registrar la fecha en el log
+        logger.debug(f"Fecha de venta ingresada: {date}")
 
-        if last_sale and last_sale.year == year:
-            new_sale_number = last_sale.sale_number + 1
-        else:
-            new_sale_number = 1
-
-        # Verificar que el par (business_id, sale_number) no exista
+        # Crear la nueva venta (el sale_number se genera automáticamente)
         try:
             new_sale = Sale(
-                sale_number=new_sale_number,
                 date=date,
-                year=date.year,
                 business_id=business.id,
             )
             db.session.add(new_sale)
             db.session.commit()
-            flash("Venta creada correctamente", "success")
+            flash("Venta creada correctamente.", "success")
             return redirect(
                 url_for(
                     "sale.add_products",
@@ -54,50 +52,26 @@ def list(business_id):
             )
         except IntegrityError:
             db.session.rollback()
-            flash("Error al crear la venta. El número ya existe.", "danger")
+            flash("Error al crear la venta. Inténtalo nuevamente.", "danger")
             return redirect(url_for("sale.list", business_id=business.id))
 
-    # Obtener todas las órdenes
+    # Obtener todas las ventas con sus productos cargados
     all_sales = (
-        Sale.query.filter_by(business_id=business.id).order_by(Sale.date.desc()).all()
+        Sale.query.options(joinedload(Sale.products))
+        .filter_by(business_id=business.id)
+        .order_by(Sale.date.desc())
+        .all()
     )
 
-    # Agrupar órdenes por mes y fecha
-    sales_by_months = defaultdict(
-        lambda: defaultdict(
-            lambda: {"total_products": 0, "total_income": 0, "sales": []}
-        )
-    )
-    month_totals = defaultdict(float)
-
-    for sale in all_sales:
-        month_key = sale.date.strftime("%Y-%m")
-        date_key = sale.date.strftime("%Y-%m-%d")
-
-        # Calcular totales por venta
-        total_products = sum(sale_product.quantity for sale_product in sale.products)
-        total_income = sum(
-            sale_product.product.price * sale_product.quantity
-            for sale_product in sale.products
-        )
-
-        # Agregar datos a la estructura
-        sales_by_months[month_key][date_key]["total_products"] += total_products
-        sales_by_months[month_key][date_key]["total_income"] += total_income
-        sales_by_months[month_key][date_key]["sales"].append(sale)
-
-        # Acumular totales por mes
-        month_totals[month_key] += total_income
-
-    # Convertir defaultdict a diccionarios regulares para Jinja2
-    sales_by_months = {month: dict(dates) for month, dates in sales_by_months.items()}
-    month_totals = dict(month_totals)
+    # Agrupar ventas por mes y fecha
+    sales_by_months = group_sales_by_month(all_sales)
 
     return render_template(
         "sale/list.html",
         business=business,
         sales_by_months=sales_by_months,
-        month_totals=month_totals,
+        month_totals=calculate_month_totals(sales_by_months),
+        form=form,  # Pasar el formulario a la plantilla
     )
 
 

@@ -28,17 +28,24 @@ def list():
     if form.validate_on_submit():
         name = form.name.data
         description = form.description.data
-        logo_path = handle_logo_upload(form.logo.data)
+        logo_path = None
 
-        if logo_path is not None:
-            try:
-                create_business(name, description, logo_path)
-                flash("Negocio agregado correctamente", "success")
-            except SQLAlchemyError as e:
-                db.session.rollback()
-                flash(f"Error al agregar el negocio: {str(e)}", "error")
-            except Exception as e:
-                flash(f"Error inesperado: {str(e)}", "error")
+        # Solo manejar la subida del logo si se proporciona un archivo
+        if form.logo.data and form.logo.data.filename != "":
+            logo_path = handle_logo_upload(form.logo.data)
+            if logo_path is None:
+                return redirect(
+                    url_for("business.list")
+                )  # Detener si hay un error en la subida
+
+        try:
+            create_business(name, description, logo_path)
+            flash("Negocio agregado correctamente", "success")
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            flash(f"Error al agregar el negocio: {str(e)}", "error")
+        except Exception as e:
+            flash(f"Error inesperado: {str(e)}", "error")
         return redirect(url_for("business.list"))
 
     business_list = Business.query.all()
