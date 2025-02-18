@@ -170,6 +170,7 @@ def monthly_sales_by_date(business_id):
     business = Business.query.get_or_404(business_id)
 
     excluded_sales = get_excluded_sales()
+    print(f"Ventas excluidas: {excluded_sales}")
     sales_service = SalesService()
     form = MonthForm()
 
@@ -221,7 +222,6 @@ def monthly_sales_by_date(business_id):
         month_totals = sales_service.get_monthly_totals(
             business_id, month_str, excluded_sales
         )
-        print(f"Ventas filtradas: {month_totals}")
         return render_template(
             "report/monthly_sales_by_date.html",
             business=business,
