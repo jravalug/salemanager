@@ -8,4 +8,7 @@ class Product(db.Model):
     business_id = db.Column(
         db.Integer, db.ForeignKey("business.id"), nullable=False
     )  # Asociación con el negocio
+
+    # Relación con materias primas
     sale_products = db.relationship("SaleProduct", back_populates="product")
+    raw_materials = db.relationship("ProductRawMaterial", back_populates="product")
