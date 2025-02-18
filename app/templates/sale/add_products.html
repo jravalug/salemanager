@@ -1,5 +1,16 @@
 {% extends "base.html" %}
-
+{% block vendor_styles %}
+  {# <link
+    href="{{ url_for('static', filename='css/ts-select-tailwind.css') }}"
+    rel="stylesheet"
+  /> #}
+{% endblock vendor_styles %}
+{% block vendor_javascript %}
+  <script
+    src="{{ url_for('main.node_modules', filename='tom-select/dist/js/tom-select.complete.min.js') }}"
+    defer
+  ></script>
+{% endblock vendor_javascript %}
 {% block content %}
   <!-- Hero Section -->
   <section class="py-12">
@@ -55,8 +66,10 @@
             id="product_id"
             name="product_id"
             required
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+            style="display: none;"
+            class=""
           >
+            <option value="">Selecciona un producto...</option>
             {% for product in products %}
               <option value="{{ product.id }}">
                 {{ product.name }} ({{ product.price | currency }})
@@ -131,3 +144,17 @@
     </div>
   </section>
 {% endblock %}
+
+{% block custom_javascript %}
+  <script>
+    // Inicializar TomSelect después de que el DOM esté listo
+    document.addEventListener("DOMContentLoaded", function () {
+      new TomSelect("#product_id", {
+        create: false,
+        searchField: "text",
+        placeholder: "Selecciona un producto...",
+        maxOptions: null,
+      });
+    });
+  </script>
+{% endblock custom_javascript %}
