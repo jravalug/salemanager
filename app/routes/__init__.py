@@ -3,6 +3,7 @@ from .business import bp as business_bp
 from .sale import bp as sales_bp
 from .product import bp as products_bp
 from .reports import bp as reports_bp
+from .raw_material import bp as raw_material_bp
 
 
 def register_blueprints(app):
@@ -14,3 +15,4 @@ def register_blueprints(app):
     app.register_blueprint(sales_bp)
     app.register_blueprint(products_bp)
     app.register_blueprint(reports_bp)
+    app.register_blueprint(raw_material_bp)

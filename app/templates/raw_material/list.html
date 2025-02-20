@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block vendor_javascript %}
+  <script src="{{ url_for('main.node_modules', filename='simple-datatables/dist/umd/simple-datatables.js') }}"></script>
+{% endblock vendor_javascript %}
+{% block content %}
+  <!-- Hero Section -->
+  <section class="py-12">
+    <div class="container mx-auto px-4 text-center">
+      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
+        Gestión de Materias Primas
+      </h1>
+      <p class="text-lg text-gray-600 dark:text-gray-300 mt-2">
+        Administra las materias primas.
+      </p>
+    </div>
+  </section>
+
+  <!-- Formulario para Agregar un Nueva Materia Prima -->
+  <section class="bg-white py-12 dark:bg-gray-800">
+    <div class="container mx-auto px-4">
+      <h2
+        class="text-2xl font-bold text-gray-800 dark:text-white mb-6 text-center"
+      >
+        Agregar Nueva Materia Prima
+      </h2>
+      <form
+        method="post"
+        class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md dark:bg-gray-700"
+      >
+        {{ form.hidden_tag() }}
+        <!-- Campo Nombre -->
+        <div class="mb-4">
+          <label
+            for="{{ form.name.id }}"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >{{ form.name.label }}</label
+          >
+          {{ form.name(class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white", required=True) }}
+          {% for error in form.name.errors %}
+            <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+          {% endfor %}
+        </div>
+        <!-- Campo Unidad -->
+        <div class="mb-4">
+          <label
+            for="{{ form.unit.id }}"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >{{ form.unit.label }}</label
+          >
+          {{ form.unit(class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white", required=True) }}
+          {% for error in form.unit.errors %}
+            <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+          {% endfor %}
+        </div>
+        <!-- Botón de Envío -->
+        <button
+          type="submit"
+          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+        >
+          Agregar Materia Prima
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Listado de Materias Primas -->
+  <section class="bg-gray-100 py-12 dark:bg-gray-800">
+    <div class="container mx-auto px-4">
+      <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">
+        Listado de Materias Primas
+      </h3>
+      <div class="overflow-x-auto relative">
+        <!-- Tabla de Materias Primas -->
+        <table
+          id="products-table"
+          class="w-full text-sm text-left text-gray-500 dark:text-gray-400"
+        >
+          <thead
+            class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+          >
+            <tr>
+              <th scope="col" class="py-3 px-6">ID</th>
+              <th scope="col" class="py-3 px-6">Nombre</th>
+              <th scope="col" class="py-3 px-6">Unidad</th>
+              <th scope="col" class="py-3 px-6">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for raw_material in raw_materials %}
+              <tr
+                class="bg-white border-b dark:bg-gray-800 dark:border-gray-700"
+              >
+                <td class="py-4 px-6">{{ raw_material.id }}</td>
+                <td class="py-4 px-6">{{ raw_material.name }}</td>
+                <td class="py-4 px-6">( {{ raw_material.unit }} )</td>
+                <td class="py-4 px-6">
+                  <!-- Formulario para Modificar una Materia Prima -->
+                  <form
+                    method="post"
+                    action="{{ url_for('raw_material.update', business_id=business.id, raw_material_id=raw_material.id) }}"
+                    class="flex space-x-2"
+                  >
+                    <input
+                      type="text"
+                      name="name"
+                      value="{{ raw_material.name }}"
+                      required
+                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                    />
+                    <input
+                      type="text"
+                      name="unit"
+                      value="{{ raw_material.unit }}"
+                      required
+                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-20 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                    />
+                    <button
+                      type="submit"
+                      class="text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+                    >
+                      Actualizar
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block custom_javascript %}
+{% endblock custom_javascript %}

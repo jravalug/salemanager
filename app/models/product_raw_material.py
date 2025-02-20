@@ -12,5 +12,5 @@ class ProductRawMaterial(db.Model):
     )  # Cantidad de materia prima necesaria
 
     # Relaciones
-    product = db.relationship("Product", backref="raw_materials")
+    product = db.relationship("Product", back_populates="raw_materials")
     raw_material = db.relationship("RawMaterial", backref="products")
