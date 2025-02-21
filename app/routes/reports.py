@@ -26,7 +26,7 @@ from app.utils import get_excluded_sales, generate_excel_sales_by_date
 bp = Blueprint("report", __name__, url_prefix="/business/<int:business_id>/report")
 
 
-@bp.route("/monthly/sales-by-product", methods=["GET", "POST"])
+@bp.route("/monthly-sales-by-product", methods=["GET", "POST"])
 def monthly_sales_by_produc(business_id):
     # Obtener el negocio (asegúrate de que exista)
     business = Business.query.get_or_404(business_id)
@@ -176,9 +176,11 @@ def monthly_sales_by_date(business_id):
 
     if form.validate_on_submit():
         month_str = form.month.data
+
         try:
             # Convierte el string a un objeto datetime.date
             selected_month = datetime.strptime(month_str, "%Y-%m").date()
+            print(selected_month)
             logging.debug(
                 f"selected_month después de conversión: {selected_month}, tipo: {type(selected_month)}"
             )
@@ -196,6 +198,11 @@ def monthly_sales_by_date(business_id):
         try:
             daily_sales, filtered_sales = sales_service.get_daily_sales(
                 business_id, month_str, excluded_sales
+            )
+
+            logging.debug(f"daily_sales: {daily_sales}, tipo: {type(daily_sales)}")
+            logging.debug(
+                f"filtered_sales: {filtered_sales}, tipo: {type(filtered_sales)}"
             )
 
         except ValueError as e:
