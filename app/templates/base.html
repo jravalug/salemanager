@@ -78,6 +78,13 @@
                   >Productos</a
                 >
               </li>
+              <li>
+                <a
+                  href="{{ url_for('raw_material.list', business_id=business.id) }}"
+                  class="text-muted-foreground transition-colors hover:text-foreground"
+                  >Materias Primas</a
+                >
+              </li>
             {% else %}
               <li>
                 <a
