@@ -8,3 +8,11 @@ class RawMaterial(db.Model):
         db.String(20), nullable=False
     )  # Ejemplo: "kg", "litros", "unidades"
     stock = db.Column(db.Float, default=0.0)  # Cantidad disponible en inventario
+    sku = db.Column(db.String(50), unique=True, nullable=True)
+    min_stock = db.Column(db.Float, nullable=True)
+    expiration_date = db.Column(db.Date, nullable=True)
+    # supplier_id = db.Column(
+    #     db.Integer, db.ForeignKey('supplier.id'), nullable=False
+    # )
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, on_update=db.func.current_timestamp())
