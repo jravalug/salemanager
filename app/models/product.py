@@ -2,14 +2,37 @@ from app.extensions import db
 
 
 class Product(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    price = db.Column(db.Float, nullable=False)
-    instructions = db.Column(db.Text, nullable=True)
+    id = db.Column(db.Integer, primary_key=True)  # Id del producto
+    name = db.Column(db.String(100), nullable=False)  # Nombre del producto
+    price = db.Column(db.Float, nullable=False)  # Precio de venta
+    description = db.Column(db.Text, nullable=True)  # Descripción del producto
+    instructions = db.Column(db.Text, nullable=True)  # Instrucciones de elaboracion
+    category = db.Column(
+        db.String(50), nullable=True
+    )  # Categoría del producto (comida, bebida, ropa, herramientas, etc.).
+    sku = db.Column(
+        db.String(50), nullable=True, unique=True
+    )  # Código único del producto (SKU - Stock Keeping Unit).
+    barcode = db.Column(
+        db.String(50), nullable=True
+    )  # Código de barras del producto (opcional)
+    unit = db.Column(
+        db.String(20), nullable=True
+    )  # Unidad de medida (kilogramos, litros, unidades, etc.)
+    is_active = db.Column(
+        db.Boolean, default=True
+    )  # Indica si el producto está activo (disponible para la venta)
+    min_stock = db.Column(
+        db.Float, nullable=True
+    )  # Stock mínimo antes de emitir una alerta
+    cost_price = db.Column(
+        db.Float, nullable=True
+    )  # Costo unitario del producto (útil para calcular márgenes de ganancia)
+
     business_id = db.Column(
         db.Integer, db.ForeignKey("business.id"), nullable=False
     )  # Asociación con el negocio
 
-    # Relación con materias primas
+    # Relaciones con otros modelos
     sale_products = db.relationship("SaleProduct", back_populates="product")
     raw_materials = db.relationship("ProductRawMaterial", back_populates="product")
