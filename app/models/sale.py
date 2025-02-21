@@ -4,8 +4,23 @@ from app.extensions import db
 
 class Sale(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    sale_number = db.Column(db.String(3), nullable=False)
-    date = db.Column(db.Date, nullable=False)
+    sale_number = db.Column(db.String(3), nullable=False)  # Número de Venta
+    date = db.Column(db.Date, nullable=False)  # Fecha de la Venta
+    payment_method = db.Column(
+        db.String(50), nullable=True
+    )  # Método de pago (efectivo, tarjeta, transferencia, etc.)
+    status = db.Column(
+        db.String(20), default="completed"
+    )  # Estado de la venta (pendiente, completada, cancelada, devuelta)
+    customer_name = db.Column(
+        db.String(100), nullable=True
+    )  # Nombre del cliente (opcional)
+    discount = db.Column(
+        db.Float, default=0.0
+    )  # Descuento aplicado a la venta (porcentaje o monto fijo)
+    tax = db.Column(db.Float, default=0.0)  # Impuesto aplicado a la venta (IVA, etc.)
+
+    # Foreing Keys
     business_id = db.Column(
         db.Integer, db.ForeignKey("business.id"), nullable=False
     )  # Asociación con el negocio
