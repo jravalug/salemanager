@@ -146,8 +146,8 @@ def details(business_id, sale_id):
         flash("Venta actualizada correctamente", "success")
 
     def handle_update_product():
-        sale_product = SaleProduct.query.first_or_404(request.form["update_product-id"])
-        print(f"Actualizando producto ID: {sale_product}")
+        sale_product_id = request.form.get("update_product-id")
+        sale_product = SaleProduct.query.get_or_404(sale_product_id)
         updated_product = sale_service.update_sale_product(
             sale_product=sale_product,
             quantity=update_product_form.quantity.data,
