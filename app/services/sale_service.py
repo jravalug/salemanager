@@ -62,8 +62,8 @@ class SalesService:
         sale.discount = form_data.discount.data
         sale.tax = form_data.tax.data
 
-        self._update_sale_totals(sale)
         db.session.commit()
+        self._update_sale_totals(sale)
         return sale
 
     def add_product_to_sale(self, sale, product_id, quantity, discount):
@@ -82,8 +82,8 @@ class SalesService:
         )
 
         db.session.add(new_sale_product)
-        self._update_sale_totals(sale)
         db.session.commit()
+        self._update_sale_totals(sale)
         return new_sale_product
 
     def remove_product_from_sale(self, sale, sale_product_id):
@@ -93,8 +93,8 @@ class SalesService:
         ).first_or_404()
         removed_product = Product.query.first_or_404(sale_product.product_id)
         db.session.delete(sale_product)
-        self._update_sale_totals(sale)
         db.session.commit()
+        self._update_sale_totals(sale)
         return removed_product
 
     def update_sale_product(self, sale_product, quantity, discount):
@@ -106,16 +106,16 @@ class SalesService:
             sale_product.unit_price, quantity, sale_product.discount
         )
 
-        self._update_sale_totals(sale_product.sale)
         db.session.commit()
+        self._update_sale_totals(sale_product.sale)
         return sale_product
 
     # Helpers Methods
 
     def _update_sale_totals(self, sale):
         """Actualiza los totales de la venta"""
-        sale.subtotal_amount = self.calculate_sale_subtotal(sale)
-        sale.total_amount = self.calculate_sale_total(sale)
+        self.calculate_sale_subtotal(sale)
+        self.calculate_sale_total(sale)
 
     def calculate_sale_product_total(self, unit_price, quantity, discount):
         """Calcula el total por producto considerando descuentos"""
@@ -123,13 +123,17 @@ class SalesService:
 
     def calculate_sale_subtotal(self, sale):
         """Calcula el subtotal de la venta considerando la suma de los productos"""
-        return round(sum(sale_product.total_price for sale_product in sale.products), 2)
+        sale.subtotal_amount = round(
+            sum(sale_product.total_price for sale_product in sale.products), 2
+        )
+        db.session.commit()
 
     def calculate_sale_total(self, sale):
         """Calcula el total de la venta considerando descuentos e impuestos"""
-        return round(
+        sale.total_amount = round(
             sale.subtotal_amount
             * (1 - (sale.discount or 0.0))
             * (1 + (sale.tax or 0.0)),
             2,
         )
+        db.session.commit()
