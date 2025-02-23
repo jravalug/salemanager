@@ -21,7 +21,7 @@ def list(business_id):
         flash("Producto agregado correctamente", "success")
         return redirect(
             url_for(
-                "product.add_raw_materials",
+                "product.technical_card",
                 business_id=business.id,
                 product_id=new_product.id,
             )
