@@ -1,7 +1,12 @@
 from flask import Flask
 from config import Config
 from .extensions import db, migrate
-from .filters import format_currency_filter
+from .filters import (
+    format_currency_filter,
+    format_payment_method,
+    format_sale_status,
+    format_sale_status_badge,
+)
 from .context_processors import inject_now
 from app.routes import register_blueprints
 
@@ -16,6 +21,9 @@ def create_app():
 
     # Registrar filtros personalizados
     app.template_filter("currency")(format_currency_filter)
+    app.template_filter("format_payment_method")(format_payment_method)
+    app.template_filter("format_sale_status")(format_sale_status)
+    app.template_filter("format_sale_status_badge")(format_sale_status_badge)
 
     # Registrar context processors
     app.context_processor(inject_now)
