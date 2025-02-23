@@ -14,17 +14,17 @@ class SaleProduct(db.Model):
 
     # Atributos adicionales para la información del producto vendido:
     quantity = db.Column(
-        db.Integer, nullable=True
+        db.Integer, nullable=False
     )  # Cantidad del producto vendido en esa venta
     unit_price = db.Column(
-        db.Float, nullable=True
+        db.Float, nullable=False
     )  # Precio unitario del producto vendido
-    total_price = db.Column(
-        db.Float, nullable=True
-    )  # Total de la compra para el producto en esa venta (cantidad * precio unitario)
     discount = db.Column(
         db.Float, default=0.0
     )  # Descuento aplicado al producto vendido en esa venta
+    total_price = db.Column(
+        db.Float, nullable=False
+    )  # Total de la compra para el producto en esa venta (cantidad * precio unitario)
 
     # Relationships
     product = db.relationship(

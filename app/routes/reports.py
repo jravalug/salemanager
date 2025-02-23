@@ -20,7 +20,7 @@ from dateutil.relativedelta import relativedelta
 from app.forms import MonthForm
 from app.models import Business, Sale, SaleProduct
 from app.extensions import db
-from app.services import SalesService
+from app.services import SalesReportService
 from app.utils import get_excluded_sales, generate_excel_sales_by_date
 
 bp = Blueprint("report", __name__, url_prefix="/business/<int:business_id>/report")
@@ -171,7 +171,7 @@ def monthly_sales_by_date(business_id):
 
     excluded_sales = get_excluded_sales()
     print(f"Ventas excluidas: {excluded_sales}")
-    sales_service = SalesService()
+    sales_service = SalesReportService()
     form = MonthForm()
 
     if form.validate_on_submit():

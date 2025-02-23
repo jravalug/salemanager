@@ -173,3 +173,26 @@ def format_daily_sales(sales_by_day):
         )
 
     return daily_sales
+
+
+def calculate_sale_total_amount(original_price, discounts, taxes):
+    """
+    Calcula el total de una venta.
+    """
+
+    total_product_price = original_price
+    total_discount = original_price * discounts
+    total_taxes = original_price * taxes
+
+    total_amount = total_product_price - total_discount + total_taxes
+    return total_amount, total_product_price, total_discount, total_taxes
+
+
+def calculate_sale_product_total_price(price, quantity, discount):
+    """
+    Calcula el total de los productos de una venta.
+    """
+    original_price = price * quantity
+    discounted_price = original_price * discount
+    total_price = original_price - discounted_price
+    return total_price, original_price, discounted_price

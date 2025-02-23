@@ -7,18 +7,33 @@ class Sale(db.Model):
     sale_number = db.Column(db.String(3), nullable=False)  # Número de Venta
     date = db.Column(db.Date, nullable=False)  # Fecha de la Venta
     payment_method = db.Column(
-        db.String(50), nullable=True
+        db.String(50), nullable=False
     )  # Método de pago (efectivo, tarjeta, transferencia, etc.)
     status = db.Column(
-        db.String(20), default="completed"
+        db.String(20),
+        default="completed",
+        nullable=False,
     )  # Estado de la venta (pendiente, completada, cancelada, devuelta)
+    excluded = db.Column(
+        db.Boolean, default=True
+    )  # Indica si la venta fue excluida (opcional)
     customer_name = db.Column(
         db.String(100), nullable=True
     )  # Nombre del cliente (opcional)
+
+    # Monetary
+    subtotal_amount = db.Column(
+        db.Float, default=0.0, nullable=False
+    )  # Total de la suma de total_price en SaleProduct
     discount = db.Column(
-        db.Float, default=0.0
+        db.Float, default=0.0, nullable=False
     )  # Descuento aplicado a la venta (porcentaje o monto fijo)
-    tax = db.Column(db.Float, default=0.0)  # Impuesto aplicado a la venta (IVA, etc.)
+    tax = db.Column(
+        db.Float, default=0.0, nullable=False
+    )  # Impuesto aplicado a la venta (IVA, etc.)
+    total_amount = db.Column(
+        db.Float, nullable=False
+    )  # Total de la venta (incluyendo descuento e impuesto)
 
     # Foreing Keys
     business_id = db.Column(
@@ -34,6 +49,15 @@ class Sale(db.Model):
             name="unique_sale_per_business_per_date",
         ),
     )
+    # Añadir check constraint para tax >= 0
+    __table_args__ = (db.CheckConstraint("tax >= 0", name="tax_non_negative"),)
+    __table_args__ = (
+        db.CheckConstraint("discount >= 0", name="discount_non_negative"),
+    )
+
+    def calculate_total(self):
+        self.subtotal_amount = sum(sp.total_price for sp in self.products)
+        self.total_amount = self.subtotal_amount * (1 - self.discount) * (1 + self.tax)
 
     def __repr__(self):
         return f"Sale #{self.sale_number} - Business: {self.business.name} - Date: {self.date}"

@@ -1,11 +1,26 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import (
+    Blueprint,
+    current_app,
+    render_template,
+    redirect,
+    url_for,
+    flash,
+    request,
+)
 
 from sqlalchemy.orm import joinedload
 from collections import defaultdict
 from datetime import datetime
 from sqlite3 import IntegrityError
 from app.extensions import db
-from app.forms import SaleForm, EditSaleProductForm
+from app.forms import (
+    SaleForm,
+    SaleProductForm,
+    UpdateSaleProductForm,
+    RemoveSaleProductForm,
+)
+
+from app.services import SalesService
 from app.models import Business, Product, Sale, SaleProduct
 from app.utils.sale_utils import calculate_month_totals, group_sales_by_month
 import logging
@@ -21,39 +36,46 @@ def list(business_id):
     """
     Muestra la lista de ventas y maneja la creación de nuevas ventas.
     """
-    # Obtener el negocio
-    business = Business.query.get_or_404(business_id)
+
+    sale_service = SalesService()
+
+    try:
+        business = Business.query.get_or_404(business_id)
+    except Exception as e:
+        flash(str(e), "error")
+        return redirect(url_for("business.list"))
 
     # Crear una instancia del formulario
-    form = SaleForm()
-    logger.debug(f"Formulario de venta creado para negocio {business.name}")
+    add_sale_form = SaleForm(prefix="add_sale")
 
-    if form.validate_on_submit():  # Validar el formulario
-        date = form.date.data  # Obtener la fecha validada
+    def handle_add_sale():
 
-        # Registrar la fecha en el log
-        logger.debug(f"Fecha de venta ingresada: {date}")
+        print(f"Entrando al servicio add_sale")
+        new_sale = sale_service.add_sale(
+            form_data=add_sale_form, business_id=business.id
+        )
+        print(f"Saliendo del servicio add_sale con: {new_sale}")
+        flash("Venta creada correctamente", "success")
+        return new_sale
 
-        # Crear la nueva venta (el sale_number se genera automáticamente)
-        try:
-            new_sale = Sale(
-                date=date,
-                business_id=business.id,
-            )
-            db.session.add(new_sale)
-            db.session.commit()
-            flash("Venta creada correctamente.", "success")
+    try:
+        if add_sale_form.validate_on_submit():
+            print(f"Entrando al handle_add_sale")
+            sale = handle_add_sale()
+            print(f"Saliendo del handle_add_sale")
             return redirect(
                 url_for(
-                    "sale.add_products",
+                    "sale.details",
                     business_id=business.id,
-                    sale_id=new_sale.id,
+                    sale_id=sale.id,
                 )
             )
-        except IntegrityError:
-            db.session.rollback()
-            flash("Error al crear la venta. Inténtalo nuevamente.", "danger")
-            return redirect(url_for("sale.list", business_id=business.id))
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error al crear la venta: {str(e)}")
+        flash(f"Error: {str(e)}", "error")
+        return redirect(url_for("sale.list", business_id=business.id))
 
     # Obtener todas las ventas con sus productos cargados
     all_sales = (
@@ -71,125 +93,101 @@ def list(business_id):
         business=business,
         sales_by_months=sales_by_months,
         month_totals=calculate_month_totals(sales_by_months),
-        form=form,  # Pasar el formulario a la plantilla
+        add_sale_form=add_sale_form,  # Pasar el formulario a la plantilla
     )
 
 
-@bp.route(
-    "/<int:sale_id>/add_products",
-    methods=["GET", "POST"],
-)
-def add_products(business_id, sale_id):
-    business = Business.query.get_or_404(business_id)
-
-    sale = Sale.query.get_or_404(sale_id)
-    if request.method == "POST":
-        product_id = int(request.form["product_id"])
-        quantity = int(request.form["quantity"])
-        sale_product = SaleProduct(
-            sale_id=sale.id, product_id=product_id, quantity=quantity
-        )
-        db.session.add(sale_product)
-        db.session.commit()
-        flash("Producto agregado a la venta", "success")
-        return redirect(
-            url_for("sale.add_products", business_id=business.id, sale_id=sale.id)
-        )
-
-    products_list = (
-        Product.query.filter_by(business_id=business.id)
-        .order_by(Product.name.asc())
-        .all()
-    )
-
-    total = sum(
-        sale_product.product.price * sale_product.quantity
-        for sale_product in sale.products
-    )
-
-    return render_template(
-        "sale/add_products.html",
-        business=business,
-        sale=sale,
-        products=products_list,
-        total=total,
-    )
-
-
-@bp.route(
-    "/<int:sale_id>/edit-product/<int:product_id>",
-    methods=["GET", "POST"],
-)
-def edit_product(business_id, sale_id, product_id):
-    # Obtener el negocio
-    business = Business.query.get_or_404(business_id)
-
-    # Obtener la venta y el producto específico
-    sale = Sale.query.get_or_404(sale_id)
-    sale_product = SaleProduct.query.filter_by(
-        sale_id=sale_id, product_id=product_id
-    ).first_or_404()
-
-    # Crear el formulario
-    form = EditSaleProductForm(
-        obj=sale_product
-    )  # Prellenar el formulario con los datos actuales
-
-    if form.validate_on_submit():
-        # Actualizar los datos del producto en la venta
-        sale_product.quantity = form.quantity.data
-        db.session.commit()
-
-        flash("El producto ha sido actualizado correctamente.", "success")
-        return redirect(
-            url_for("sale.details", business_id=business_id, sale_id=sale_id)
-        )
-
-    return render_template(
-        "sale/edit_product.html",
-        business=business,
-        sale=sale,
-        sale_product=sale_product,
-        form=form,
-    )
-
-
-@bp.route("/<int:sale_id>")
+@bp.route("/<int:sale_id>", methods=["GET", "POST"])
 def details(business_id, sale_id):
-    business = Business.query.get_or_404(business_id)
+    sale_service = SalesService()
 
-    sale = Sale.query.get_or_404(sale_id)
-    total = sum(
-        sale_product.product.price * sale_product.quantity
-        for sale_product in sale.products
+    try:
+        business = Business.query.get_or_404(business_id)
+        sale = sale_service.get_sale_details(sale_id, business.id)
+    except Exception as e:
+        flash(str(e), "error")
+        return redirect(url_for("sale.list", business_id=business_id))
+
+    # Inicialización de formularios
+    add_product_form = SaleProductForm(prefix="add_product")
+    update_product_form = UpdateSaleProductForm(prefix="update_product")
+    remove_product_form = RemoveSaleProductForm(prefix="remove_product")
+    update_sale_form = SaleForm(request.form, obj=sale, prefix="update_sale")
+
+    # Cargar opciones de productos
+    add_product_form.set_product_choices(
+        sale_service.get_available_products(business.id)
     )
+
+    # Funciones helper con acceso al scope exterior
+    def redirect_to_sale():
+        return redirect(
+            url_for("sale.details", business_id=business.id, sale_id=sale.id)
+        )
+
+    def handle_remove_product():
+        sale_product_id = remove_product_form.sale_product_id.data
+        removed_product = sale_service.remove_product_from_sale(
+            sale=sale, sale_product_id=sale_product_id
+        )
+        flash(f"Producto '{removed_product.name}' eliminado", "success")
+
+    def handle_add_product():
+        new_sale_product = sale_service.add_product_to_sale(
+            sale=sale,
+            product_id=add_product_form.product_id.data,
+            quantity=add_product_form.quantity.data,
+            discount=add_product_form.discount.data,
+        )
+        flash(f"Producto '{new_sale_product.product.name}' agregado", "success")
+
+    def handle_update_sale():
+        updated_sale = sale_service.update_sale(sale=sale, form_data=update_sale_form)
+        flash("Venta actualizada correctamente", "success")
+
+    def handle_update_product():
+        sale_product = SaleProduct.query.first_or_404(request.form["update_product-id"])
+        print(f"Actualizando producto ID: {sale_product}")
+        updated_product = sale_service.update_sale_product(
+            sale_product=sale_product,
+            quantity=update_product_form.quantity.data,
+            discount=update_product_form.discount.data,
+        )
+        flash("Producto actualizado correctamente", "success")
+
+    try:
+        if remove_product_form.validate_on_submit():
+            handle_remove_product()
+            return redirect_to_sale()
+
+        if add_product_form.validate_on_submit():
+            handle_add_product()
+            return redirect_to_sale()
+
+        if update_product_form.validate_on_submit():
+            handle_update_product()
+            return redirect_to_sale()
+
+        if update_sale_form.validate_on_submit():
+            handle_update_sale()
+            return redirect_to_sale()
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error en venta {sale_id}: {str(e)}")
+        flash(f"Error: {str(e)}", "error")
+        return redirect_to_sale()
+
+    # Obtener productos para mostrar
+    sale_products = sale_service.get_sale_products(sale.id)
+
     return render_template(
-        "sale/details.html", business=business, sale=sale, total=total
+        "sale/details.html",
+        business=business,
+        sale=sale,
+        products=sale_products,
+        add_product_form=add_product_form,
+        remove_product_form=remove_product_form,
+        update_product_form=update_product_form,
+        update_sale_form=update_sale_form,
     )
-
-
-@bp.route(
-    "/<int:sale_id>/remove-product/<int:product_id>",
-    methods=["POST"],
-)
-def remove_product_from_sale(business_id, sale_id, product_id):
-    # Obtener el negocio
-    business = Business.query.get_or_404(business_id)
-
-    # Obtener la venta y el producto específico
-    sale_product = SaleProduct.query.filter_by(
-        sale_id=sale_id, product_id=product_id
-    ).first_or_404()
-
-    # Acceder al nombre del producto antes de eliminarlo
-    product_name = sale_product.product.name
-
-    # Eliminar el producto de la venta
-    db.session.delete(sale_product)
-    db.session.commit()
-
-    flash(
-        f"El producto '{sale_product.product.name}' ha sido eliminado de la venta.",
-        "success",
-    )
-    return redirect(url_for("sale.details", business_id=business_id, sale_id=sale_id))

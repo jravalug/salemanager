@@ -19,33 +19,15 @@
       <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">
         Agregar Nueva Venta
       </h2>
-      <!-- Formulario para crear una nueva venta -->
-      <form method="POST" class="max-w-md mx-auto">
-        {{ form.hidden_tag() }}
 
-        <!-- Campo de fecha -->
-        <div class="mb-6">
-          <label
-            for="date"
-            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-            >Fecha</label
-          >
-          {{ form.date(class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500") }}
-          {% for error in form.date.errors %}
-            <p class="mt-2 text-sm text-red-600 dark:text-red-500">
-              {{ error }}
-            </p>
-          {% endfor %}
-        </div>
-
-        <!-- Botón de envío -->
-        <button
-          type="submit"
-          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-        >
-          Crear Venta
-        </button>
-      </form>
+      <button
+        type="button"
+        data-modal-target="add_sale_modal"
+        data-modal-toggle="add_sale_modal"
+        class="mt-4 flex w-full items-center justify-center rounded-lg bg-primary-700  px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-800 focus:outline-none focus:ring-4 focus:ring-primary-300  dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 sm:mt-0"
+      >
+        Actualizar Venta
+      </button>
     </div>
   </section>
 
@@ -123,4 +105,217 @@
       </a>
     </div>
   </section>
+
+  {# Modal Agregar Venta #}
+  <div
+    id="add_sale_modal"
+    tabindex="-1"
+    aria-hidden="true"
+    class="antialiased fixed left-0 right-0 top-0 z-50 hidden h-[calc(100%-1rem)] max-h-auto w-full items-center justify-center overflow-y-auto overflow-x-hidden md:inset-0"
+  >
+    <div class="relative max-h-auto w-full max-w-lg p-4">
+      <!-- Modal content -->
+      <div class="relative rounded-lg bg-white shadow dark:bg-gray-800">
+        <!-- Modal header -->
+        <div
+          class="flex items-center justify-between rounded-t border-b border-gray-200 p-4 dark:border-gray-700 md:p-5"
+        >
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Actualizar Venta
+          </h3>
+          <button
+            type="button"
+            class="ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-transparent text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white"
+            data-modal-toggle="add_sale_modal"
+          >
+            <svg
+              class="h-3 w-3"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 14 14"
+            >
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+              />
+            </svg>
+            <span class="sr-only">Cerrar modal</span>
+          </button>
+        </div>
+        <!-- Modal body -->
+        <form
+          method="post"
+          class="p-4 md:p-5"
+          action="{{ url_for('sale.list', business_id=business.id) }}"
+        >
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-5">
+            <!-- Campo Oculto CSRF -->
+            {{ add_sale_form.hidden_tag() }}
+
+            <!-- Campo de Numero de venta -->
+            <div class="sm:col-span-2">
+              {{ add_sale_form.sale_number.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+              {{
+                add_sale_form.sale_number(
+                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                  placeholder="Número de venta ...",
+                )
+              }}
+              {% for error in add_sale_form.sale_number.errors %}
+                <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                  >{{ error }}</span
+                >
+              {% endfor %}
+            </div>
+
+            <!-- Campo de Fecha -->
+            <div class="sm:col-span-2">
+              {{ add_sale_form.date.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+              {{
+                add_sale_form.date(
+                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                  placeholder="Fecha de venta ...",
+                  type="date",
+                  required=True
+                )
+              }}
+              {% for error in add_sale_form.date.errors %}
+                <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                  >{{ error }}</span
+                >
+              {% endfor %}
+            </div>
+
+            <!-- Selector de Metodo de Pago -->
+            <div class="sm:col-span-2">
+              {{ add_sale_form.payment_method.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+              {{
+                add_sale_form.payment_method(
+                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                  placeholder="Metodo de pago ...",
+                )
+              }}
+              {% for error in add_sale_form.payment_method.errors %}
+                <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                  >{{ error }}</span
+                >
+              {% endfor %}
+            </div>
+
+            <!-- Selector de Estado -->
+            <div class="sm:col-span-2">
+              {{ add_sale_form.status.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+              {{
+                add_sale_form.status(
+                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                  placeholder="Estado ...",
+                )
+              }}
+              {% for error in add_sale_form.status.errors %}
+                <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                  >{{ error }}</span
+                >
+              {% endfor %}
+            </div>
+
+            <!-- Campo de Nombre del cliente -->
+            <div class="sm:col-span-4">
+              {{ add_sale_form.customer_name.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+              {{
+                add_sale_form.customer_name(
+                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                  placeholder="Nombre del cliente ...",
+                )
+              }}
+              {% for error in add_sale_form.customer_name.errors %}
+                <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                  >{{ error }}</span
+                >
+              {% endfor %}
+            </div>
+
+            <!-- Campo de Descuento -->
+            <div class="sm:col-span-2">
+              {{ add_sale_form.discount.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+              {{
+                add_sale_form.discount(
+                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                  placeholder="Descuento ...",
+                  step="0.01",
+                  type="number"
+                )
+              }}
+              {% for error in add_sale_form.discount.errors %}
+                <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                  >{{ error }}</span
+                >
+              {% endfor %}
+            </div>
+
+            <!-- Campo de Impuesto -->
+            <div class="sm:col-span-2">
+              {{ add_sale_form.tax.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+              {{
+                add_sale_form.tax(
+                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                  placeholder="IVA ...",
+                  step="0.01",
+                  type="number"
+                )
+              }}
+              {% for error in add_sale_form.tax.errors %}
+                <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                  >{{ error }}</span
+                >
+              {% endfor %}
+            </div>
+
+            <!-- Campo de Venta excluida -->
+            <div class="sm:col-span-4">
+              {{ add_sale_form.excluded.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+              <div class="flex items-center mb-4">
+                {{
+                  add_sale_form.excluded(
+                    class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                    type="checkbox",
+                  )
+                }}
+                <div
+                  class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                >
+                  {{ add_sale_form.excluded.description }}
+                </div>
+                {% for error in add_sale_form.excluded.errors %}
+                  <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                    >{{ error }}</span
+                  >
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          <div
+            class="border-t border-gray-200 pt-4 dark:border-gray-700 md:pt-5"
+          >
+            <button
+              type="submit"
+              class="me-2 inline-flex items-center rounded-lg bg-primary-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-primary-800 focus:outline-none focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+            >
+              Agregar Venta
+            </button>
+            <button
+              type="button"
+              data-modal-toggle="add_sale_modal"
+              class="me-2 rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 {% endblock %}
