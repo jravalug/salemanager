@@ -15,4 +15,4 @@ class RawMaterial(db.Model):
     #     db.Integer, db.ForeignKey('supplier.id'), nullable=False
     # )
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    updated_at = db.Column(db.DateTime, on_update=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
