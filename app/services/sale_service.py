@@ -9,7 +9,7 @@ class SalesService:
 
     # Nuevos métodos para operaciones CRUD
 
-    def get_sale_details(self, sale_id, business_id):
+    def get_sale(self, sale_id, business_id):
         """Obtiene los detalles completos de una venta con sus relaciones"""
         return (
             Sale.query.options(

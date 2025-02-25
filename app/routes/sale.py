@@ -103,7 +103,7 @@ def details(business_id, sale_id):
 
     try:
         business = Business.query.get_or_404(business_id)
-        sale = sale_service.get_sale_details(sale_id, business.id)
+        sale = sale_service.get_sale(sale_id, business.id)
     except Exception as e:
         flash(str(e), "error")
         return redirect(url_for("sale.list", business_id=business_id))
