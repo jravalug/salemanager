@@ -110,7 +110,7 @@
                               enctype="multipart/form-data"
                               onsubmit="return confirm('¿Estás seguro de que deseas eliminar este producto?');"
                             >
-                              {{ remove_product_form.sale_product_id(value=sp.id) }}
+                              {{ remove_product_form.sale_detail_id(value=sp.id) }}
                               {{ remove_product_form.hidden_tag(remove_product_form.meta.csrf_field_name) }}
                               <button
                                 type="submit"

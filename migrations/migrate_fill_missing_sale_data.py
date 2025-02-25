@@ -1,5 +1,5 @@
 from app import create_app, db
-from app.models import Sale, SaleProduct, Product
+from app.models import Sale, SaleDetail, Product
 
 
 def fill_missing_sale_data():

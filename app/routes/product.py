@@ -1,8 +1,8 @@
 from flask import Blueprint, jsonify, render_template, redirect, url_for, flash, request
-from app.forms import ProductForm, ProductRawMaterialForm, ProductInstructionsForm
+from app.forms import ProductForm, ProductDetailForm
 from app.models import Business, Product
 from app.extensions import db
-from app.models import ProductRawMaterial, RawMaterial
+from app.models import ProductDetail, InventoryItem
 
 
 bp = Blueprint("product", __name__, url_prefix="/business/<int:business_id>/product")
@@ -43,25 +43,25 @@ def technical_card(business_id, product_id):
     business = Business.query.get_or_404(business_id)
     product = Product.query.get_or_404(product_id)
 
-    add_raw_maerial_form = ProductRawMaterialForm()
+    add_inventory_item_form = ProductDetailForm()
     update_product_form = ProductForm(request.form, obj=product)
 
-    if add_raw_maerial_form.validate_on_submit():
-        raw_material_id = add_raw_maerial_form.raw_material.data
-        quantity = add_raw_maerial_form.quantity.data
+    if add_inventory_item_form.validate_on_submit():
+        inventory_item_id = add_inventory_item_form.inventory_item.data
+        quantity = add_inventory_item_form.quantity.data
 
         # Verificar si ya existe esta relación
-        existing_relation = ProductRawMaterial.query.filter_by(
-            product_id=product.id, raw_material_id=raw_material_id
+        existing_relation = ProductDetail.query.filter_by(
+            product_id=product.id, inventory_item_id=inventory_item_id
         ).first()
 
         if existing_relation:
             flash("Esta materia prima ya está asociada al producto.", "warning")
         else:
             # Crear una nueva relación
-            new_relation = ProductRawMaterial(
+            new_relation = ProductDetail(
                 product_id=product.id,
-                raw_material_id=raw_material_id,
+                inventory_item_id=inventory_item_id,
                 quantity=quantity,
             )
             db.session.add(new_relation)
@@ -91,10 +91,10 @@ def technical_card(business_id, product_id):
         )
 
     # Obtener las materias primas asociadas al producto
-    raw_materials = (
-        db.session.query(ProductRawMaterial, RawMaterial)
-        .join(RawMaterial, ProductRawMaterial.raw_material_id == RawMaterial.id)
-        .filter(ProductRawMaterial.product_id == product.id)
+    inventory_items = (
+        db.session.query(ProductDetail, InventoryItem)
+        .join(InventoryItem, ProductDetail.inventory_item_id == InventoryItem.id)
+        .filter(ProductDetail.product_id == product.id)
         .all()
     )
 
@@ -102,9 +102,9 @@ def technical_card(business_id, product_id):
         "product/technical_card.html",
         business=business,
         product=product,
-        raw_materials=raw_materials,
+        inventory_items=inventory_items,
         update_product_form=update_product_form,
-        add_raw_maerial_form=add_raw_maerial_form,
+        add_inventory_item_form=add_inventory_item_form,
     )
 
 
@@ -112,14 +112,14 @@ def technical_card(business_id, product_id):
     "/<int:product_id>/update-raw-material",
     methods=["POST"],
 )
-def update_raw_material(business_id, product_id):
+def update_inventory_item(business_id, product_id):
     # Obtener el negocio y el producto
     business = Business.query.get_or_404(business_id)
     product = Product.query.get_or_404(product_id)
 
-    # Buscar la relación específica usando el ID de ProductRawMaterial
+    # Buscar la relación específica usando el ID de ProductDetail
     prm_id = request.form.get("prm_id")
-    relation = ProductRawMaterial.query.get_or_404(prm_id)
+    relation = ProductDetail.query.get_or_404(prm_id)
     if not relation:
         flash(
             f"Error al intentar eliminar la materia prima.",
@@ -134,14 +134,14 @@ def update_raw_material(business_id, product_id):
     # Obtener los datos del formulario
     prm_quantity = request.form.get("prm_quantity")
     print(f"La cantidad es: {prm_quantity}")
-    raw_material_name = relation.raw_material.name
+    inventory_item_name = relation.inventory_item.name
 
     # Actualizar la cantidad
     relation.quantity = prm_quantity
     db.session.commit()
 
     flash(
-        f"La materia prima '{raw_material_name}' ha sido actualizada.",
+        f"La materia prima '{inventory_item_name}' ha sido actualizada.",
         "success",
     )
     return redirect(
@@ -155,13 +155,13 @@ def update_raw_material(business_id, product_id):
     "/<int:product_id>/remove-raw-material/<int:prm_id>",
     methods=["POST"],
 )
-def remove_raw_material(business_id, product_id, prm_id):
+def remove_inventory_item(business_id, product_id, prm_id):
     # Obtener el negocio
     business = Business.query.get_or_404(business_id)
     product = Product.query.get_or_404(product_id)
 
-    # Buscar la relación específica usando el ID de ProductRawMaterial
-    relation = ProductRawMaterial.query.get_or_404(prm_id)
+    # Buscar la relación específica usando el ID de ProductDetail
+    relation = ProductDetail.query.get_or_404(prm_id)
     if not relation:
         flash(
             f"Error al intentar eliminar la materia prima.",
@@ -174,14 +174,14 @@ def remove_raw_material(business_id, product_id, prm_id):
         )
 
     # Acceder al nombre del producto antes de eliminarlo
-    raw_material_name = relation.raw_material.name
+    inventory_item_name = relation.inventory_item.name
 
     # Eliminar el producto de la venta
     db.session.delete(relation)
     db.session.commit()
 
     flash(
-        f"La materia prima '{raw_material_name}' ha sido eliminada de la carta tecnológica.",
+        f"La materia prima '{inventory_item_name}' ha sido eliminada de la carta tecnológica.",
         "success",
     )
     return redirect(

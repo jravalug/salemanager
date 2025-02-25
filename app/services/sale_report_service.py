@@ -2,11 +2,11 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 from app import db
-from app.models import Sale, Product, SaleProduct
+from app.models import Sale, Product, SaleDetail
 from app.repositories.sales_repository import SalesRepository
 from app.utils import (
     group_products,
-    calculate_sale_product_totals,
+    calculate_sale_detail_totals,
     format_daily_sales,
     calculate_sales_totals,
 )

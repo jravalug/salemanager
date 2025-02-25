@@ -15,13 +15,13 @@ from sqlite3 import IntegrityError
 from app.extensions import db
 from app.forms import (
     SaleForm,
-    SaleProductForm,
-    UpdateSaleProductForm,
-    RemoveSaleProductForm,
+    SaleDetailForm,
+    UpdateSaleDetailForm,
+    RemoveSaleDetailForm,
 )
 
 from app.services import SalesService
-from app.models import Business, Product, Sale, SaleProduct
+from app.models import Business, Product, Sale, SaleDetail
 from app.utils.sale_utils import calculate_month_totals, group_sales_by_month
 import logging
 
@@ -109,9 +109,9 @@ def details(business_id, sale_id):
         return redirect(url_for("sale.list", business_id=business_id))
 
     # Inicialización de formularios
-    add_product_form = SaleProductForm(prefix="add_product")
-    update_product_form = UpdateSaleProductForm(prefix="update_product")
-    remove_product_form = RemoveSaleProductForm(prefix="remove_product")
+    add_product_form = SaleDetailForm(prefix="add_product")
+    update_product_form = UpdateSaleDetailForm(prefix="update_product")
+    remove_product_form = RemoveSaleDetailForm(prefix="remove_product")
     update_sale_form = SaleForm(request.form, obj=sale, prefix="update_sale")
 
     # Cargar opciones de productos
@@ -126,30 +126,30 @@ def details(business_id, sale_id):
         )
 
     def handle_remove_product():
-        sale_product_id = remove_product_form.sale_product_id.data
+        sale_detail_id = remove_product_form.sale_detail_id.data
         removed_product = sale_service.remove_product_from_sale(
-            sale=sale, sale_product_id=sale_product_id
+            sale=sale, sale_detail_id=sale_detail_id
         )
         flash(f"Producto '{removed_product.name}' eliminado", "success")
 
     def handle_add_product():
-        new_sale_product = sale_service.add_product_to_sale(
+        new_sale_detail = sale_service.add_product_to_sale(
             sale=sale,
             product_id=add_product_form.product_id.data,
             quantity=add_product_form.quantity.data,
             discount=add_product_form.discount.data,
         )
-        flash(f"Producto '{new_sale_product.product.name}' agregado", "success")
+        flash(f"Producto '{new_sale_detail.product.name}' agregado", "success")
 
     def handle_update_sale():
         updated_sale = sale_service.update_sale(sale=sale, form_data=update_sale_form)
         flash("Venta actualizada correctamente", "success")
 
     def handle_update_product():
-        sale_product_id = request.form.get("update_product-id")
-        sale_product = SaleProduct.query.get_or_404(sale_product_id)
-        updated_product = sale_service.update_sale_product(
-            sale_product=sale_product,
+        sale_detail_id = request.form.get("update_product-id")
+        sale_detail = SaleDetail.query.get_or_404(sale_detail_id)
+        updated_product = sale_service.update_sale_detail(
+            sale_detail=sale_detail,
             quantity=update_product_form.quantity.data,
             discount=update_product_form.discount.data,
         )
@@ -179,13 +179,13 @@ def details(business_id, sale_id):
         return redirect_to_sale()
 
     # Obtener productos para mostrar
-    sale_products = sale_service.get_sale_products(sale.id)
+    sale_details = sale_service.get_sale_details(sale.id)
 
     return render_template(
         "sale/details.html",
         business=business,
         sale=sale,
-        products=sale_products,
+        products=sale_details,
         add_product_form=add_product_form,
         remove_product_form=remove_product_form,
         update_product_form=update_product_form,

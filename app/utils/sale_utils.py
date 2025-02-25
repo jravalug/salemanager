@@ -16,10 +16,10 @@ def group_sales_by_month(sales):
         date_key = sale.date.strftime("%Y-%m-%d")
 
         # Calcular totales por venta
-        total_products = sum(sale_product.quantity for sale_product in sale.products)
+        total_products = sum(sale_detail.quantity for sale_detail in sale.products)
         total_income = sum(
-            sale_product.product.price * sale_product.quantity
-            for sale_product in sale.products
+            sale_detail.product.price * sale_detail.quantity
+            for sale_detail in sale.products
         )
 
         # Agregar datos a la estructura
@@ -74,7 +74,7 @@ def calculate_sales_totals(sales):
     }
 
 
-def calculate_sale_product_totals(sale):
+def calculate_sale_detail_totals(sale):
     """Calcula los totales de productos e importe para una venta."""
     total_products = sum(sp.quantity for sp in sale.products)
     total_income = sum(sp.quantity * sp.product.price for sp in sale.products)
@@ -84,10 +84,10 @@ def calculate_sale_product_totals(sale):
 def group_products(sale):
     """Agrupa los productos de una venta por nombre."""
     products_dict = defaultdict(lambda: {"quantity": 0, "import": 0})
-    for sale_product in sale.products:
-        name = sale_product.product.name
-        quantity = sale_product.quantity
-        price = sale_product.product.price
+    for sale_detail in sale.products:
+        name = sale_detail.product.name
+        quantity = sale_detail.quantity
+        price = sale_detail.product.price
         products_dict[name]["quantity"] += quantity
         products_dict[name]["import"] += quantity * price
     return products_dict
@@ -102,7 +102,7 @@ def group_products(sale):
 #             "sales": [],
 #         }
 #         for sale in sales:
-#             total_products, total_income = calculate_sale_product_totals(sale)
+#             total_products, total_income = calculate_sale_detail_totals(sale)
 #             products_dict = group_products(sale)
 #             products_list = [
 #                 {"name": name, "quantity": data["quantity"], "import": data["import"]}
@@ -137,7 +137,7 @@ def format_daily_sales(sales_by_day):
 
         for sale in sales:
             # Calcular totales para esta venta
-            sale_total_products, sale_total_income = calculate_sale_product_totals(sale)
+            sale_total_products, sale_total_income = calculate_sale_detail_totals(sale)
 
             # Agrupar productos por nombre
             products_dict = group_products(sale)
@@ -188,7 +188,7 @@ def calculate_sale_total_amount(original_price, discounts, taxes):
     return total_amount, total_product_price, total_discount, total_taxes
 
 
-def calculate_sale_product_total_price(price, quantity, discount):
+def calculate_sale_detail_total_price(price, quantity, discount):
     """
     Calcula el total de los productos de una venta.
     """

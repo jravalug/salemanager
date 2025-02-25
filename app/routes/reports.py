@@ -18,7 +18,7 @@ from openpyxl import Workbook
 from dateutil.relativedelta import relativedelta
 
 from app.forms import MonthForm
-from app.models import Business, Sale, SaleProduct
+from app.models import Business, Sale, SaleDetail
 from app.extensions import db
 from app.services import SalesReportService
 from app.utils import get_excluded_sales, generate_excel_sales_by_date
@@ -62,8 +62,8 @@ def monthly_sales_by_produc(business_id):
                     Sale.business_id == business.id,
                     Sale.date.between(start_date, end_date),
                 )
-                .join(Sale.products)  # Join con SaleProduct
-                .join(SaleProduct.product)  # Join con Product
+                .join(Sale.products)  # Join con SaleDetail
+                .join(SaleDetail.product)  # Join con Product
                 .order_by(
                     Sale.date.asc(),  # Primero por fecha
                 )
@@ -83,12 +83,12 @@ def monthly_sales_by_produc(business_id):
 
                 # Ordenar los productos dentro de la venta por nombre
                 sorted_products = sorted(
-                    sale.products, key=lambda sale_product: sale_product.product.name
+                    sale.products, key=lambda sale_detail: sale_detail.product.name
                 )
                 # logging.debug("Datos generados para el reporte: %s", sale.products)
 
-                for sale_product in sorted_products:
-                    product_key = sale_product.product.name
+                for sale_detail in sorted_products:
+                    product_key = sale_detail.product.name
                     if product_key not in sales_by_day[date_key]["products"]:
                         sales_by_day[date_key]["products"][product_key] = {
                             "quantity": 0,
@@ -98,9 +98,9 @@ def monthly_sales_by_produc(business_id):
 
                     sales_by_day[date_key]["products"][product_key][
                         "quantity"
-                    ] += sale_product.quantity
+                    ] += sale_detail.quantity
                     sales_by_day[date_key]["products"][product_key]["total_amount"] += (
-                        sale_product.quantity * sale_product.product.price
+                        sale_detail.quantity * sale_detail.product.price
                     )
 
                     # Añadir la tupla (sale_id, sale_number) al conjunto
@@ -110,11 +110,11 @@ def monthly_sales_by_produc(business_id):
 
                 # Actualizar totales
                 sales_by_day[date_key]["total_products"] += sum(
-                    sale_product.quantity for sale_product in sale.products
+                    sale_detail.quantity for sale_detail in sale.products
                 )
                 sales_by_day[date_key]["total_income"] += sum(
-                    sale_product.quantity * sale_product.product.price
-                    for sale_product in sale.products
+                    sale_detail.quantity * sale_detail.product.price
+                    for sale_detail in sale.products
                 )
 
             # Formatear los datos para la plantilla

@@ -45,8 +45,8 @@
             </button>
             <button
               type="button"
-              data-modal-target="add_raw_material_modal"
-              data-modal-toggle="add_raw_material_modal"
+              data-modal-target="add_inventory_item_modal"
+              data-modal-toggle="add_inventory_item_modal"
               class="text-base font-medium text-primary-700 hover:underline dark:text-primary-500"
             >
               + Agregar Materias Primas
@@ -60,8 +60,8 @@
               class="w-full text-left font-medium text-gray-900 dark:text-white md:table-fixed"
             >
               <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
-                {% if product.raw_materials %}
-                  {% for prm in product.raw_materials %}
+                {% if product.inventory_items %}
+                  {% for prm in product.inventory_items %}
                     <tr>
                       <td class="py-4 md:w-[384px]">
                         <button
@@ -71,7 +71,7 @@
                           data-popover-trigger="click"
                           class="text-base font-medium text-primary-700 hover:underline dark:text-primary-500"
                         >
-                          {{ prm.raw_material.name }}
+                          {{ prm.inventory_item.name }}
                         </button>
                         <div
                           data-popover
@@ -87,14 +87,14 @@
                               data-modal-target="edit_prm_modal"
                               data-modal-toggle="edit_prm_modal"
                               class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-500 hover:underline"
-                              onclick="openEditModal({{ prm.id }},'{{ prm.raw_material.name }}',{{ prm.quantity }})"
+                              onclick="openEditModal({{ prm.id }},'{{ prm.inventory_item.name }}',{{ prm.quantity }})"
                             >
                               Editar
                             </button>
                             <span>|</span>
                             <!-- Formulario para Eliminar -->
                             <form
-                              action="{{ url_for('product.remove_raw_material', business_id=business.id, product_id=product.id, prm_id=prm.id) }}"
+                              action="{{ url_for('product.remove_inventory_item', business_id=business.id, product_id=product.id, prm_id=prm.id) }}"
                               method="post"
                               onsubmit="return confirm('¿Estás seguro de que deseas eliminar este producto?');"
                             >
@@ -113,7 +113,7 @@
                       <td
                         class="p-4 text-base font-normal text-gray-900 dark:text-white"
                       >
-                        {{ prm.raw_material.unit }}
+                        {{ prm.inventory_item.unit }}
                       </td>
                       <td
                         class="p-4 text-right text-base font-bold text-gray-900 dark:text-white"
@@ -170,7 +170,7 @@
 
   {# Modal Agregar Materia Prima #}
   <div
-    id="add_raw_material_modal"
+    id="add_inventory_item_modal"
     tabindex="-1"
     aria-hidden="true"
     class="antialiased fixed left-0 right-0 top-0 z-50 hidden h-[calc(100%-1rem)] max-h-auto w-full items-center justify-center overflow-y-auto overflow-x-hidden md:inset-0"
@@ -188,7 +188,7 @@
           <button
             type="button"
             class="ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-transparent text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white"
-            data-modal-toggle="add_raw_material_modal"
+            data-modal-toggle="add_inventory_item_modal"
           >
             <svg
               class="h-3 w-3"
@@ -212,27 +212,27 @@
         <form method="post" class="p-4 md:p-5">
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-5">
             <!-- Campo Oculto CSRF -->
-            {{ add_raw_maerial_form.hidden_tag() }}
+            {{ add_inventory_item_form.hidden_tag() }}
 
             <!-- Selector de Materia Prima -->
             <div class="sm:col-span-3">
               <label
-                for="raw_material"
+                for="inventory_item"
                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                 >Materia Prima</label
               >
               <select
-                id="raw_material"
-                name="raw_material"
+                id="inventory_item"
+                name="inventory_item"
                 required
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 aria-placeholder="Esto es una prueba"
               >
-                {% for value, label in add_raw_maerial_form.raw_material.choices %}
+                {% for value, label in add_inventory_item_form.inventory_item.choices %}
                   <option value="{{ value }}">{{ label }}</option>
                 {% endfor %}
               </select>
-              {% for error in add_raw_maerial_form.raw_material.errors %}
+              {% for error in add_inventory_item_form.inventory_item.errors %}
                 <p class="mt-2 text-sm text-red-600 dark:text-red-500">
                   {{ error }}
                 </p>
@@ -254,7 +254,7 @@
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 required
               />
-              {% for error in add_raw_maerial_form.quantity.errors %}
+              {% for error in add_inventory_item_form.quantity.errors %}
                 <p class="mt-2 text-sm text-red-600 dark:text-red-500">
                   {{ error }}
                 </p>
@@ -272,7 +272,7 @@
             </button>
             <button
               type="button"
-              data-modal-toggle="add_raw_material_modal"
+              data-modal-toggle="add_inventory_item_modal"
               class="me-2 rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700"
             >
               Cancel
@@ -449,7 +449,7 @@
         <form
           id="edit-prm-form"
           method="POST"
-          action="{{ url_for('product.update_raw_material', business_id=business.id, product_id=product.id) }}"
+          action="{{ url_for('product.update_inventory_item', business_id=business.id, product_id=product.id) }}"
           class="p-4 md:p-5"
         >
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-5">
@@ -531,7 +531,7 @@
 
         // Generar la URL base con Jinja2 y reemplazar el marcador
         let url =
-          "{{ url_for('product.update_raw_material', business_id=business.id, product_id=product.id, prm_id=0) }}";
+          "{{ url_for('product.update_inventory_item', business_id=business.id, product_id=product.id, prm_id=0) }}";
         url = url.replace("0", rawMaterialId); // Reemplazar el marcador "0" con el ID real
 
         fetch(url, {

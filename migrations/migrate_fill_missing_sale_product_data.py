@@ -1,15 +1,15 @@
 from app import create_app, db
-from app.models import SaleProduct, Product
+from app.models import SaleDetail, Product
 
 
-def fill_missing_sale_product_data():
+def fill_missing_sale_detail_data():
     app = create_app()  # Crea la aplicación Flask
     with app.app_context():
         # Obtener todos los registros que necesitan actualización
-        incomplete_records = SaleProduct.query.filter(
-            (SaleProduct.unit_price.is_(None))
-            | (SaleProduct.total_price.is_(None))
-            | (SaleProduct.discount.is_(None))
+        incomplete_records = SaleDetail.query.filter(
+            (SaleDetail.unit_price.is_(None))
+            | (SaleDetail.total_price.is_(None))
+            | (SaleDetail.discount.is_(None))
         ).all()
 
         print(f"Registros incompletos encontrados: {len(incomplete_records)}")
@@ -36,8 +36,8 @@ def fill_missing_sale_product_data():
                 record.discount = 0.0
 
         db.session.commit()
-        print(f"Actualizados {len(incomplete_records)} registros de SaleProduct")
+        print(f"Actualizados {len(incomplete_records)} registros de SaleDetail")
 
 
 if __name__ == "__main__":
-    fill_missing_sale_product_data()
+    fill_missing_sale_detail_data()

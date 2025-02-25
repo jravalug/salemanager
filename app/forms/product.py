@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import SelectField, FloatField, StringField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, NumberRange, Length, Optional
-from app.models import RawMaterial  # Importa el modelo RawMaterial
+from app.models import ProductDetail, InventoryItem  # Importa el modelo ProductDetail
 
 
 class ProductForm(FlaskForm):
@@ -24,19 +24,10 @@ class ProductForm(FlaskForm):
     submit = SubmitField("Guardar Producto")
 
 
-class ProductInstructionsForm(FlaskForm):
-    instructions = TextAreaField(
-        "Instrucciones de Elaboración",
-        render_kw={"rows": 4},  # Altura del área de texto
-        validators=[DataRequired(), Length(min=50)],
-    )
-    submit = SubmitField("Guardar Instrucciones")
-
-
-class ProductRawMaterialForm(FlaskForm):
-    raw_material = SelectField(
+class ProductDetailForm(FlaskForm):
+    inventory_item = SelectField(
         "Materia Prima",
-        coerce=int,  # Asegura que el valor seleccionado sea un entero (ID de la materia prima)
+        coerce=int,  # Asegura que el valor seleccionado sea un entero
         validators=[DataRequired()],
     )
     quantity = FloatField(
@@ -49,9 +40,9 @@ class ProductRawMaterialForm(FlaskForm):
     submit = SubmitField("Agregar Materia Prima")
 
     def __init__(self, *args, **kwargs):
-        super(ProductRawMaterialForm, self).__init__(*args, **kwargs)
-        # Cargar las opciones del campo "raw_material" con las materias primas disponibles
-        self.raw_material.choices = [
+        super(ProductDetailForm, self).__init__(*args, **kwargs)
+        # Cargar las opciones del campo "inventory_item" con las materias primas disponibles
+        self.inventory_item.choices = [
             (material.id, f"{material.name} ({material.unit})")
-            for material in RawMaterial.query.all()
+            for material in InventoryItem.query.all()
         ]

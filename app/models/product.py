@@ -34,5 +34,20 @@ class Product(db.Model):
     )  # Asociación con el negocio
 
     # Relaciones con otros modelos
-    sale_products = db.relationship("SaleProduct", back_populates="product")
-    raw_materials = db.relationship("ProductRawMaterial", back_populates="product")
+    sale_details = db.relationship("SaleDetail", back_populates="product")
+    inventory_items = db.relationship("ProductDetail", back_populates="product")
+
+
+class ProductDetail(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey("product.id"), nullable=False)
+    inventory_item_id = db.Column(
+        db.Integer, db.ForeignKey("inventory_item.id"), nullable=False
+    )
+    quantity = db.Column(
+        db.Float, nullable=False
+    )  # Cantidad de materia prima necesaria
+
+    # Relaciones
+    product = db.relationship("Product", back_populates="inventory_items")
+    inventory_item = db.relationship("InventoryItem", backref="products")

@@ -7,21 +7,21 @@
   <section class="py-12">
     <div class="container mx-auto px-4 text-center">
       <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
-        Gestión de Materias Primas
+        Gestión de Artículos de Inventario
       </h1>
       <p class="text-lg text-gray-600 dark:text-gray-300 mt-2">
-        Administra las materias primas.
+        Administra los artículos de inventario.
       </p>
     </div>
   </section>
 
-  <!-- Formulario para Agregar un Nueva Materia Prima -->
+  <!-- Formulario para Agregar un Nuevo Artículo de Inventario -->
   <section class="bg-white py-12 dark:bg-gray-800">
     <div class="container mx-auto px-4">
       <h2
         class="text-2xl font-bold text-gray-800 dark:text-white mb-6 text-center"
       >
-        Agregar Nueva Materia Prima
+        Agregar Nuevo Artículo de Inventario
       </h2>
       <form
         method="post"
@@ -57,20 +57,20 @@
           type="submit"
           class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
         >
-          Agregar Materia Prima
+          Agregar Artículo de Inventario
         </button>
       </form>
     </div>
   </section>
 
-  <!-- Listado de Materias Primas -->
+  <!-- Listado de Articulos de Inventario -->
   <section class="bg-gray-100 py-12 dark:bg-gray-800">
     <div class="container mx-auto px-4">
       <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">
-        Listado de Materias Primas
+        Listado de Articulos de Inventario
       </h3>
       <div class="overflow-x-auto relative">
-        <!-- Tabla de Materias Primas -->
+        <!-- Tabla de Articulos de Inventario -->
         <table
           id="products-table"
           class="w-full text-sm text-left text-gray-500 dark:text-gray-400"
@@ -86,31 +86,31 @@
             </tr>
           </thead>
           <tbody>
-            {% for raw_material in raw_materials %}
+            {% for inventory_item in inventory_items %}
               <tr
                 class="bg-white border-b dark:bg-gray-800 dark:border-gray-700"
               >
-                <td class="py-4 px-6">{{ raw_material.id }}</td>
-                <td class="py-4 px-6">{{ raw_material.name }}</td>
-                <td class="py-4 px-6">( {{ raw_material.unit }} )</td>
+                <td class="py-4 px-6">{{ inventory_item.id }}</td>
+                <td class="py-4 px-6">{{ inventory_item.name }}</td>
+                <td class="py-4 px-6">( {{ inventory_item.unit }} )</td>
                 <td class="py-4 px-6">
-                  <!-- Formulario para Modificar una Materia Prima -->
+                  <!-- Formulario para Modificar un Artículo de Inventario -->
                   <form
                     method="post"
-                    action="{{ url_for('raw_material.update', business_id=business.id, raw_material_id=raw_material.id) }}"
+                    action="{{ url_for('inventory.item_update', business_id=business.id, inventory_item_id=inventory_item.id) }}"
                     class="flex space-x-2"
                   >
                     <input
                       type="text"
                       name="name"
-                      value="{{ raw_material.name }}"
+                      value="{{ inventory_item.name }}"
                       required
                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                     />
                     <input
                       type="text"
                       name="unit"
-                      value="{{ raw_material.unit }}"
+                      value="{{ inventory_item.unit }}"
                       required
                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-20 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                     />

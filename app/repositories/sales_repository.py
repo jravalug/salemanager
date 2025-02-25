@@ -1,4 +1,4 @@
-from app.models import Business, Sale, SaleProduct, Product
+from app.models import Business, Sale, SaleDetail, Product
 
 
 class SalesRepository:
@@ -11,7 +11,7 @@ class SalesRepository:
                     Sale.date.between(start_date, end_date),
                 )
                 .join(Sale.products)
-                .join(SaleProduct.product)
+                .join(SaleDetail.product)
                 .order_by(Sale.date.asc())
                 .all()
             )

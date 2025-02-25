@@ -80,7 +80,7 @@ class SaleForm(FlaskForm):
     )
 
 
-class SaleProductForm(FlaskForm):
+class SaleDetailForm(FlaskForm):
     product_id = SelectField(
         "Producto",
         coerce=int,
@@ -113,7 +113,7 @@ class SaleProductForm(FlaskForm):
         ]
 
 
-class UpdateSaleProductForm(FlaskForm):
+class UpdateSaleDetailForm(FlaskForm):
     quantity = IntegerField(
         "Cantidad",
         validators=[
@@ -131,8 +131,8 @@ class UpdateSaleProductForm(FlaskForm):
     )
 
 
-class RemoveSaleProductForm(FlaskForm):
-    sale_product_id = HiddenField(
+class RemoveSaleDetailForm(FlaskForm):
+    sale_detail_id = HiddenField(
         "ID de producto en la venta"
     )  # ID de la venta-producto a eliminar
     submit = SubmitField("Eliminar Producto")

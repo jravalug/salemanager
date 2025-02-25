@@ -10,7 +10,7 @@ from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.extensions import db
-from app.models import Business, Product, Sale, SaleProduct
+from app.models import Business, Product, Sale, SaleDetail
 from app.forms import BusinessForm
 from app.services.business_service import create_business, update_business
 from app.utils.file_utils import handle_logo_upload
@@ -90,10 +90,10 @@ def dashboard(business_id):
     monthly_totals = (
         db.session.query(
             func.strftime("%Y-%m", Sale.date).label("month"),
-            func.sum(SaleProduct.quantity * Product.price).label("total"),
+            func.sum(SaleDetail.quantity * Product.price).label("total"),
         )
         .join(Sale.products)
-        .join(SaleProduct.product)
+        .join(SaleDetail.product)
         .filter(Sale.business_id == business.id)
         .group_by(func.strftime("%Y-%m", Sale.date))
         .all()
