@@ -1,5 +1,12 @@
 from flask_wtf import FlaskForm
-from wtforms import SelectField, FloatField, StringField, SubmitField, TextAreaField
+from wtforms import (
+    BooleanField,
+    SelectField,
+    FloatField,
+    StringField,
+    SubmitField,
+    TextAreaField,
+)
 from wtforms.validators import DataRequired, NumberRange, Length, Optional
 from app.models import ProductDetail, InventoryItem  # Importa el modelo ProductDetail
 
@@ -7,13 +14,18 @@ from app.models import ProductDetail, InventoryItem  # Importa el modelo Product
 class ProductForm(FlaskForm):
     name = StringField(
         "Nombre del Producto",
-        validators=[DataRequired(), Length(min=2, max=100)],
+        validators=[
+            DataRequired(message="El nombre del producto es obligatorio."),
+            Length(
+                min=2, max=100, message="El nombre no puede exceder los 100 caracteres."
+            ),
+        ],
     )
     price = FloatField(
-        "Precio",
+        "Precio de Venta",
         validators=[
-            DataRequired(),
-            NumberRange(min=0.01, message="El precio debe ser mayor que 0."),
+            DataRequired(message="El precio de venta es obligatorio."),
+            NumberRange(min=0.01, message="El precio debe ser un valor positivo."),
         ],
     )
     instructions = TextAreaField(
@@ -21,6 +33,36 @@ class ProductForm(FlaskForm):
         render_kw={"rows": 4},  # Altura del área de texto
         validators=[Optional()],  # Campo opcional
     )
+    description = TextAreaField(
+        "Descripción",
+        render_kw={"rows": 4},  # Altura del área de texto
+        validators=[
+            Optional(),
+            Length(
+                max=500, message="La descripción no puede exceder los 500 caracteres."
+            ),
+        ],
+    )
+    category = SelectField(
+        "Categoría",
+        choices=[
+            ("comida", "Comida"),
+            ("cocteles", "Cocteles"),
+            ("vinos", "Vinos"),
+            ("bebidas", "Bebidas"),
+            ("tragos", "Tragos"),
+            ("botellas", "Botellas"),
+        ],
+        validators=[Optional()],
+    )
+    sku = StringField(
+        "SKU (Código Único)",
+        validators=[
+            Optional(),
+            Length(max=50, message="El SKU no puede exceder los 50 caracteres."),
+        ],
+    )
+    is_active = BooleanField("Producto Activo", default=True)
     submit = SubmitField("Guardar Producto")
 
 

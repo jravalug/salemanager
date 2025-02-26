@@ -324,16 +324,12 @@
           </button>
         </div>
         <!-- Modal body -->
-        <form
-          method="post"
-          class="p-4 md:p-5"
-          action="{{ url_for('product.technical_card', business_id=business.id, product_id=product.id) }}"
-        >
-          <div class="grid grid-cols-1 gap-4 mb-5">
+        <form method="post" class="p-4 md:p-5">
+          <div class="grid grid-cols-1 gap-4 mb-5 sm:grid-cols-4 ">
             <!-- Campo Oculto CSRF -->
             {{ update_product_form.hidden_tag() }}
             <!-- Selector de Nombre -->
-            <div class="sm:col-span-5">
+            <div class="sm:col-span-4">
               {{ update_product_form.name.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
               {{
                 update_product_form.name(
@@ -350,12 +346,12 @@
             </div>
 
             <!-- Campo de Precio -->
-            <div class="sm:col-span-5">
+            <div class="sm:col-span-2">
               {{ update_product_form.price.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
               {{
                 update_product_form.price(
                   class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
-                  placeholder="Agregar instrucciones ...",
+                  placeholder="Agregar precio ...",
                   step="0.01",
                   type="number",
                   required=True
@@ -367,8 +363,23 @@
                 >
               {% endfor %}
             </div>
+            <!-- Selector de Categoria -->
+            <div class="sm:col-span-2">
+              {{ update_product_form.category.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+              {{
+                update_product_form.category(
+                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                  placeholder="Agregar descripción ...",
+                )
+              }}
+              {% for error in update_product_form.category.errors %}
+                <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                  >{{ error }}</span
+                >
+              {% endfor %}
+            </div>
             <!-- Textarea de Instrucciones -->
-            <div class="sm:col-span-5">
+            <div class="sm:col-span-4">
               {{ update_product_form.instructions.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
               {{
                 update_product_form.instructions(
@@ -382,6 +393,21 @@
                 >
               {% endfor %}
             </div>
+            <!-- Textarea de Descripcion -->
+            <div class="sm:col-span-4">
+              {{ update_product_form.description.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+              {{
+                update_product_form.description(
+                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                  placeholder="Agregar descripción ...",
+                )
+              }}
+              {% for error in update_product_form.description.errors %}
+                <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                  >{{ error }}</span
+                >
+              {% endfor %}
+            </div>
           </div>
           <div
             class="border-t border-gray-200 pt-4 dark:border-gray-700 md:pt-5"
@@ -390,7 +416,7 @@
               type="submit"
               class="me-2 inline-flex items-center rounded-lg bg-primary-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-primary-800 focus:outline-none focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
             >
-              Actualizar Producto
+              Agregar Producto
             </button>
             <button
               type="button"

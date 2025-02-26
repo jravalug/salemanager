@@ -12,10 +12,21 @@ bp = Blueprint("product", __name__, url_prefix="/business/<int:business_id>/prod
 def list(business_id):
     business = Business.query.get_or_404(business_id)
 
-    if request.method == "POST":
-        name = request.form["name"]
-        price = float(request.form["price"])
-        new_product = Product(name=name, price=price, business_id=business.id)
+    add_product_form = ProductForm()
+
+    if add_product_form.validate_on_submit():
+        # Crear un nuevo producto con los datos del formulario
+        new_product = Product(
+            name=add_product_form.name.data,
+            price=add_product_form.price.data,
+            instructions=add_product_form.instructions.data,
+            description=add_product_form.description.data,
+            category=add_product_form.category.data,
+            sku=add_product_form.sku.data,
+            is_active=add_product_form.is_active.data,
+            business_id=business.id,  # Suponiendo que tienes acceso al negocio actual
+        )
+
         db.session.add(new_product)
         db.session.commit()
         flash("Producto agregado correctamente", "success")
@@ -31,7 +42,10 @@ def list(business_id):
         Product.query.filter_by(business_id=business.id).order_by(Product.name).all()
     )
     return render_template(
-        "product/list.html", business=business, products=products_list
+        "product/list.html",
+        business=business,
+        products=products_list,
+        add_product_form=add_product_form,
     )
 
 
@@ -74,14 +88,13 @@ def technical_card(business_id, product_id):
             )
         )
     if update_product_form.validate_on_submit():
-        name = update_product_form.name.data
-        price = update_product_form.price.data
-        instructions = update_product_form.instructions.data
-
-        product.name = name
-        product.price = price
-        product.instructions = instructions
-        db.session.commit()
+        product.name = (update_product_form.name.data,)
+        product.price = (update_product_form.price.data,)
+        product.instructions = (update_product_form.instructions.data,)
+        product.description = (update_product_form.description.data,)
+        product.category = (update_product_form.category.data,)
+        product.sku = (update_product_form.sku.data,)
+        product.is_active = (update_product_form.is_active.data,)
 
         flash("Producto actualizado correctamente.", "success")
         return redirect(
