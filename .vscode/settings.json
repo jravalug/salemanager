@@ -4,7 +4,8 @@
     "editor.defaultFormatter": "ms-python.black-formatter"
   },
   "files.associations": {
-    "*.html": "jinja-html"
+    "*.html": "jinja-html",
+    "*.css": "tailwindcss"
   },
   "tailwindCSS.includeLanguages": {
     "jinja-html": "html"
