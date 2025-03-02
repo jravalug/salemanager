@@ -62,7 +62,27 @@ class ProductForm(FlaskForm):
             Length(max=50, message="El SKU no puede exceder los 50 caracteres."),
         ],
     )
-    is_active = BooleanField("Producto Activo", default=True)
+    is_active = BooleanField("Activo", default=True)
+    is_batch_prepared = BooleanField(
+        "Por lotes",
+        false_values=(
+            False,
+            "false",
+            "",
+            "n",
+            "no",
+            "0",
+        ),  # Valores que se consideran False
+        description="Marque esta casilla si se prepara por lotes.",
+    )
+    batch_size = FloatField(
+        "Tamaño del lote",
+        validators=[
+            Optional(),
+            NumberRange(min=1, message="La cantidad debe ser mayor que 1."),
+        ],
+        default=1,
+    )
     submit = SubmitField("Guardar Producto")
 
 
@@ -86,5 +106,5 @@ class ProductDetailForm(FlaskForm):
         # Cargar las opciones del campo "inventory_item" con las materias primas disponibles
         self.inventory_item.choices = [
             (material.id, f"{material.name} ({material.unit})")
-            for material in InventoryItem.query.all()
+            for material in InventoryItem.query.order_by(InventoryItem.name).all()
         ]

@@ -24,6 +24,8 @@ def list(business_id):
             category=add_product_form.category.data,
             sku=add_product_form.sku.data,
             is_active=add_product_form.is_active.data,
+            is_batch_prepared=add_product_form.is_batch_prepared.data,
+            batch_size=add_product_form.batch_size.data,
             business_id=business.id,  # Suponiendo que tienes acceso al negocio actual
         )
 
@@ -88,13 +90,17 @@ def technical_card(business_id, product_id):
             )
         )
     if update_product_form.validate_on_submit():
-        product.name = (update_product_form.name.data,)
-        product.price = (update_product_form.price.data,)
-        product.instructions = (update_product_form.instructions.data,)
-        product.description = (update_product_form.description.data,)
-        product.category = (update_product_form.category.data,)
-        product.sku = (update_product_form.sku.data,)
-        product.is_active = (update_product_form.is_active.data,)
+        print(f"El batch size es: {update_product_form.is_batch_prepared.data}")
+        product.name = update_product_form.name.data
+        product.price = update_product_form.price.data
+        product.instructions = update_product_form.instructions.data
+        product.description = update_product_form.description.data
+        product.category = update_product_form.category.data
+        product.sku = update_product_form.sku.data
+        product.is_active = update_product_form.is_active.data
+        product.is_batch_prepared = update_product_form.is_batch_prepared.data
+        product.batch_size = update_product_form.batch_size.data
+        db.session.commit()
 
         flash("Producto actualizado correctamente.", "success")
         return redirect(
@@ -108,6 +114,7 @@ def technical_card(business_id, product_id):
         db.session.query(ProductDetail, InventoryItem)
         .join(InventoryItem, ProductDetail.inventory_item_id == InventoryItem.id)
         .filter(ProductDetail.product_id == product.id)
+        .order_by(InventoryItem.name.asc())
         .all()
     )
 
