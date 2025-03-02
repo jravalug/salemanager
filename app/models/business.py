@@ -21,6 +21,10 @@ class Business(db.Model):
     currency = db.Column(
         db.String(10), default="CUP"
     )  # Tipo de moneda que opera el negocio
+    is_general = db.Column(db.Boolean, default=False)  # Indica si es un negocio general
+    parent_business_id = db.Column(
+        db.Integer, db.ForeignKey("business.id"), nullable=True
+    )  # Negocio padre
     created_at = db.Column(
         db.DateTime, default=db.func.current_timestamp()
     )  # Fecha de creación del negocio
@@ -29,10 +33,17 @@ class Business(db.Model):
     )  # Fecha de actualización del negocio
 
     # Relaciones con otros modelos
+    parent_business = db.relationship(
+        "Business", remote_side=[id], backref="sub_businesses"
+    )
     products = db.relationship(
         "Product", backref="business", lazy=True
     )  # Relacion de Productos
-    sales = db.relationship("Sale", backref="business", lazy=True)  # Relacion de Ventas
+    sales = db.relationship(
+        "Sale",
+        back_populates="business",
+        foreign_keys="Sale.business_id",  # Especifica la clave foránea correcta
+    )
 
     def __repr__(self):
         return f"<Business {self.name}>"

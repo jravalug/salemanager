@@ -39,6 +39,19 @@ class Sale(db.Model):
     business_id = db.Column(
         db.Integer, db.ForeignKey("business.id"), nullable=False
     )  # Asociación con el negocio
+    specific_business_id = db.Column(
+        db.Integer, db.ForeignKey("business.id"), nullable=True
+    )  # Negocio específico (opcional)
+
+    # Relations
+    business = db.relationship(
+        "Business",
+        foreign_keys=[business_id],  # Especifica la clave foránea correcta
+        back_populates="sales",
+    )
+    specific_business = db.relationship(
+        "Business", foreign_keys=[specific_business_id], backref="specific_sales"
+    )
     products = db.relationship("SaleDetail", back_populates="sale")
 
     __table_args__ = (

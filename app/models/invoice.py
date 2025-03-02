@@ -9,15 +9,24 @@ class Invoice(db.Model):
     date = db.Column(db.Date, nullable=False, default=date.today)  # Fecha de la factura
     category = db.Column(
         db.String(20), nullable=False, default="purchase"
-    )  # Categoria de la factura
+    )  # Categoria de la factura (compra o servicio)
     total_amount = db.Column(db.Float, nullable=False)  # Total de la factura
 
     # Foreing Keys
     business_id = db.Column(
         db.Integer, db.ForeignKey("business.id"), nullable=False
     )  # Asociación con el negocio
+    specific_business_id = db.Column(
+        db.Integer, db.ForeignKey("business.id"), nullable=True
+    )  # Negocio específico (opcional)
 
     # Relaciones
+    business = db.relationship(
+        "Business", foreign_keys=[business_id], backref="invoices"
+    )
+    specific_business = db.relationship(
+        "Business", foreign_keys=[specific_business_id], backref="specific_invoices"
+    )
     purchace_details = db.relationship(
         "InvoicePurchaseDetail", back_populates="invoice"
     )  # Detalles de la compra

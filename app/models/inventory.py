@@ -27,8 +27,17 @@ class Inventory(db.Model):
     business_id = db.Column(
         db.Integer, db.ForeignKey("business.id"), nullable=False
     )  # Asociación con el negocio
+    specific_business_id = db.Column(
+        db.Integer, db.ForeignKey("business.id"), nullable=True
+    )  # Negocio específico (opcional)
 
-    # Relación con InventoryItem
+    # Relations
+    business = db.relationship(
+        "Business", foreign_keys=[business_id], backref="inventory"
+    )
+    specific_business = db.relationship(
+        "Business", foreign_keys=[specific_business_id], backref="specific_inventory"
+    )
     extractions = db.relationship("InventoryExtraction", back_populates="inventory")
 
 
