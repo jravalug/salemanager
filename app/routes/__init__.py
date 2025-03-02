@@ -6,7 +6,7 @@ from .reports import bp as reports_bp
 from .inventory import bp as inventory_bp
 
 
-def register_blueprints(app):
+def register_web_blueprints(app):
     """
     Registra todos los blueprints en la aplicación.
     """
@@ -15,4 +15,4 @@ def register_blueprints(app):
     app.register_blueprint(sales_bp)
     app.register_blueprint(products_bp)
     app.register_blueprint(inventory_bp)
-    app.register_blueprint(reports_bp)
+    app.register_blueprint(reports_bp)  # Registra el blueprint de la API
