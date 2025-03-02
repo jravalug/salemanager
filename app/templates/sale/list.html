@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 
+{% block vendor_javascript %}
+  <script src="{{ url_for('main.node_modules', filename='simple-datatables/dist/umd/simple-datatables.js') }}"></script>
+{% endblock vendor_javascript %}
 {% block content %}
   <!-- Hero Section -->
   <section class="py-12">
@@ -26,7 +29,7 @@
         data-modal-toggle="add_sale_modal"
         class="mt-4 flex w-full items-center justify-center rounded-lg bg-primary-700  px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-800 focus:outline-none focus:ring-4 focus:ring-primary-300  dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 sm:mt-0"
       >
-        Actualizar Venta
+        Agregar Venta
       </button>
     </div>
   </section>
@@ -74,7 +77,7 @@
                         {% for sale in data.sales %}
                           <a
                             href="{{ url_for('sale.details', business_id=business.id, sale_id=sale.id) }}"
-                            class="text-blue-500 hover:underline dark:text-blue-400"
+                            class="text-blue-500 hover:underline dark:text-blue-400 {{ 'text-red-500 dark:text-red-400' if sale.excluded }}"
                             >[{{ sale.sale_number }}]</a
                           >
                         {% endfor %}
@@ -319,3 +322,17 @@
     </div>
   </div>
 {% endblock %}
+
+{% block custom_javascript %}
+  <script type="application/javascript">
+    if (
+      document.getElementById("sales-table") &&
+      typeof simpleDatatables.DataTable !== "undefined"
+    ) {
+      const dataTable = new simpleDatatables.DataTable("#sales-table", {
+        paging: true,
+        sortable: true,
+      });
+    }
+  </script>
+{% endblock custom_javascript %}
