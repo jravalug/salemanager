@@ -28,6 +28,10 @@ class Product(db.Model):
     cost_price = db.Column(
         db.Float, nullable=True
     )  # Costo unitario del producto (útil para calcular márgenes de ganancia)
+    is_batch_prepared = db.Column(db.Boolean, default=False)  # ¿Se prepara por lotes?
+    batch_size = db.Column(
+        db.Integer, nullable=True, default=1
+    )  # Número de raciones por lote
 
     business_id = db.Column(
         db.Integer, db.ForeignKey("business.id"), nullable=False

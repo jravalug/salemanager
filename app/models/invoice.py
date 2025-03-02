@@ -40,7 +40,7 @@ class InvoicePurchaseDetail(db.Model):
     )  # Subtotal (quantity * price_per_unit)
 
     # Relaciones
-    invoice = db.relationship("PurchaseInvoice", back_populates="purchace_details")
+    invoice = db.relationship("Invoice", back_populates="purchace_details")
     inventory_item = db.relationship("InventoryItem")
 
 
@@ -54,5 +54,5 @@ class InvoiceServiceDetail(db.Model):
     subtotal = db.Column(db.Float, nullable=False)
 
     # Relaciones
-    invoice = db.relationship("PurchaseInvoice", back_populates="service_details")
+    invoice = db.relationship("Invoice", back_populates="service_details")
     ac_element = db.relationship("ACElement")
