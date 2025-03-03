@@ -12,7 +12,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.extensions import db
 from app.models import Business, Product, Sale, SaleDetail
 from app.forms import BusinessForm
-from app.services.business_service import create_business, update_business
+from app.services.business_service import BusinessService
 from app.utils.file_utils import handle_logo_upload
 
 bp = Blueprint("business", __name__, url_prefix="/business")
@@ -23,6 +23,7 @@ def list():
     """
     Muestra la lista de negocios y maneja la creación de nuevos negocios.
     """
+    business_service = BusinessService()
     form = BusinessForm()
 
     if form.validate_on_submit():
@@ -39,7 +40,9 @@ def list():
                 )  # Detener si hay un error en la subida
 
         try:
-            create_business(name, description, logo_path)
+            business_service.create_business(
+                name=name, description=description, logo=logo_path
+            )
             flash("Negocio agregado correctamente", "success")
         except SQLAlchemyError as e:
             db.session.rollback()
@@ -57,6 +60,7 @@ def detail_or_edit(business_id):
     """
     Muestra los detalles de un negocio y maneja su edición.
     """
+    business_service = BusinessService()
     business = Business.query.get_or_404(business_id)
     edit = request.args.get("edit", False)
     form = BusinessForm(obj=business)
@@ -65,12 +69,12 @@ def detail_or_edit(business_id):
         logo_path = handle_logo_upload(form.logo.data)
         if logo_path is not None:
             try:
-                update_business(
-                    business,
-                    form.name.data,
-                    form.description.data,
-                    form.is_general.data,
-                    logo_path,
+                business_service.update_business(
+                    business=business,
+                    name=form.name.data,
+                    description=form.description.data,
+                    is_general=form.is_general.data,
+                    logo=logo_path,
                 )
                 flash("Negocio actualizado correctamente", "success")
             except SQLAlchemyError as e:
@@ -79,12 +83,11 @@ def detail_or_edit(business_id):
             except Exception as e:
                 flash(f"Error inesperado: {str(e)}", "error")
         else:
-            update_business(
-                business,
-                form.name.data,
-                form.description.data,
-                form.is_general.data,
-                "",
+            business_service.update_business(
+                business=business,
+                name=form.name.data,
+                description=form.description.data,
+                is_general=form.is_general.data,
             )
             flash("Negocio actualizado correctamente", "success")
 
