@@ -271,6 +271,25 @@
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-5">
             <!-- Campo Oculto CSRF -->
             {{ update_sale_form.hidden_tag() }}
+
+            <!-- Campo de Negocio Especifico -->
+            {% if business.is_general and business.sub_businesses.count() > 0 %}
+              <div class="sm:col-span-4">
+                {{ update_sale_form.specific_business_id.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                {{
+                  update_sale_form.specific_business_id(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                    placeholder="Número de venta ...",
+                  )
+                }}
+                {% for error in update_sale_form.specific_business_id.errors %}
+                  <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                    >{{ error }}</span
+                  >
+                {% endfor %}
+              </div>
+            {% endif %}
+
             <!-- Campo de Numero de venta -->
             <div class="sm:col-span-2">
               {{ update_sale_form.sale_number.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}

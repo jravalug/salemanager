@@ -16,8 +16,15 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, DateField, SelectField, FloatField, BooleanField
 from wtforms.validators import DataRequired, Optional, NumberRange
 
+from app.models.business import Business
+
 
 class SaleForm(FlaskForm):
+    specific_business_id = SelectField(
+        "Negocio Específico",
+        coerce=int,  # Asegura que el valor seleccionado sea un entero
+        validators=[Optional()],
+    )
     sale_number = StringField(
         "Número de Venta",
     )
@@ -78,6 +85,17 @@ class SaleForm(FlaskForm):
         ),  # Valores que se consideran False
         description="Marque esta casilla para excluir la venta.",
     )
+
+    def __init__(self, parent_business_id, *args, **kwargs):
+        super(SaleForm, self).__init__(*args, **kwargs)
+        # Obtener los negocios específicos asociados al negocio general
+        sub_businesses = Business.query.filter_by(
+            parent_business_id=parent_business_id
+        ).all()
+        # Cargar las opciones del campo specific_business_id
+        self.specific_business_id.choices = [
+            (business.id, business.name) for business in sub_businesses
+        ]
 
 
 class SaleDetailForm(FlaskForm):

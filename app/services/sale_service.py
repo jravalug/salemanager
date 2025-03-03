@@ -31,9 +31,16 @@ class SalesService:
         """Obtiene los productos de una venta específica"""
         return SaleDetail.query.filter_by(sale_id=sale_id).join(Product).all()
 
-    def add_sale(self, form_data, business_id):
+    def add_sale(self, form_data, business):
         """Actualiza los datos principales de una venta"""
         print(f"En el servicio add_sale antes de guardar la venta")
+        if business.is_general:
+            business_id = business.id
+            specific_business_id = form_data.specific_business_id.data
+        else:
+            business_id = business.parent_business_id
+            specific_business_id = business.id
+
         new_sale = Sale(
             sale_number=form_data.sale_number.data,
             date=form_data.date.data,
@@ -45,6 +52,7 @@ class SalesService:
             subtotal_amount=0,
             total_amount=0,
             business_id=business_id,
+            specific_business_id=specific_business_id,
         )
         print(f"En el servicio add_sale despues de guardar la venta")
         db.session.add(new_sale)
@@ -61,9 +69,9 @@ class SalesService:
         sale.customer_name = form_data.customer_name.data
         sale.discount = form_data.discount.data
         sale.tax = form_data.tax.data
+        sale.specific_business_id = form_data.specific_business_id.data
 
         db.session.commit()
-        self._update_sale_totals(sale)
         return sale
 
     def add_product_to_sale(self, sale, product_id, quantity, discount):
