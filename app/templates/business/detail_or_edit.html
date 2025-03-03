@@ -80,6 +80,29 @@
             <p class="text-red-500 text-sm">{{ error }}</p>
           {% endfor %}
         </div>
+        <!-- Campo Es General -->
+        <div class="mb-4">
+          {{ form.is_general.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+          <div class="flex items-center mb-4">
+            {{
+              form.is_general(
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                type="checkbox",
+                checked=business.is_general
+              )
+            }}
+            <div
+              class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+            >
+              {{ form.is_general.description }}
+            </div>
+            {% for error in form.is_general.errors %}
+              <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                >{{ error }}</span
+              >
+            {% endfor %}
+          </div>
+        </div>
         <!-- Campo Logo -->
         <div class="mb-4">
           <label

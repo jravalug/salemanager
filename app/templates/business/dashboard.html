@@ -2,6 +2,21 @@
 {% block content %}
   <div class="dashboard-container">
     <h2 class="dashboard-title">Resumen de Ventas de {{ business.name }}</h2>
+    <a
+      href="{{ url_for('business.add_sub_business', business_id=business.id) }}"
+      class="btn btn-primary"
+    >
+      Agregar Negocio Específico
+    </a>
+    {% if business.is_general %}
+      <ul>
+        {% for sub_business in business.sub_businesses %}
+          <li>{{ sub_business.name }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+
+    {% endif %}
     <!-- Tarjeta de Resumen -->
     <div class="summary-card">
       <h3>Total General</h3>
@@ -28,56 +43,77 @@
       </tbody>
     </table>
     <!-- Botón de Regreso -->
-    <a href="{{ url_for('business.list') }}"
-       class="dashboard-button-secondary">Regresar al Listado de Negocios</a>
+    <a href="{{ url_for('business.list') }}" class="dashboard-button-secondary"
+      >Regresar al Listado de Negocios</a
+    >
   </div>
+  <input
+    type="hidden"
+    id="month_data"
+    value="{% for month, total in monthly_totals.items() %}{{ total }},{% endfor %}"
+  />
+  <input
+    type="hidden"
+    id="month_labels"
+    value="{% for month, total in monthly_totals.items() %}"{{ month }}",{% endfor %}"
+  />
   <!-- Script para el Gráfico -->
   <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
-  <script src="{{ url_for('static', filename='js/chart.js') }}"></script>
-  <script>
-  // Datos del desempeño mensual
-  const monthlyData = {
-    labels: [{% for month, total in monthly_totals.items() %}"{{ month }}", {% endfor %}],
-    datasets: [{
-      label: 'Total por Mes',
-      data: [{% for month, total in monthly_totals.items() %}{{ total }}, {% endfor %}],
-      backgroundColor: 'rgba(54, 162, 235, 0.2)', // Color de las barras
-      borderColor: 'rgb(54, 162, 235)', // Borde de las barras
-      borderWidth: 1
-    }]
-  };
+  {# <script src="{{ url_for('static', filename='js/chart.js') }}"></script> #}
+  <script type="module">
+    import { Chart } from "../../static/js/chart.js";
+    // Datos del desempeño mensual
+    console.log("testing");
+    const total = document.getElementById("month_data").value;
+    const labels_month = document.getElementById("month_labels").value;
+    console.log(total, labels_month);
 
-  // Configuración del gráfico
-  const config = {
-    type: 'bar', // Tipo de gráfico (puede ser 'line' para líneas)
-    data: monthlyData,
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          display: false,
-          position: 'right'
+    const monthlyData = {
+      labels: [labels_month],
+      datasets: [
+        {
+          label: "Total por Mes",
+          data: [total],
+          backgroundColor: "rgba(54, 162, 235, 0.2)", // Color de las barras
+          borderColor: "rgb(54, 162, 235)", // Borde de las barras
+          borderWidth: 1,
         },
-        title: {
-          display: true,
-          text: 'Desempeño Mensual de las Ventas en {{ business.name }}'
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            callback: function(value) {
-              return '$ ' + value; // Formato de moneda en el eje Y
-            }
-          }
-        }
-      }
-    }
-  };
+      ],
+    };
 
-  // Inicializar el gráfico
-  const ctx = document.getElementById('monthly-performance-chart').getContext('2d');
-  new Chart(ctx, config);
+    // Configuración del gráfico
+    const config = {
+      type: "bar", // Tipo de gráfico (puede ser 'line' para líneas)
+      data: monthlyData,
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: false,
+            position: "right",
+          },
+          title: {
+            display: true,
+            text: "Desempeño Mensual de las Ventas en {{ business.name }}",
+          },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function (value) {
+                return "$ " + value; // Formato de moneda en el eje Y
+              },
+            },
+          },
+        },
+      },
+    };
+
+    // Inicializar el gráfico
+    const ctx = document
+      .getElementById("monthly-performance-chart")
+      .getContext("2d");
+    new Chart(ctx, config);
   </script>
 {% endblock content %}

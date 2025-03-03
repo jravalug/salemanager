@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Agregar Negocio Específico</h1>
+
+  <form method="POST">
+    {{ form.hidden_tag() }}
+
+    <div>
+      {{ form.name.label }}
+      {{ form.name(class="form-control") }}
+      {% for error in form.name.errors %}
+        <span class="text-danger">{{ error }}</span>
+      {% endfor %}
+    </div>
+
+    <button type="submit" class="btn btn-success">Agregar</button>
+  </form>
+{% endblock %}

@@ -66,7 +66,11 @@ def detail_or_edit(business_id):
         if logo_path is not None:
             try:
                 update_business(
-                    business, form.name.data, form.description.data, logo_path
+                    business,
+                    form.name.data,
+                    form.description.data,
+                    form.is_general.data,
+                    logo_path,
                 )
                 flash("Negocio actualizado correctamente", "success")
             except SQLAlchemyError as e:
@@ -74,6 +78,16 @@ def detail_or_edit(business_id):
                 flash(f"Error al actualizar el negocio: {str(e)}", "error")
             except Exception as e:
                 flash(f"Error inesperado: {str(e)}", "error")
+        else:
+            update_business(
+                business,
+                form.name.data,
+                form.description.data,
+                form.is_general.data,
+                "",
+            )
+            flash("Negocio actualizado correctamente", "success")
+
         return redirect(url_for("business.detail_or_edit", business_id=business.id))
 
     return render_template(
@@ -104,4 +118,36 @@ def dashboard(business_id):
         business=business,
         monthly_totals=dict(monthly_totals),
         total_general=total_general,
+    )
+
+
+@bp.route("/<int:business_id>/add-sub-business", methods=["GET", "POST"])
+def add_sub_business(business_id):
+    # Obtener el negocio general
+    business = Business.query.get_or_404(business_id)
+
+    if not business.is_general:
+        flash("Este negocio no es un negocio general.", "danger")
+        return redirect(url_for("main.index"))
+
+    # Inicializar el formulario
+    form = BusinessForm()
+
+    if form.validate_on_submit():
+        # Crear un nuevo negocio específico
+        new_sub_business = Business(
+            name=form.name.data,
+            description=business.description,
+            is_general=False,  # Es un negocio específico
+            parent_business_id=business.id,  # Asociarlo al negocio general
+        )
+
+        db.session.add(new_sub_business)
+        db.session.commit()
+
+        flash("Negocio específico agregado correctamente.", "success")
+        return redirect(url_for("business.dashboard", business_id=business.id))
+
+    return render_template(
+        "business/add_sub_business.html", business=business, form=form
     )

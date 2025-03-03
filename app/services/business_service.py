@@ -12,12 +12,14 @@ def create_business(name, description, logo_path=None):
     return new_business
 
 
-def update_business(business, name, description, logo_path=None):
+def update_business(business, name, description, is_general, logo_path=None):
     """
     Actualiza un negocio existente en la base de datos.
     """
+    print(f"Is general: {is_general}")
     business.name = name
     business.description = description
+    business.is_general = is_general
     if logo_path:
         business.logo = logo_path
     db.session.commit()
