@@ -70,3 +70,6 @@ class InventoryItem(db.Model):
     expiration_date = db.Column(db.Date, nullable=True)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
+
+    # Relación con ProductDetail
+    products = db.relationship("ProductDetail", back_populates="raw_material")
