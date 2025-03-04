@@ -1,6 +1,6 @@
 import { DataTable } from "../../../node_modules/simple-datatables/dist/module.js";
 
-const businessId = document.getElementById("business-id").value
+const businessId = document.getElementById("business-id").value;
 
 fetch(`/api/business/${businessId}/product/products`)
   .then((response) => response.json())
@@ -10,22 +10,22 @@ fetch(`/api/business/${businessId}/product/products`)
         headings: [
           {
             text: "ID",
-            data: "id"
+            data: "id",
           },
           {
             text: "NOMBRE",
-            data: "name"
+            data: "name",
           },
           {
             text: "PRECIO",
-            data: "price"
+            data: "price",
           },
           {
             text: "CATEGORIA",
-            data: "category"
-          }
+            data: "category",
+          },
         ],
-        data
+        data,
       },
     });
   });

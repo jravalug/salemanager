@@ -45,8 +45,8 @@
             </button>
             <button
               type="button"
-              data-modal-target="add_inventory_item_modal"
-              data-modal-toggle="add_inventory_item_modal"
+              data-modal-target="add_raw_material_modal"
+              data-modal-toggle="add_raw_material_modal"
               class="text-base font-medium text-primary-700 hover:underline dark:text-primary-500"
             >
               + Agregar Materias Primas
@@ -60,22 +60,22 @@
               class="w-full text-left font-medium text-gray-900 dark:text-white md:table-fixed"
             >
               <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
-                {% if product.inventory_items %}
-                  {% for prm in product.inventory_items %}
+                {% if product.raw_materials %}
+                  {% for detail in product.raw_materials %}
                     <tr>
                       <td class="py-4 md:w-[384px]">
                         <button
                           type="button"
-                          data-popover-target="popover-prm-{{ prm.id }}"
+                          data-popover-target="popover-detail-{{ detail.id }}"
                           data-popover-placement="right"
                           data-popover-trigger="click"
                           class="text-base font-medium text-primary-700 hover:underline dark:text-primary-500"
                         >
-                          {{ prm.inventory_item.name }}
+                          {{ detail.raw_material.name }}
                         </button>
                         <div
                           data-popover
-                          id="popover-prm-{{ prm.id }}"
+                          id="popover-detail-{{ detail.id }}"
                           role="tooltip"
                           class="absolute z-10 invisible inline-block  text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-xs opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800"
                         >
@@ -84,20 +84,22 @@
                           >
                             <button
                               type="button"
-                              data-modal-target="edit_prm_modal"
-                              data-modal-toggle="edit_prm_modal"
+                              data-modal-target="update_raw_material_modal"
+                              data-modal-toggle="update_raw_material_modal"
                               class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-500 hover:underline"
-                              onclick="openEditModal({{ prm.id }},'{{ prm.inventory_item.name }}',{{ prm.quantity }})"
+                              onclick="load_raw_material_data({{ detail.raw_material.id }},{{ detail.quantity }})"
                             >
                               Editar
                             </button>
                             <span>|</span>
                             <!-- Formulario para Eliminar -->
                             <form
-                              action="{{ url_for('product.remove_inventory_item', business_id=business.id, product_id=product.id, prm_id=prm.id) }}"
                               method="post"
-                              onsubmit="return confirm('¿Estás seguro de que deseas eliminar este producto?');"
+                              enctype="multipart/form-data"
+                              onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta materia prima?');"
                             >
+                              {{ remove_raw_material_form.raw_material_id(value=detail.raw_material.id) }}
+                              {{ remove_raw_material_form.hidden_tag(remove_raw_material_form.meta.csrf_field_name) }}
                               <button
                                 type="submit"
                                 class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-500 hover:underline"
@@ -113,12 +115,12 @@
                       <td
                         class="p-4 text-base font-normal text-gray-900 dark:text-white"
                       >
-                        {{ prm.inventory_item.unit }}
+                        {{ detail.raw_material.unit }}
                       </td>
                       <td
                         class="p-4 text-right text-base font-bold text-gray-900 dark:text-white"
                       >
-                        {{ prm.quantity }}
+                        {{ detail.quantity }}
                       </td>
                     </tr>
                   {% endfor %}
@@ -170,7 +172,7 @@
 
   {# Modal Agregar Materia Prima #}
   <div
-    id="add_inventory_item_modal"
+    id="add_raw_material_modal"
     tabindex="-1"
     aria-hidden="true"
     class="antialiased fixed left-0 right-0 top-0 z-50 hidden h-[calc(100%-1rem)] max-h-auto w-full items-center justify-center overflow-y-auto overflow-x-hidden md:inset-0"
@@ -188,7 +190,7 @@
           <button
             type="button"
             class="ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-transparent text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white"
-            data-modal-toggle="add_inventory_item_modal"
+            data-modal-toggle="add_raw_material_modal"
           >
             <svg
               class="h-3 w-3"
@@ -212,53 +214,40 @@
         <form method="post" class="p-4 md:p-5">
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-5">
             <!-- Campo Oculto CSRF -->
-            {{ add_inventory_item_form.hidden_tag() }}
+            {{ add_raw_material_form.hidden_tag() }}
 
-            <!-- Selector de Materia Prima -->
+            <!-- Selector de Materia prima -->
             <div class="sm:col-span-3">
-              <label
-                for="inventory_item"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                >Materia Prima</label
-              >
-              <select
-                id="inventory_item"
-                name="inventory_item"
-                required
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                aria-placeholder="Seleccionar ..."
-              >
-                {% for value, label in add_inventory_item_form.inventory_item.choices %}
-                  <option value="{{ value }}">{{ label }}</option>
-                {% endfor %}
-              </select>
-              {% for error in add_inventory_item_form.inventory_item.errors %}
-                <p class="mt-2 text-sm text-red-600 dark:text-red-500">
-                  {{ error }}
-                </p>
+              {{ add_raw_material_form.raw_material_id.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+              {{
+                add_raw_material_form.raw_material_id(
+                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                  placeholder="Agregar Materia Prima ...",
+                )
+              }}
+              {% for error in add_raw_material_form.raw_material_id.errors %}
+                <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                  >{{ error }}</span
+                >
               {% endfor %}
             </div>
 
             <!-- Campo de Cantidad -->
             <div class="sm:col-span-1">
-              <label
-                for="quantity"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                >Cantidad</label
-              >
-              <input
-                type="number"
-                step="0.0001"
-                id="quantity"
-                name="quantity"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                required
-                autofocus
-              />
-              {% for error in add_inventory_item_form.quantity.errors %}
-                <p class="mt-2 text-sm text-red-600 dark:text-red-500">
-                  {{ error }}
-                </p>
+              {{ add_raw_material_form.quantity.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+              {{
+                add_raw_material_form.quantity(
+                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                  placeholder="Agregar Cantidad ...",
+                  type="number",
+                  step="0.0001",
+                  require=true
+                )
+              }}
+              {% for error in add_raw_material_form.quantity.errors %}
+                <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                  >{{ error }}</span
+                >
               {% endfor %}
             </div>
           </div>
@@ -273,7 +262,116 @@
             </button>
             <button
               type="button"
-              data-modal-toggle="add_inventory_item_modal"
+              data-modal-toggle="add_raw_material_modal"
+              class="me-2 rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {# Modal Actualizar Materia Prima del Producto #}
+  <div
+    id="update_raw_material_modal"
+    tabindex="-1"
+    aria-hidden="true"
+    class="antialiased fixed left-0 right-0 top-0 z-50 hidden h-[calc(100%-1rem)] max-h-auto w-full items-center justify-center overflow-y-auto overflow-x-hidden md:inset-0"
+  >
+    <div class="relative max-h-auto w-full max-w-lg p-4">
+      <!-- Modal content -->
+      <div class="relative rounded-lg bg-white shadow dark:bg-gray-800">
+        <!-- Modal header -->
+        <div
+          class="flex items-center justify-between rounded-t border-b border-gray-200 p-4 dark:border-gray-700 md:p-5"
+        >
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Actualizar Materia Primma del Producto
+          </h3>
+          <button
+            type="button"
+            class="ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-transparent text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white"
+            data-modal-toggle="update_raw_material_modal"
+          >
+            <svg
+              class="h-3 w-3"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 14 14"
+            >
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+              />
+            </svg>
+            <span class="sr-only">Cerrar modal</span>
+          </button>
+        </div>
+        <!-- Modal body -->
+        <form
+          method="post"
+          action="{{ url_for('product.technical_card', business_id=business.id, product_id=product.id) }}"
+          class="p-4 md:p-5"
+        >
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-5">
+            <!-- Campo Oculto CSRF -->
+            {{ update_raw_material_form.hidden_tag() }}
+
+            <!-- Selector de Materia prima -->
+            <div class="sm:col-span-3">
+              {{ update_raw_material_form.raw_material_id.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+              {{
+                update_raw_material_form.raw_material_id(
+                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                  placeholder="Actualizar Materia Prima ...",
+                  disable=true
+                )
+              }}
+              {% for error in update_raw_material_form.raw_material_id.errors %}
+                <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                  >{{ error }}</span
+                >
+              {% endfor %}
+            </div>
+
+            <!-- Campo de Cantidad -->
+            <div class="sm:col-span-1">
+              {{ update_raw_material_form.quantity.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+              {{
+                update_raw_material_form.quantity(
+                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                  placeholder="Agregar Cantidad ...",
+                  type="number",
+                  step="0.0001",
+                  required=true
+                )
+              }}
+              {% for error in update_raw_material_form.quantity.errors %}
+                <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                  >{{ error }}</span
+                >
+              {% endfor %}
+            </div>
+          </div>
+          <div
+            class="border-t border-gray-200 pt-4 dark:border-gray-700 md:pt-5"
+          >
+            <button
+              type="submit"
+              class="me-2 inline-flex items-center rounded-lg bg-primary-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-primary-800 focus:outline-none focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+            >
+              Actualizar
+            </button>
+
+            <button
+              type="button"
+              data-modal-toggle="update_raw_material_modal"
               class="me-2 rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700"
             >
               Cancel
@@ -473,148 +571,16 @@
       </div>
     </div>
   </div>
-
-  {# Modal Actualizar Materia Prima del Producto #}
-  <div
-    id="edit_prm_modal"
-    tabindex="-1"
-    aria-hidden="true"
-    class="antialiased fixed left-0 right-0 top-0 z-50 hidden h-[calc(100%-1rem)] max-h-auto w-full items-center justify-center overflow-y-auto overflow-x-hidden md:inset-0"
-  >
-    <div class="relative max-h-auto w-full max-w-lg p-4">
-      <!-- Modal content -->
-      <div class="relative rounded-lg bg-white shadow dark:bg-gray-800">
-        <!-- Modal header -->
-        <div
-          class="flex items-center justify-between rounded-t border-b border-gray-200 p-4 dark:border-gray-700 md:p-5"
-        >
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-            Actualizar Materia Primma del Producto
-          </h3>
-          <button
-            type="button"
-            class="ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-transparent text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white"
-            data-modal-toggle="edit_prm_modal"
-          >
-            <svg
-              class="h-3 w-3"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 14 14"
-            >
-              <path
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-              />
-            </svg>
-            <span class="sr-only">Cerrar modal</span>
-          </button>
-        </div>
-        <!-- Modal body -->
-        <form
-          id="edit-prm-form"
-          method="POST"
-          action="{{ url_for('product.update_inventory_item', business_id=business.id, product_id=product.id) }}"
-          class="p-4 md:p-5"
-        >
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-5">
-            <input type="hidden" id="prm-id" name="prm_id" />
-            <div class="sm:col-span-3">
-              <label
-                for="quantity"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              >
-                Materia Prima
-              </label>
-              <input
-                type="text"
-                id="prm-name"
-                name="prm_name"
-                class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                disabled
-              />
-            </div>
-            <div class="sm:col-span-1">
-              <label
-                for="quantity"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              >
-                Cantidad
-              </label>
-              <input
-                type="number"
-                step="0.0001"
-                id="prm-quantity"
-                name="prm_quantity"
-                class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                required
-              />
-            </div>
-          </div>
-          <div
-            class="border-t border-gray-200 pt-4 dark:border-gray-700 md:pt-5"
-          >
-            <button
-              type="submit"
-              class="me-2 inline-flex items-center rounded-lg bg-primary-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-primary-800 focus:outline-none focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
-            >
-              Actualizar
-            </button>
-
-            <button
-              type="button"
-              data-modal-toggle="edit_prm_modal"
-              class="me-2 rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
 {% endblock content %}
 
 {% block custom_javascript %}
   <script>
-    function openEditModal(rawMaterialId, rawMaterialName, currentQuantity) {
+    function load_raw_material_data(rawMaterialId, currentQuantity) {
       // Rellenar el formulario con los datos actuales
-      document.getElementById("prm-id").value = rawMaterialId;
-      document.getElementById("prm-name").value = rawMaterialName;
-      document.getElementById("prm-quantity").value = currentQuantity;
+      document.getElementById("update_raw_material-raw_material_id").value =
+        rawMaterialId;
+      document.getElementById("update_raw_material-quantity").value =
+        currentQuantity;
     }
-
-    // Escuchar el envío del formulario
-    /*document
-      .getElementById("edit-raw-material-form")
-      .addEventListener("submit", function (e) {
-        e.preventDefault();
-
-        const formData = new FormData(this);
-        const rawMaterialId = formData.get("prm_id");
-        const rawMaterialQuantity = formData.get("prm-quantity");
-
-        // Generar la URL base con Jinja2 y reemplazar el marcador
-        let url =
-          "{{ url_for('product.update_inventory_item', business_id=business.id, product_id=product.id, prm_id=0) }}";
-        url = url.replace("0", rawMaterialId); // Reemplazar el marcador "0" con el ID real
-
-        fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: `prm_quantity=${encodeURIComponent(rawMaterialQuantity)}`,
-        }).then((response) => {
-          if (response.ok) {
-            alert("Materia prima actualizada correctamente");
-            location.reload(); // Recargar la página para reflejar los cambios
-          } else {
-            alert("Error al actualizar la materia prima");
-          }
-        });
-      });*/
   </script>
 {% endblock custom_javascript %}
