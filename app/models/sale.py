@@ -7,7 +7,7 @@ class Sale(db.Model):
     sale_number = db.Column(db.String(3), nullable=False)  # Número de Venta
     date = db.Column(db.Date, nullable=False)  # Fecha de la Venta
     payment_method = db.Column(
-        db.String(50), nullable=False
+        db.String(50), nullable=False, default="cash"
     )  # Método de pago (efectivo, tarjeta, transferencia, etc.)
     status = db.Column(
         db.String(20),
