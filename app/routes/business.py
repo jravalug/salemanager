@@ -12,10 +12,15 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.extensions import db
 from app.models import Business, Product, Sale, SaleDetail
 from app.forms import BusinessForm
-from app.services.business_service import BusinessService
+from app.repositories.business_repository import BusinessRepository
+from app.services import BusinessService, SalesService
 from app.utils.file_utils import handle_logo_upload
 
 bp = Blueprint("business", __name__, url_prefix="/business")
+
+business_repo = BusinessRepository()
+business_service = BusinessService()
+sale_service = SalesService()
 
 
 @bp.route("/list", methods=["GET", "POST"])
@@ -23,7 +28,6 @@ def list():
     """
     Muestra la lista de negocios y maneja la creación de nuevos negocios.
     """
-    business_service = BusinessService()
     form = BusinessForm()
 
     if form.validate_on_submit():
@@ -51,7 +55,7 @@ def list():
             flash(f"Error inesperado: {str(e)}", "error")
         return redirect(url_for("business.list"))
 
-    business_list = Business.query.all()
+    business_list = business_repo.get_parent_business()
     return render_template("business/list.html", business_list=business_list, form=form)
 
 
@@ -104,18 +108,14 @@ def dashboard(business_id):
     Muestra el dashboard de un negocio con ventas mensuales.
     """
     business = Business.query.get_or_404(business_id)
-    monthly_totals = (
-        db.session.query(
-            func.strftime("%Y-%m", Sale.date).label("month"),
-            func.sum(SaleDetail.quantity * Product.price).label("total"),
-        )
-        .join(Sale.products)
-        .join(SaleDetail.product)
-        .filter(Sale.business_id == business.id)
-        .group_by(func.strftime("%Y-%m", Sale.date))
-        .all()
+    business_filters = business_service.get_parent_filters(business)
+
+    monthly_totals = sale_service.generate_monthly_totals_sales(
+        business_id=business_filters["business_id"],
+        specific_business_id=business_filters.get("specific_business_id"),
     )
     total_general = sum(total for month, total in monthly_totals)
+
     return render_template(
         "business/dashboard.html",
         business=business,

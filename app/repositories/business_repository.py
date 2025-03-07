@@ -9,15 +9,16 @@ class BusinessRepository:
         :param order_by: Campo por el cual ordenar los resultados (opcional).
         :return: Lista de negocios que cumplen con los criterios.
         """
+
         try:
             query = Business.query
             if filters:
-                query = query.filter(*filters)
-            if order_by:
+                query = query.filter_by(**filters)
+            if order_by is not None:  # ✅ Corrección clave
                 query = query.order_by(order_by)
             return query.all()
         except Exception as e:
-            raise RuntimeError(f"Error al consultar los negocios: {e}")
+            raise RuntimeError(f"Error al consultar los negocios: {str(e)}")
 
     def get_all_business(self):
         """Consulta todos los negocios."""
@@ -25,7 +26,7 @@ class BusinessRepository:
 
     def get_parent_business(self):
         """Devuelve los negocios generales."""
-        filters = [Business.is_general == True]
+        filters = {"is_general": True}
         return self._query_business(filters=filters, order_by=Business.name.asc())
 
     def get_sub_business(self):
