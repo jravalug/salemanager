@@ -22,8 +22,9 @@ from app.models.business import Business
 class SaleForm(FlaskForm):
     specific_business_id = SelectField(
         "Negocio Específico",
-        coerce=int,  # Asegura que el valor seleccionado sea un entero
+        coerce=lambda x: int(x) if x else None,  # Acepta valores nulos
         validators=[Optional()],
+        choices=[("", "--- Seleccionar ---")],  # Opción vacía por defecto
     )
     sale_number = StringField(
         "Número de Venta",
@@ -88,13 +89,15 @@ class SaleForm(FlaskForm):
 
     def __init__(self, parent_business_id, *args, **kwargs):
         super(SaleForm, self).__init__(*args, **kwargs)
-        # Obtener los negocios específicos asociados al negocio general
+
+        # Obtener subnegocios
         sub_businesses = Business.query.filter_by(
             parent_business_id=parent_business_id
         ).all()
-        # Cargar las opciones del campo specific_business_id
-        self.specific_business_id.choices = [
-            (business.id, business.name) for business in sub_businesses
+
+        # Siempre incluir la opción vacía al inicio
+        self.specific_business_id.choices = [("", "Seleccionar sub-negocio ...")] + [
+            (b.id, b.name) for b in sub_businesses
         ]
 
 
@@ -110,6 +113,7 @@ class SaleDetailForm(FlaskForm):
             DataRequired(message="La cantidad es obligatoria."),
             NumberRange(min=1, message="La cantidad debe ser al menos 1."),
         ],
+        default=1,  # Valor predeterminado válido
     )
     discount = FloatField(
         "Descuento",
@@ -132,12 +136,20 @@ class SaleDetailForm(FlaskForm):
 
 
 class UpdateSaleDetailForm(FlaskForm):
+    sale_detail_id = HiddenField(
+        "ID de la Venta del Producto",
+        validators=[
+            DataRequired(message="El ID de la Venta del Producto es obligatorio.")
+        ],
+        description="ID de la relacion de la Venta y el Producto.",
+    )
     quantity = IntegerField(
         "Cantidad",
         validators=[
             DataRequired(message="La cantidad es obligatoria."),
             NumberRange(min=1, message="La cantidad debe ser al menos 1."),
         ],
+        default=1,  # Valor predeterminado válido
     )
     discount = FloatField(
         "Descuento",
@@ -151,6 +163,10 @@ class UpdateSaleDetailForm(FlaskForm):
 
 class RemoveSaleDetailForm(FlaskForm):
     sale_detail_id = HiddenField(
-        "ID de producto en la venta"
-    )  # ID de la venta-producto a eliminar
+        "ID de la Venta del Producto",
+        validators=[
+            DataRequired(message="El ID de la Venta del Producto es obligatorio.")
+        ],
+        description="ID de la relacion de la Venta y el Producto.",
+    )
     submit = SubmitField("Eliminar Producto")
