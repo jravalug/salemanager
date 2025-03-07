@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List
 from dateutil.relativedelta import relativedelta
 
 from app import db
@@ -16,7 +17,7 @@ class SalesReportService:
     def __init__(self):
         self.repository = SalesRepository()
 
-    def get_daily_sales(self, business_id, month_str, excluded_sales):
+    def get_daily_sales(self, month_str, business_id, specific_business_id=None):
         """Obtiene las ventas diarias agrupadas y procesadas."""
         # Validar el formato del mes
         try:
@@ -29,51 +30,36 @@ class SalesReportService:
 
         # Obtener las ventas del repositorio
         all_dayly_sales = self.repository.get_sales_for_month(
-            business_id, start_date, end_date
+            business_id, specific_business_id, start_date, end_date
         )
-        filtered_sales = [
-            sale for sale in all_dayly_sales if sale.id not in excluded_sales
-        ]
 
         # Procesar las ventas
-        filtered_sales_by_day = self._group_sales_by_day(filtered_sales)
-        filtered_daily_sales = format_daily_sales(filtered_sales_by_day)
-        return all_dayly_sales, filtered_daily_sales
+        gruped_sales_by_day = self._group_sales_by_day(all_dayly_sales)
+        formated_daily_sales = format_daily_sales(gruped_sales_by_day)
+        return all_dayly_sales, formated_daily_sales
 
-    def get_monthly_totals(self, business_id, month_str, excluded_sales):
+    def get_monthly_totals(self, daily_sales: List[Sale]) -> dict:
         """
-        Calcula el total de productos y el importe total para un mes específico.
+        Calcula el total de productos y el importe total para un conjunto de ventas diarias.
 
-        :param business_id: ID del negocio.
-        :param month_str: Mes en formato YYYY-MM.
-        :param excluded_sales: Lista de IDs de ventas excluidas.
+        :param daily_sales: Lista de objetos Sale que contienen las ventas diarias.
         :return: Un diccionario con los totales mensuales:
-                 - total_products: Total de productos vendidos en el mes.
-                 - total_income: Total de ingresos generados en el mes.
+                - total_products: Total de productos vendidos en el período.
+                - total_income: Total de ingresos generados en el período.
         """
-        # Validar el formato del mes
-        try:
-            selected_month = datetime.strptime(month_str, "%Y-%m").date()
-        except ValueError:
-            raise ValueError("El mes debe estar en formato YYYY-MM.")
+        total_products = 0
+        total_income = 0.0
 
-        start_date = selected_month.replace(day=1)
-        end_date = start_date + relativedelta(months=1, days=-1)
-
-        # Obtener todas las ventas del mes
-        all_sales = self.repository.get_sales_for_month(
-            business_id, start_date, end_date
-        )
-
-        # Filtrar las ventas excluidas
-        filtered_sales = [sale for sale in all_sales if sale.id not in excluded_sales]
-
-        # Calcular totales
-        totals = calculate_sales_totals(filtered_sales)
+        for sale in daily_sales:
+            # Sumar las cantidades y los ingresos de cada venta
+            total_products += sum(detail.quantity for detail in sale.products)
+            total_income += sale.total_amount
 
         return {
-            "total_products": totals["total_products"],
-            "total_income": totals["total_income"],
+            "total_products": total_products,
+            "total_income": round(
+                total_income, 2
+            ),  # Redondear a 2 decimales para moneda
         }
 
     # Helpers Methods

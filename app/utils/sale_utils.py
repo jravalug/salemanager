@@ -86,38 +86,9 @@ def group_products(sale):
     products_dict = defaultdict(lambda: {"quantity": 0, "import": 0})
     for sale_detail in sale.products:
         name = sale_detail.product.name
-        quantity = sale_detail.quantity
-        price = sale_detail.product.price
-        products_dict[name]["quantity"] += quantity
-        products_dict[name]["import"] += quantity * price
+        products_dict[name]["quantity"] += sale_detail.quantity
+        products_dict[name]["import"] += sale_detail.total_price
     return products_dict
-
-
-# def format_daily_sales(sales_by_day):
-#     """Formatea las ventas diarias para la plantilla."""
-#     daily_sales = []
-#     for date, sales in sales_by_day.items():
-#         daily_sales_data = {
-#             "date": date,
-#             "sales": [],
-#         }
-#         for sale in sales:
-#             total_products, total_income = calculate_sale_detail_totals(sale)
-#             products_dict = group_products(sale)
-#             products_list = [
-#                 {"name": name, "quantity": data["quantity"], "import": data["import"]}
-#                 for name, data in products_dict.items()
-#             ]
-#             daily_sales_data["sales"].append(
-#                 {
-#                     "sale_number": sale.sale_number,
-#                     "total_products": total_products,
-#                     "total_income": total_income,
-#                     "products": products_list,
-#                 }
-#             )
-#         daily_sales.append(daily_sales_data)
-#     return daily_sales
 
 
 def format_daily_sales(sales_by_day):
@@ -137,7 +108,8 @@ def format_daily_sales(sales_by_day):
 
         for sale in sales:
             # Calcular totales para esta venta
-            sale_total_products, sale_total_income = calculate_sale_detail_totals(sale)
+            sale_total_products = sum(detail.quantity for detail in sale.products)
+            sale_total_income = sale.total_amount
 
             # Agrupar productos por nombre
             products_dict = group_products(sale)

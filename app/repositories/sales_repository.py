@@ -1,3 +1,6 @@
+from datetime import date
+from typing import List, Optional
+from flask import current_app
 from sqlalchemy.orm import joinedload
 from sqlalchemy import func
 from app.extensions import db
@@ -100,21 +103,61 @@ class SalesRepository:
         except Exception as e:
             raise RuntimeError(f"Error al consultar el venta: {e}")
 
-    def get_sales_for_month(self, business_id, start_date, end_date):
-        """Consulta las ventas de un negocio en un rango de fechas."""
+    def get_sales_for_month(
+        self,
+        business_id: int,
+        specific_business_id: Optional[int] = None,
+        start_date: date = None,
+        end_date: date = None,
+    ) -> List[Sale]:
+        """
+        Consulta las ventas de un negocio en un rango de fechas específico.
+
+        Args:
+            business_id (int): ID del negocio principal.
+            specific_business_id (Optional[int]): ID del subnegocio (opcional).
+            start_date (date): Fecha de inicio del rango.
+            end_date (date): Fecha de fin del rango.
+
+        Returns:
+            List[Sale]: Lista de objetos Sale que cumplen con los criterios.
+
+        Raises:
+            ValueError: Si las fechas no son válidas o si falta algún parámetro obligatorio.
+            RuntimeError: Si ocurre un error durante la consulta.
+        """
+        # Validar que se proporcionen fechas válidas
+        if not all([start_date, end_date]):
+            raise ValueError("Las fechas de inicio y fin son obligatorias.")
+        if start_date > end_date:
+            raise ValueError(
+                "La fecha de inicio no puede ser mayor que la fecha de fin."
+            )
+
         try:
-            return (
-                Sale.query.filter(
-                    Sale.business_id == business_id,
-                    Sale.date.between(start_date, end_date),
-                )
-                .join(Sale.products)
+            # Construir la consulta base
+            query = Sale.query.filter(
+                Sale.business_id == business_id, Sale.date.between(start_date, end_date)
+            )
+
+            # Filtrar por subnegocio si se proporciona
+            if specific_business_id is not None:
+                query = query.filter(Sale.specific_business_id == specific_business_id)
+
+            # Realizar joins para cargar relaciones necesarias
+            query = (
+                query.join(Sale.products)
                 .join(SaleDetail.product)
                 .order_by(Sale.date.asc())
-                .all()
             )
+
+            # Ejecutar la consulta
+            return query.all()
+
         except Exception as e:
-            raise RuntimeError(f"Error al consultar las ventas: {e}")
+            # Registrar el error y lanzar una excepción más descriptiva
+            current_app.logger.error(f"Error al consultar ventas: {str(e)}")
+            raise RuntimeError("Ocurrió un error al consultar las ventas.") from e
 
     def add_sale(self, business_id, **kwargs):
         """
