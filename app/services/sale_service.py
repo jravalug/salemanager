@@ -1,13 +1,35 @@
+from collections import defaultdict
+from typing import Dict, Optional
+from sqlalchemy import desc, func
+
+from flask_wtf import FlaskForm
 from app import db
 from app.models import Sale, Product, SaleDetail
+from app.models.business import Business
 from app.repositories.sales_repository import SalesRepository
+from app.services.business_service import BusinessService
 
 
 class SalesService:
+    """
+    Servicio para manejar las operaciones relacionadas con el modelo Sale.
+    """
+
     def __init__(self):
         self.repository = SalesRepository()
+        self.business = BusinessService()
 
     # Nuevos métodos para operaciones CRUD
+
+    def get_sales_by_business(self, business_id):
+        """Obtiene las ventas de un negocio"""
+        return (
+            Sale.query.options(
+                db.joinedload(Sale.products).joinedload(SaleDetail.product)
+            )
+            .filter(Sale.business_id == business_id)
+            .first_or_404()
+        )
 
     def get_sale(self, sale_id, business_id):
         """Obtiene los detalles completos de una venta con sus relaciones"""
@@ -31,56 +53,74 @@ class SalesService:
         """Obtiene los productos de una venta específica"""
         return SaleDetail.query.filter_by(sale_id=sale_id).join(Product).all()
 
-    def add_sale(self, form_data, business):
-        """Actualiza los datos principales de una venta"""
-        print(f"En el servicio add_sale antes de guardar la venta")
+    def add_sale(self, business: Business, form: FlaskForm) -> Sale:
+        """
+        Crea una nueva venta asociado a un negocio.
+
+
+        Args:
+            business_id (int): ID del negocio al que pertenece la venta.
+            form (FlaskForm): Campos y valores para crear la venta.
+
+        Returns:
+            Sale: El objeto Venta recién creado.
+        """
+        business_filter = self.business.get_parent_filters(business)
+
         if business.is_general:
-            business_id = business.id
-            specific_business_id = form_data.specific_business_id.data
+            specific_business_id = form.specific_business_id.data
         else:
-            business_id = business.parent_business_id
-            specific_business_id = business.id
+            specific_business_id = business_filter["specific_business_id"]
 
-        new_sale = Sale(
-            sale_number=form_data.sale_number.data,
-            date=form_data.date.data,
-            payment_method=form_data.payment_method.data,
-            status=form_data.status.data,
-            excluded=form_data.excluded.data,
-            discount=form_data.discount.data,
-            tax=form_data.tax.data,
-            subtotal_amount=0,
-            total_amount=0,
-            business_id=business_id,
-            specific_business_id=specific_business_id,
-        )
-        print(f"En el servicio add_sale despues de guardar la venta")
-        db.session.add(new_sale)
-        db.session.commit()
-        return new_sale
+        # Convertir el formulario en un diccionario
+        data = {
+            "sale_number": form.sale_number.data,
+            "date": form.date.data,
+            "payment_method": form.payment_method.data,
+            "status": form.status.data,
+            "excluded": form.excluded.data,
+            "discount": form.discount.data or 0,
+            "tax": form.tax.data or 0,
+            "subtotal_amount": 0,
+            "total_amount": 0,
+            "specific_business_id": specific_business_id,
+        }
+        return self.repository.add_sale(business_filter["business_id"], **data)
 
-    def update_sale(self, sale, form_data):
-        """Actualiza los datos principales de una venta"""
-        sale.sale_number = form_data.sale_number.data
-        sale.date = form_data.date.data
-        sale.payment_method = form_data.payment_method.data
-        sale.status = form_data.status.data
-        sale.excluded = form_data.excluded.data
-        sale.customer_name = form_data.customer_name.data
-        sale.discount = form_data.discount.data
-        sale.tax = form_data.tax.data
-        sale.specific_business_id = form_data.specific_business_id.data
+    def update_sale(self, sale: Sale, form: FlaskForm):
+        """
+        Actualiza una venta existente con los datos proporcionados en el formulario.
 
-        db.session.commit()
-        return sale
+        Args:
+            sale (Sale): Instancia de Sale a actualizar
+            form (FlaskForm): Formulario con los nuevos datos validados
 
-    def add_product_to_sale(self, sale, product_id, quantity, discount):
+        Returns:
+            Sale: Instancia actualizada de Sale
+        """
+        # Convertir el formulario en un diccionario
+        data = {
+            "sale_number": form.sale_number.data,
+            "date": form.date.data,
+            "payment_method": form.payment_method.data,
+            "status": form.status.data,
+            "excluded": form.excluded.data,
+            "discount": form.discount.data or 0,
+            "tax": form.tax.data or 0,
+            "specific_business_id": form.specific_business_id.data,
+        }
+
+        return self.repository.update_sale(sale, **data)
+
+    def add_product_to_sale(
+        self, sale: Sale, product_id: int, quantity: int, discount: float
+    ) -> SaleDetail:
         """Agrega un producto a una venta existente"""
         product = Product.query.get_or_404(product_id)
 
-        new_sale_detail = SaleDetail(
+        return self.repository.add_sale_detail(
             sale_id=sale.id,
-            product_id=product.id,
+            product_id=product_id,
             quantity=quantity,
             unit_price=product.price,
             discount=discount or 0.0,
@@ -89,59 +129,69 @@ class SalesService:
             ),
         )
 
-        db.session.add(new_sale_detail)
-        db.session.commit()
-        self._update_sale_totals(sale)
-        return new_sale_detail
+    def update_sale_detail(
+        self,
+        sale: Sale,
+        sale_detail: SaleDetail,
+        quantity: int,
+        discount: float,
+    ) -> SaleDetail:
+        """Actualiza un producto en una venta"""
+        if sale_detail.unit_price and sale_detail.unit_price > 0:
+            unit_price = sale_detail.unit_price
+        else:
+            unit_price = sale_detail.product.price
 
-    def remove_product_from_sale(self, sale, sale_detail_id):
+        return self.repository.update_sale_detail(
+            sale_id=sale.id,
+            sale_detail_id=sale_detail.id,
+            quantity=quantity,
+            unit_price=unit_price,
+            discount=discount or 0.0,
+            total_price=self.calculate_sale_detail_total(
+                unit_price, quantity, discount
+            ),
+        )
+
+    def remove_product_from_sale(self, sale: Sale, sale_detail: SaleDetail) -> Product:
         """Elimina un producto de una venta"""
-        sale_detail = SaleDetail.query.filter_by(
-            id=sale_detail_id, sale_id=sale.id
-        ).first_or_404()
         removed_product = Product.query.first_or_404(sale_detail.product_id)
-        db.session.delete(sale_detail)
-        db.session.commit()
-        self._update_sale_totals(sale)
+        self.repository.remove_sale_detail(sale.id, sale_detail.id)
         return removed_product
 
-    def update_sale_detail(self, sale_detail, quantity, discount):
-        """Actualiza un producto en una venta"""
-        sale_detail.quantity = quantity
-        sale_detail.discount = discount or 0.0
-        sale_detail.unit_price = sale_detail.unit_price or sale_detail.product.price
-        sale_detail.total_price = self.calculate_sale_detail_total(
-            sale_detail.unit_price, quantity, sale_detail.discount
-        )
-
-        db.session.commit()
-        self._update_sale_totals(sale_detail.sale)
-        return sale_detail
-
     # Helpers Methods
-
-    def _update_sale_totals(self, sale):
-        """Actualiza los totales de la venta"""
-        self.calculate_sale_subtotal(sale)
-        self.calculate_sale_total(sale)
-
-    def calculate_sale_detail_total(self, unit_price, quantity, discount):
+    def calculate_sale_detail_total(
+        self, unit_price: float, quantity: int, discount: float
+    ):
         """Calcula el total por producto considerando descuentos"""
+        print(f"La cantidad es: {discount}")
         return round(unit_price * quantity * (1 - (discount or 0.0)), 2)
 
-    def calculate_sale_subtotal(self, sale):
-        """Calcula el subtotal de la venta considerando la suma de los productos"""
-        sale.subtotal_amount = round(
-            sum(sale_detail.total_price for sale_detail in sale.products), 2
-        )
-        db.session.commit()
+    def generate_monthly_totals_sales(
+        self,
+        business_id: int,
+        specific_business_id: Optional[int] = None,  # Parámetro opcional
+    ) -> Dict[str, float]:
+        """
+        Genera totales mensuales de ventas para un negocio.
+        """
+        try:
+            # Construir la consulta base
+            query = db.session.query(
+                func.strftime("%Y-%m", Sale.date).label("month"),
+                func.sum(Sale.total_amount).label("total"),
+            ).filter(Sale.business_id == business_id)
 
-    def calculate_sale_total(self, sale):
-        """Calcula el total de la venta considerando descuentos e impuestos"""
-        sale.total_amount = round(
-            sale.subtotal_amount
-            * (1 - (sale.discount or 0.0))
-            * (1 + (sale.tax or 0.0)),
-            2,
-        )
-        db.session.commit()
+            # Aplicar filtro de subnegocio si existe
+            if specific_business_id is not None:
+                query = query.filter(Sale.specific_business_id == specific_business_id)
+
+            # Agrupar y ordenar
+            return (
+                query.group_by(func.strftime("%Y-%m", Sale.date))
+                .order_by(desc(func.strftime("%Y-%m", Sale.date)))
+                .all()
+            )
+
+        except Exception as e:
+            raise RuntimeError(f"Error generando totales mensuales: {str(e)}")

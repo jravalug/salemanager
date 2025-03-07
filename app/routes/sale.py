@@ -67,7 +67,10 @@ def list(business_id):
     # Manejar la validación y creación de nuevas ventas
     if add_sale_form.validate_on_submit():
         try:
-            new_sale = sale_service.add_sale(form_data=add_sale_form, business=business)
+            new_sale = sale_service.add_sale(
+                business=business,
+                form=add_sale_form,
+            )
             flash("Venta creada correctamente", "success")
             return redirect(
                 url_for(
@@ -140,53 +143,45 @@ def details(business_id, sale_id):
             url_for("sale.details", business_id=business.id, sale_id=sale.id)
         )
 
-    # Manejadores de acciones específicas
-    def handle_remove_product():
-        sale_detail_id = remove_product_form.sale_detail_id.data
-        removed_product = sale_service.remove_product_from_sale(
-            sale=sale, sale_detail_id=sale_detail_id
-        )
-        flash(f"Producto '{removed_product.name}' eliminado", "success")
-
-    def handle_add_product():
-        new_sale_detail = sale_service.add_product_to_sale(
-            sale=sale,
-            product_id=add_product_form.product_id.data,
-            quantity=add_product_form.quantity.data,
-            discount=add_product_form.discount.data,
-        )
-        flash(f"Producto '{new_sale_detail.product.name}' agregado", "success")
-
-    def handle_update_product():
-        sale_detail_id = request.form.get("update_product-id")
-        sale_detail = SaleDetail.query.get_or_404(sale_detail_id)
-        updated_product = sale_service.update_sale_detail(
-            sale_detail=sale_detail,
-            quantity=update_product_form.quantity.data,
-            discount=update_product_form.discount.data,
-        )
-        flash("Producto actualizado correctamente", "success")
-
-    def handle_update_sale():
-        updated_sale = sale_service.update_sale(sale=sale, form_data=update_sale_form)
-        flash("Venta actualizada correctamente", "success")
-
     # Procesar formularios
     try:
         if remove_product_form.validate_on_submit():
-            handle_remove_product()
+            sale_detail = SaleDetail.query.get_or_404(
+                remove_product_form.sale_detail_id.data
+            )
+            removed_product = sale_service.remove_product_from_sale(
+                sale=sale, sale_detail=sale_detail
+            )
+            flash(f"Producto '{removed_product.name}' eliminado", "success")
             return redirect_to_sale()
 
         if add_product_form.validate_on_submit():
-            handle_add_product()
+            new_sale_detail = sale_service.add_product_to_sale(
+                sale=sale,
+                product_id=add_product_form.product_id.data,
+                quantity=add_product_form.quantity.data,
+                discount=add_product_form.discount.data,
+            )
+            flash(f"Producto '{new_sale_detail.product.name}' agregado", "success")
             return redirect_to_sale()
 
         if update_product_form.validate_on_submit():
-            handle_update_product()
+            sale_detail = SaleDetail.query.get_or_404(
+                update_product_form.sale_detail_id.data
+            )
+
+            updated_product = sale_service.update_sale_detail(
+                sale=sale,
+                sale_detail=sale_detail,
+                quantity=update_product_form.quantity.data,
+                discount=update_product_form.discount.data,
+            )
+            flash("Producto actualizado correctamente", "success")
             return redirect_to_sale()
 
         if update_sale_form.validate_on_submit():
-            handle_update_sale()
+            updated_sale = sale_service.update_sale(sale=sale, form=update_sale_form)
+            flash("Venta actualizada correctamente", "success")
             return redirect_to_sale()
 
     except Exception as e:
