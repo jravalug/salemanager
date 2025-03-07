@@ -1,119 +1,209 @@
 {% extends "base.html" %}
 {% block content %}
-  <div class="dashboard-container">
-    <h2 class="dashboard-title">Resumen de Ventas de {{ business.name }}</h2>
-    <a
-      href="{{ url_for('business.add_sub_business', business_id=business.id) }}"
-      class="btn btn-primary"
-    >
-      Agregar Negocio Específico
-    </a>
-    {% if business.is_general %}
-      <ul>
-        {% for sub_business in business.sub_businesses %}
-          <li>{{ sub_business.name }}</li>
-        {% endfor %}
-      </ul>
-    {% else %}
-
-    {% endif %}
-    <!-- Tarjeta de Resumen -->
-    <div class="summary-card">
-      <h3>Total General</h3>
-      <p>${{ "%.2f"|format(total_general) }}</p>
+  <div class="container mx-auto px-4 py-8 dark:bg-gray-900">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+        {{ business.name }} - Resumen de Ventas
+      </h2>
+      <div class="flex gap-4">
+        <a
+          href="{{ url_for('business.list') }}"
+          class="py-2 px-4 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 
+                text-gray-700 dark:text-white rounded-lg transition duration-200"
+        >
+          Regresar
+        </a>
+        <a
+          href="{{ url_for('business.add_sub_business', business_id=business.id) }}"
+          class="py-2 px-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 
+                text-white rounded-lg transition duration-200"
+        >
+          Agregar Negocio
+        </a>
+      </div>
     </div>
-    <!-- Gráfico de Desempeño Mensual -->
-    <canvas id="monthly-performance-chart" width="400" height="200"></canvas>
-    <!-- Desempeño Mensual -->
-    <h3>Desempeño Mensual</h3>
-    <table class="monthly-table">
-      <thead>
-        <tr>
-          <th>Mes</th>
-          <th>Total</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for month, total in monthly_totals.items() %}
-          <tr>
-            <td>{{ month }}</td>
-            <td>${{ "%.2f"|format(total) }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    <!-- Botón de Regreso -->
-    <a href="{{ url_for('business.list') }}" class="dashboard-button-secondary"
-      >Regresar al Listado de Negocios</a
-    >
-  </div>
-  <input
-    type="hidden"
-    id="month_data"
-    value="{% for month, total in monthly_totals.items() %}{{ total }},{% endfor %}"
-  />
-  <input
-    type="hidden"
-    id="month_labels"
-    value="{% for month, total in monthly_totals.items() %}"{{ month }}",{% endfor %}"
-  />
-  <!-- Script para el Gráfico -->
-  <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
-  {# <script src="{{ url_for('static', filename='js/chart.js') }}"></script> #}
-  <script type="module">
-    import { Chart } from "../../static/js/chart.js";
-    // Datos del desempeño mensual
-    console.log("testing");
-    const total = document.getElementById("month_data").value;
-    const labels_month = document.getElementById("month_labels").value;
-    console.log(total, labels_month);
 
-    const monthlyData = {
-      labels: [labels_month],
-      datasets: [
+    <!-- Negocios Específicos -->
+    {% if business.is_general %}
+      <div class="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+          Negocios Específicos
+        </h3>
+        <div class="divide-y divide-gray-200 dark:divide-gray-700">
+          {% for sub_business in business.sub_businesses %}
+            <div class="flex items-center justify-between py-3">
+              <span class="text-gray-700 dark:text-gray-300"
+                >{{ sub_business.name }}</span
+              >
+              <a
+                href="{{url_for('business.dashboard', business_id=sub_business.id)}}"
+                class="text-blue-600 dark:text-blue-400 hover:underline"
+                >Ver detalles</a
+              >
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Tarjetas de Resumen -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <!-- Total General -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 flex items-center justify-center h-48 sm:col-span-1">
+      <div class="text-center">
+        <h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-300">Total General</h3>
+        <p class="text-3xl font-bold text-blue-600 dark:text-blue-400">
+          {{ total_general|currency }}
+        </p>
+      </div>
+    </div>
+
+      <!-- Gráfico de Desempeño Mensual -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 sm:col-span-3" >
+        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+          Desempeño Mensual
+        </h3>
+        <div id="sales-chart" class="h-96"></div>
+      </div>
+    </div>
+
+    <!-- Tabla de Ventas Mensuales -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+      <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <thead
+          class="bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-400 uppercase"
+        >
+          <tr>
+            <th class="py-3 px-6">Mes</th>
+            <th class="py-3 px-6 text-right">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for month, total in monthly_totals.items() %}
+            <tr
+              class="hover:bg-gray-50 dark:hover:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700"
+            >
+              <td class="py-4 px-6">{{ month }}</td>
+              <td
+                class="py-4 px-6 text-right font-medium text-gray-900 dark:text-gray-300"
+              >
+                {{ total | currency }}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Datos Ocultos para ApexCharts -->
+    <input type="hidden" id="chart-data" value="{{ monthly_totals|tojson }}" />
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script type="module">
+    
+    // Obtener datos del backend
+    const chartData = {{ monthly_totals|tojson }};
+    const months = Object.keys(chartData);
+    const totals = Object.values(chartData).map(Number);
+
+    // Configuración de ApexCharts
+    const options = {
+      series: [
         {
-          label: "Total por Mes",
-          data: [total],
-          backgroundColor: "rgba(54, 162, 235, 0.2)", // Color de las barras
-          borderColor: "rgb(54, 162, 235)", // Borde de las barras
-          borderWidth: 1,
+          name: "Ventas",
+          data: totals,
         },
       ],
-    };
-
-    // Configuración del gráfico
-    const config = {
-      type: "bar", // Tipo de gráfico (puede ser 'line' para líneas)
-      data: monthlyData,
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            display: false,
-            position: "right",
-          },
-          title: {
-            display: true,
-            text: "Desempeño Mensual de las Ventas en {{ business.name }}",
+      chart: {
+        sparkline: {
+          enabled: false,
+        },
+        type: "bar",
+        width: "100%",
+        height: 400,
+        toolbar: {
+          show: false,
+        }
+      },     
+      fill: {
+        opacity: 1,
+      },
+      plotOptions: {
+        bar: {
+          horizontal: true,
+          columnWidth: "100%",
+          borderRadiusApplication: "end",
+          borderRadius: 6,
+          dataLabels: {
+            position: "top",
           },
         },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              callback: function (value) {
-                return "$ " + value; // Formato de moneda en el eje Y
-              },
-            },
+      },      
+      legend: {
+        show: true,
+        position: "bottom",
+      },
+      dataLabels: {
+        enabled: false,
+      },
+      tooltip: {
+        shared: true,
+        intersect: false,
+        formatter: function (value) {
+          return "$" + value
+        }
+      },
+      xaxis: {
+        labels: {
+          show: true,
+          style: {
+            fontFamily: "Inter, sans-serif",
+            cssClass: 'text-xs font-normal fill-gray-500 dark:fill-gray-400'
           },
+          formatter: function(value) {
+            return "$" + value
+          }
+        },
+        categories: months,
+        axisTicks: {
+          show: false,
+        },
+        axisBorder: {
+          show: false,
         },
       },
+      yaxis: {
+        labels: {
+          show: true,
+          style: {
+            fontFamily: "Inter, sans-serif",
+            cssClass: 'text-xs font-normal fill-gray-500 dark:fill-gray-400'
+          }
+        }
+      },
+      grid: {
+        show: true,
+        strokeDashArray: 4,
+        padding: {
+          left: 2,
+          right: 2,
+          top: -20
+        },
+      },
+      fill: {
+        opacity: 1,
+      }
+      
     };
 
-    // Inicializar el gráfico
-    const ctx = document
-      .getElementById("monthly-performance-chart")
-      .getContext("2d");
-    new Chart(ctx, config);
+    // Inicializar gráfico
+    const chart = new ApexCharts(
+      document.getElementById("sales-chart"),
+      options,
+    );
+    chart.render();
   </script>
 {% endblock content %}

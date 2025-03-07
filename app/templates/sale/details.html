@@ -73,21 +73,21 @@
             >
               <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
                 {% if sale.products %}
-                  {% for sp in sale.products %}
+                  {% for detail in sale.products %}
                     <tr>
                       <td class="py-4 md:w-[300px]">
                         <button
                           type="button"
-                          data-popover-target="popover-sp-{{ sp.id }}"
+                          data-popover-target="popover-detail-{{ detail.id }}"
                           data-popover-placement="right"
                           data-popover-trigger="click"
                           class="text-base font-medium text-primary-700 hover:underline dark:text-primary-500"
                         >
-                          {{ sp.product.name }}
+                          {{ detail.product.name }}
                         </button>
                         <div
                           data-popover
-                          id="popover-sp-{{ sp.id }}"
+                          id="popover-detail-{{ detail.id }}"
                           role="tooltip"
                           class="absolute z-10 invisible inline-block  text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-xs opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800"
                         >
@@ -99,7 +99,7 @@
                               data-modal-target="update_product_modal"
                               data-modal-toggle="update_product_modal"
                               class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-500 hover:underline"
-                              onclick="openEditModal({{ sp.id }},{{ sp.quantity }},{{ sp.discount or 0.0 }},'{{ sp.product.name }}')"
+                              onclick="openEditModal({{ detail.id }},{{ detail.quantity }},{{ detail.discount or 0.0 }},'{{ detail.product.name }}')"
                             >
                               Editar
                             </button>
@@ -110,7 +110,7 @@
                               enctype="multipart/form-data"
                               onsubmit="return confirm('¿Estás seguro de que deseas eliminar este producto?');"
                             >
-                              {{ remove_product_form.sale_detail_id(value=sp.id) }}
+                              {{ remove_product_form.sale_detail_id(value=detail.id) }}
                               {{ remove_product_form.hidden_tag(remove_product_form.meta.csrf_field_name) }}
                               <button
                                 type="submit"
@@ -129,17 +129,17 @@
                       <td
                         class="p-4 text-base font-normal text-gray-900 dark:text-white"
                       >
-                        {{ sp.unit_price | currency }}
+                        {{ detail.unit_price | currency }}
                       </td>
                       <td
                         class="p-4 text-center text-base font-bold text-gray-900 dark:text-white"
                       >
-                        {{ sp.quantity }}
+                        {{ detail.quantity }}
                       </td>
                       <td
                         class="p-4 text-right text-base font-bold text-gray-900 dark:text-white"
                       >
-                        {{ sp.total_price | currency }}
+                        {{ detail.total_price | currency }}
                       </td>
                     </tr>
                   {% endfor %}
@@ -620,12 +620,8 @@
         >
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-5">
             <!-- Campo Oculto CSRF -->
-            {{ update_product_form.hidden_tag() }}
-            <input
-              type="hidden"
-              id="update_product-id"
-              name="update_product-id"
-            />
+            {{ update_product_form.sale_detail_id }}
+            {{ update_product_form.hidden_tag(update_product_form.meta.csrf_field_name) }}
             <!-- Campo de Cantidad -->
             <div class="sm:col-span-2">
               {{ update_product_form.quantity.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
@@ -633,6 +629,8 @@
                 update_product_form.quantity(
                   class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
                   placeholder="Agregar Cantidad ...",
+                  type="number",
+                  step="1",
                 )
               }}
               {% for error in update_product_form.quantity.errors %}
@@ -693,7 +691,8 @@
       productName,
     ) {
       // Rellenar el formulario con los datos actuales
-      document.getElementById("update_product-id").value = currentId;
+      document.getElementById("update_product-sale_detail_id").value =
+        currentId;
       document.getElementById("update_product-quantity").value =
         currentQuantity;
       document.getElementById("update_product-discount").value =
