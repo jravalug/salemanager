@@ -60,6 +60,7 @@
               data-modal-target="add_product_modal"
               data-modal-toggle="add_product_modal"
               class="text-base font-medium text-primary-700 hover:underline dark:text-primary-500"
+              onclick="setFocus()"
             >
               + Agregar Producto
             </button>
@@ -684,6 +685,13 @@
 
 {% block custom_javascript %}
   <script>
+    function setFocus() {
+      // Enfocar después de 500ms (ajusta según necesidad)
+      setTimeout(() => {
+        document.getElementById("add_product-product_id").focus();
+      }, 100);
+    }
+
     function openEditModal(
       currentId,
       currentQuantity,
