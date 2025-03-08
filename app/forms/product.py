@@ -64,6 +64,7 @@ class ProductForm(FlaskForm):
         "Categoría",
         choices=[
             ("comida", "Comida"),
+            ("postre", "Postre"),
             ("cocteles", "Cocteles"),
             ("vinos", "Vinos"),
             ("bebidas", "Bebidas"),
