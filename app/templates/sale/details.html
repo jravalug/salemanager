@@ -507,7 +507,6 @@
               {{ add_product_form.product_id.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
               {{
                 add_product_form.product_id(
-                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
                   placeholder="Agregar Producto ...",
                 )
               }}
@@ -684,11 +683,19 @@
 {% endblock content %}
 
 {% block custom_javascript %}
+  <script src="{{ url_for('main.node_modules', filename='tom-select/dist/js/tom-select.complete.js') }}"></script>
   <script>
     function setFocus() {
+      new TomSelect("#add_product-product_id", {
+        create: true,
+        sortField: {
+          field: "text",
+          direction: "asc",
+        },
+      });
       // Enfocar después de 500ms (ajusta según necesidad)
       setTimeout(() => {
-        document.getElementById("add_product-product_id").focus();
+        document.getElementById("add_product-product_id-ts-control").focus();
       }, 100);
     }
 

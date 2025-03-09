@@ -48,6 +48,7 @@
               data-modal-target="add_raw_material_modal"
               data-modal-toggle="add_raw_material_modal"
               class="text-base font-medium text-primary-700 hover:underline dark:text-primary-500"
+              onclick="setFocus()"
             >
               + Agregar Materias Primas
             </button>
@@ -221,7 +222,6 @@
               {{ add_raw_material_form.raw_material_id.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
               {{
                 add_raw_material_form.raw_material_id(
-                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
                   placeholder="Agregar Materia Prima ...",
                 )
               }}
@@ -574,7 +574,24 @@
 {% endblock content %}
 
 {% block custom_javascript %}
+  <script src="{{ url_for('main.node_modules', filename='tom-select/dist/js/tom-select.complete.js') }}"></script>
   <script>
+    function setFocus() {
+      new TomSelect("#add_raw_material-raw_material_id", {
+        create: true,
+        sortField: {
+          field: "text",
+          direction: "asc",
+        },
+      });
+      // Enfocar después de 500ms (ajusta según necesidad)
+      setTimeout(() => {
+        document
+          .getElementById("add_raw_material-raw_material_id-ts-control")
+          .focus();
+      }, 100);
+    }
+
     function load_raw_material_data(rawMaterialId, currentQuantity) {
       // Rellenar el formulario con los datos actuales
       document.getElementById("update_raw_material-raw_material_id").value =
