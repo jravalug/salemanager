@@ -17,10 +17,7 @@ def group_sales_by_month(sales):
 
         # Calcular totales por venta
         total_products = sum(sale_detail.quantity for sale_detail in sale.products)
-        total_income = sum(
-            sale_detail.product.price * sale_detail.quantity
-            for sale_detail in sale.products
-        )
+        total_income = sale.total_amount
 
         # Agregar datos a la estructura
         grouped_sales[month_key][date_key]["total_products"] += total_products
