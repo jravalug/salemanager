@@ -236,7 +236,7 @@ class SalesRepository:
             # Guardar los cambios en la base de datos
             db.session.commit()
             # Recalculo los totales
-            self._calculate_sale_total(sale)
+            self._calculate_sale_subtotal(sale.id)
             return sale
 
         except ValueError as ve:
