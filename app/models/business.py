@@ -104,3 +104,12 @@ class Business(db.Model):
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
+
+    def parent_name(self):
+        """
+        Retorna el nombre del negocio general si es un negocio especifico
+        Si no tiene un negocio padre, retorna None.
+        """
+        if self.parent_business:
+            return self.parent_business.name
+        return None
