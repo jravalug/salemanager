@@ -29,7 +29,7 @@
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-5">
             <div class="sm:col-span-2 flex items-center gap-2">
               <span class="text-base font-medium text-gray-900 dark:text-white">
-                Metodo de Pago:
+                Método de Pago:
               </span>
               <span
                 class="text-base font-normal text-gray-500 dark:text-gray-400 "
@@ -203,7 +203,7 @@
             <div class="gap-4 sm:flex sm:items-center">
               <a
                 class="w-full rounded-lg  border border-gray-200 bg-white px-5  py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700 text-center"
-                href="{{ url_for('sale.list', business_id=business.id) }}"
+                href="{{ url_for('sale.sales', business_id=business.id) }}"
               >
                 Regresar al listado
               </a>
@@ -257,8 +257,7 @@
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
-                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-              />
+                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"></path>
             </svg>
             <span class="sr-only">Cerrar modal</span>
           </button>
@@ -273,14 +272,14 @@
             <!-- Campo Oculto CSRF -->
             {{ update_sale_form.hidden_tag() }}
 
-            <!-- Campo de Negocio Especifico -->
+            <!-- Campo de Negocio Específico -->
             {% if business.is_general and business.sub_businesses.count() > 0 %}
               <div class="sm:col-span-4">
                 {{ update_sale_form.specific_business_id.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
                 {{
                   update_sale_form.specific_business_id(
                     class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
-                    placeholder="Número de venta ...",
+                    placeholder="Número de venta ..."
                   )
                 }}
                 {% for error in update_sale_form.specific_business_id.errors %}
@@ -326,13 +325,13 @@
               {% endfor %}
             </div>
 
-            <!-- Selector de Metodo de Pago -->
+            <!-- Selector de Forma de Pago -->
             <div class="sm:col-span-2">
               {{ update_sale_form.payment_method.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
               {{
                 update_sale_form.payment_method(
                   class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
-                  placeholder="Metodo de pago ...",
+                  placeholder="Método de pago ..."
                 )
               }}
               {% for error in update_sale_form.payment_method.errors %}
@@ -348,7 +347,7 @@
               {{
                 update_sale_form.status(
                   class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
-                  placeholder="Estado ...",
+                  placeholder="Estado ..."
                 )
               }}
               {% for error in update_sale_form.status.errors %}
@@ -364,7 +363,7 @@
               {{
                 update_sale_form.customer_name(
                   class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
-                  placeholder="Nombre del cliente ...",
+                  placeholder="Nombre del cliente ..."
                 )
               }}
               {% for error in update_sale_form.customer_name.errors %}
@@ -490,8 +489,7 @@
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
-                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-              />
+                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"></path>
             </svg>
             <span class="sr-only">Close modal</span>
           </button>
@@ -507,7 +505,7 @@
               {{ add_product_form.product_id.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
               {{
                 add_product_form.product_id(
-                  placeholder="Agregar Producto ...",
+                  placeholder="Agregar Producto ..."
                 )
               }}
               {% for error in add_product_form.product_id.errors %}
@@ -523,7 +521,7 @@
               {{
                 add_product_form.quantity(
                   class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
-                  placeholder="Agregar Cantidad ...",
+                  placeholder="Agregar Cantidad ..."
                 )
               }}
               {% for error in add_product_form.quantity.errors %}
@@ -539,7 +537,7 @@
               {{
                 add_product_form.discount(
                   class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
-                  placeholder="Agregar Descuento ...",
+                  placeholder="Agregar Descuento ..."
                 )
               }}
               {% for error in add_product_form.discount.errors %}
@@ -605,8 +603,7 @@
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
-                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-              />
+                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"></path>
             </svg>
             <span class="sr-only">Cerrar modal</span>
           </button>
@@ -630,7 +627,7 @@
                   class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
                   placeholder="Agregar Cantidad ...",
                   type="number",
-                  step="1",
+                  step="1"
                 )
               }}
               {% for error in update_product_form.quantity.errors %}
@@ -685,6 +682,8 @@
 {% block custom_javascript %}
   <script src="{{ url_for('main.node_modules', filename='tom-select/dist/js/tom-select.complete.js') }}"></script>
   <script>
+    {#import TomSelect from "tom-select/base";#}
+
     function setFocus() {
       new TomSelect("#add_product-product_id", {
         create: true,
@@ -693,7 +692,7 @@
           direction: "asc",
         },
       });
-      // Enfocar después de 500ms (ajusta según necesidad)
+      // Enfocar después de 500 ms (ajusta según necesidad)
       setTimeout(() => {
         document.getElementById("add_product-product_id-ts-control").focus();
       }, 100);
