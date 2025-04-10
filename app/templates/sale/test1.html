@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2 class="text-2xl font-bold mb-6">Reporte Agrupado por Importe</h2>
+
+  <form method="POST" class="mb-8">
+    <div class="flex gap-4">
+      <input
+        type="month"
+        name="month"
+        class="input input-bordered w-full max-w-xs"
+        required
+      />
+      <button type="submit" class="btn btn-primary">Generar Reporte</button>
+    </div>
+  </form>
+
+  {% if grouped_sales %}
+    <table class="table table-zebra w-full">
+      <thead>
+        <tr>
+          <th>IMPORTE</th>
+          <th>CANTIDAD DE VENTAS</th>
+          <th>VENTAS</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for importe, sales_list in grouped_sales %}
+          <tr>
+            <td>{{ importe | currency }}</td>
+            <td class="text-center">{{ sales_list|length }}</td>
+            <td>
+              {% for sale in sales_list %}
+                <a
+                  href="{{ url_for('sale.details', business_id=business.id, sale_id=sale.sale_id) }}"
+                  class="{{ 'text-red-500' if sale.excluded }}"
+                >
+                  {{ sale.date }}: [{{ sale.sale_number }}]
+                </a>
+                {% if not loop.last %};{% endif %}
+              {% endfor %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+{% endblock %}
