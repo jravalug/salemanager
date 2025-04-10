@@ -77,9 +77,9 @@
                         {% for sale in data.sales %}
                           <a
                             href="{{ url_for('sale.details', business_id=business.id, sale_id=sale.id) }}"
-                            class="text-blue-500 hover:underline dark:text-blue-400 {{ 'text-red-500 dark:text-red-400' if sale.excluded }}"
-                            >[{{ sale.sale_number }}]</a
-                          >
+                            class=" hover:underline {{ 'text-blue-500 dark:text-blue-400' if sale.has_specific_business() }}{{ 'text-red-500 dark:text-red-400' if sale.excluded }}">
+                            {{ 'TRF-' if sale.is_transfer() }}[{{ sale.sale_number }}]
+                          </a>
                         {% endfor %}
                       </td>
                     </tr>
@@ -153,20 +153,20 @@
         <form
           method="post"
           class="p-4 md:p-5"
-          action="{{ url_for('sale.list', business_id=business.id) }}"
+          action="{{ url_for('sale.sales', business_id=business.id) }}"
         >
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-5">
             <!-- Campo Oculto CSRF -->
             {{ add_sale_form.hidden_tag() }}
 
-            <!-- Campo de Negocio Especifico -->
+            <!-- Campo de Negocio Específico -->
             {% if business.is_general and business.sub_businesses.count() > 0 %}
               <div class="sm:col-span-4">
                 {{ add_sale_form.specific_business_id.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
                 {{
                   add_sale_form.specific_business_id(
                     class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
-                    placeholder="Número de venta ...",
+                    placeholder="Número de venta ..."
                   )
                 }}
                 {% for error in add_sale_form.specific_business_id.errors %}
@@ -183,7 +183,7 @@
               {{
                 add_sale_form.sale_number(
                   class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
-                  placeholder="Número de venta ...",
+                  placeholder="Número de venta ..."
                 )
               }}
               {% for error in add_sale_form.sale_number.errors %}
@@ -217,7 +217,7 @@
               {{
                 add_sale_form.payment_method(
                   class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
-                  placeholder="Metodo de pago ...",
+                  placeholder="Método de pago ..."
                 )
               }}
               {% for error in add_sale_form.payment_method.errors %}
@@ -233,7 +233,7 @@
               {{
                 add_sale_form.status(
                   class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
-                  placeholder="Estado ...",
+                  placeholder="Estado ..."
                 )
               }}
               {% for error in add_sale_form.status.errors %}
@@ -249,7 +249,7 @@
               {{
                 add_sale_form.customer_name(
                   class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
-                  placeholder="Nombre del cliente ...",
+                  placeholder="Nombre del cliente ..."
                 )
               }}
               {% for error in add_sale_form.customer_name.errors %}
@@ -302,7 +302,7 @@
                 {{
                   add_sale_form.excluded(
                     class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
-                    type="checkbox",
+                    type="checkbox"
                   )
                 }}
                 <div
