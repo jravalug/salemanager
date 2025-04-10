@@ -2,30 +2,24 @@ from collections import defaultdict
 from datetime import datetime
 from io import BytesIO
 import json
-import logging
 from flask import (
     Blueprint,
     flash,
     redirect,
-    render_template_string,
     render_template,
     request,
-    jsonify,
     send_file,
-    session,
     url_for,
 )
 from openpyxl import Workbook
+
 from dateutil.relativedelta import relativedelta
 
 from app.forms import MonthForm
 from app.models import Business, Sale, SaleDetail
-from app.extensions import db
 from app.services import SalesReportService, BusinessService
-from app.utils import get_excluded_sales, generate_excel_sales_by_date
+from app.utils import generate_excel_sales_by_date, generate_excel_ipv
 
-
-from app.repositories.sales_repository import SalesRepository
 
 bp = Blueprint("report", __name__, url_prefix="/business/<int:business_id>/report")
 
@@ -47,9 +41,9 @@ def monthly_sales_by_produc(business_id):
 
     if request.method == "POST":
         # Obtener el mes seleccionado desde el formulario
-        month_str = request.form.get("month")
+        selected_month = request.form.get("month")
 
-        if not month_str:
+        if not selected_month:
             flash("Por favor, selecciona un mes.", "error")
             return render_template(
                 "report/monthly_sales_by_product.html",
@@ -61,7 +55,7 @@ def monthly_sales_by_produc(business_id):
         try:
 
             sales, formated_daily_sales = sales_service.get_daily_sales(
-                month_str,
+                selected_month,
                 business_filters["business_id"],
                 business_filters.get("specific_business_id"),
             )
@@ -95,9 +89,9 @@ def monthly_sales_by_produc(business_id):
                     sales_by_day[date_key]["products"][product_key][
                         "quantity"
                     ] += sale_detail.quantity
-                    sales_by_day[date_key]["products"][product_key]["total_amount"] += (
-                        sale_detail.quantity * sale_detail.product.price
-                    )
+                    sales_by_day[date_key]["products"][product_key][
+                        "total_amount"
+                    ] += sale_detail.total_price
 
                     # Añadir la tupla (sale_id, sale_number) al conjunto
                     sales_by_day[date_key]["products"][product_key]["orders"].add(
@@ -109,8 +103,7 @@ def monthly_sales_by_produc(business_id):
                     sale_detail.quantity for sale_detail in sale.products
                 )
                 sales_by_day[date_key]["total_income"] += sum(
-                    sale_detail.quantity * sale_detail.product.price
-                    for sale_detail in sale.products
+                    sale_detail.total_price for sale_detail in sale.products
                 )
 
             # Formatear los datos para la plantilla
@@ -169,9 +162,12 @@ def monthly_sales_by_date(business_id):
     form = MonthForm()
 
     # Inicializar variables
-    daily_sales = []
 
-    def redirec_to_monthly_sales_by_date():
+    daily_sales = []
+    formated_daily_sales = []
+    selected_month = None
+
+    def redirect_to_monthly_sales_by_date():
         return redirect(url_for("report.monthly_sales_by_date", business=business))
 
     if form.validate_on_submit():
@@ -186,11 +182,11 @@ def monthly_sales_by_date(business_id):
 
         except ValueError as e:
             flash(f"Error en el formato del mes: {e}", "error")
-            redirec_to_monthly_sales_by_date()
+            redirect_to_monthly_sales_by_date()
 
         except Exception as e:
             flash("Ocurrió un error inesperado.", "error")
-            redirec_to_monthly_sales_by_date()
+            redirect_to_monthly_sales_by_date()
 
         month_totals = sales_service.get_monthly_totals(daily_sales)
 
@@ -209,25 +205,8 @@ def monthly_sales_by_date(business_id):
         business=business,
         form=form,
         daily_sales=[],
-        selected_month=None,
+        selected_month=selected_month,
     )
-
-
-@bp.route("/exclude-sales", methods=["POST"])
-def exclude_sales(business_id):
-    # Obtener el negocio
-    business = Business.query.get_or_404(business_id)
-
-    data = request.get_json()
-    selected_sales = data.get("sales", [])
-
-    # Guardar las ventas excluidas en la sesión
-    session["excluded_sales"] = selected_sales
-
-    # Logging para depuración
-    print("Ventas excluidas en exclude_sales: %s", session["excluded_sales"])
-
-    return jsonify({"message": "Ventas excluidas correctamente"}), 200
 
 
 @bp.route("/export-to-excel/sales-by-date", methods=["POST"])
@@ -235,7 +214,7 @@ def export_to_excel_sales_by_day(business_id):
     # Obtener el negocio
     business = Business.query.get_or_404(business_id)
     # Recuperar los datos del reporte mensual
-    selected_month = request.form.get("selected_month")
+    month = request.form.get("selected_month")
     daily_sales_json = request.form.get("daily_sales_export")
     if not daily_sales_json:
         flash("No hay datos disponibles para exportar.", "error")
@@ -253,7 +232,7 @@ def export_to_excel_sales_by_day(business_id):
 
     try:
         # Generar el reporte en MS Excel
-        excel_file = generate_excel_sales_by_date(business, data, selected_month)
+        excel_file = generate_excel_sales_by_date(business, data, month)
     except Exception as e:
         flash("Ocurrio un error al tratar de generar el reporte en MS Excel.", "error")
         return redirect(
@@ -265,7 +244,7 @@ def export_to_excel_sales_by_day(business_id):
         excel_file,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         as_attachment=True,
-        download_name=f"{selected_month}_resumen_ventas_{business.name}.xlsx",
+        download_name=f"RMV_{business.name}_{month}.xlsx",
     )
 
 
@@ -274,17 +253,16 @@ def export_to_excel_sales_by_product(business_id):
     # Obtener el negocio
     business = Business.query.get_or_404(business_id)
 
-    # Recuperar los datos del reporte mensual
-    daily_sales_json = request.form.get("daily_sales_export")
-    if not daily_sales_json:
-        flash("No hay datos disponibles para exportar.", "error")
-        return redirect(
-            url_for("report.monthly_sales_by_produc", business_id=business_id)
-        )
-
     try:
-        # Convertir los datos JSON a una estructura de Python
-        data = json.loads(daily_sales_json)
+        # Recuperar los datos del reporte mensual
+        data = json.loads(request.form.get("daily_sales_export", "[]"))
+        month = request.form.get("selected_month", "_")
+        print(f"En export_to_excel_sales_by_product:{month}")
+        if not data:
+            flash("No hay datos disponibles para exportar.", "error")
+            return redirect(
+                url_for("report.monthly_sales_by_produc", business_id=business_id)
+            )
     except json.JSONDecodeError:
         flash("Los datos recibidos no son válidos.", "error")
         return redirect(
@@ -373,7 +351,7 @@ def export_to_excel_sales_by_product(business_id):
         excel_file,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         as_attachment=True,
-        download_name=f"reporte_mensual_por_producto_{business.name}.xlsx",
+        download_name=f"RMVxProductos_{business.name}_{month}.xlsx",
     )
 
 
@@ -382,17 +360,16 @@ def export_to_excel_sales_by_product_by_date(business_id):
     # Obtener el negocio
     business = Business.query.get_or_404(business_id)
 
-    # Recuperar los datos del reporte mensual
-    daily_sales_json = request.form.get("daily_sales_export")
-    if not daily_sales_json:
-        flash("No hay datos disponibles para exportar.", "error")
-        return redirect(
-            url_for("report.monthly_sales_by_produc", business_id=business_id)
-        )
-
     try:
-        # Convertir los datos JSON a una estructura de Python
-        data = json.loads(daily_sales_json)
+        # Recuperar los datos del reporte mensual
+        data = json.loads(request.form.get("daily_sales_export", "[]"))
+        month = request.form.get("selected_month", "_")
+        print(f"En export_to_excel_sales_by_product_by_date:{month}")
+        if not data:
+            flash("No hay datos disponibles para exportar.", "error")
+            return redirect(
+                url_for("report.monthly_sales_by_produc", business_id=business_id)
+            )
     except json.JSONDecodeError:
         flash("Los datos recibidos no son válidos.", "error")
         return redirect(
@@ -489,5 +466,309 @@ def export_to_excel_sales_by_product_by_date(business_id):
         excel_file,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         as_attachment=True,
-        download_name=f"reporte_mensual_por_producto_diario_{business.name}.xlsx",
+        download_name=f"RMVxProductos_Diario_{business.name}_{month}.xlsx",
+    )
+
+
+@bp.route("/ipv-report", methods=["GET", "POST"])
+def ipv_report(business_id):
+    business = Business.query.get_or_404(business_id)
+    business_filters = business_service.get_parent_filters(business)
+
+    daily_sales = []
+    selected_month = None
+
+    if request.method == "POST":
+        month_str = request.form.get("month")
+        if not month_str:
+            flash("Selecciona un mes válido.", "error")
+            return redirect(url_for("report.ipv_report", business_id=business_id))
+
+        try:
+            selected_month = datetime.strptime(month_str, "%Y-%m").date()
+            start_date = selected_month.replace(day=1)
+            end_date = start_date + relativedelta(months=1, days=-1)
+
+            # Consultar ventas del mes
+            if business.is_general:
+                sales = (
+                    Sale.query.filter(
+                        Sale.business_id == business_filters["business_id"],
+                        Sale.date.between(start_date, end_date),
+                    )
+                    .join(Sale.products)  # Relación entre Sale y SaleDetail
+                    .join(SaleDetail.product)  # Relación entre SaleDetail y Product
+                    .order_by(Sale.date.asc())
+                    .all()
+                )
+            else:
+                sales = (
+                    Sale.query.filter(
+                        Sale.business_id == business_filters["business_id"],
+                        Sale.specific_business_id
+                        == business_filters["specific_business_id"],
+                        Sale.date.between(start_date, end_date),
+                    )
+                    .join(Sale.products)  # Relación entre Sale y SaleDetail
+                    .join(SaleDetail.product)  # Relación entre SaleDetail y Product
+                    .order_by(Sale.date.asc())
+                    .all()
+                )
+            print(f"sales: {sales}")
+
+            # Obtener todos los productos non_food involucrados en las ventas del mes
+            non_food_products = {}
+            for sale in sales:
+                for sale_product in sale.products:
+                    product = sale_product.product
+                    if product.category not in [
+                        "comida",
+                        "postre",
+                        "trago",
+                        "cocteleria",
+                    ]:
+                        # Almacenar el producto con su precio (si no está ya en el diccionario)
+                        if product.name not in non_food_products:
+                            non_food_products[product.name] = product.price
+
+            # Procesar datos por día y categoría
+            sales_by_day = defaultdict(
+                lambda: {
+                    "non_food": {
+                        name: {
+                            "quantity": 0,
+                            "unit_price": price,
+                            "total_price": 0,
+                            "orders": set(),
+                        }
+                        for name, price in non_food_products.items()
+                    },
+                    "food": defaultdict(
+                        lambda: {
+                            "quantity": 0,
+                            "unit_price": 0,
+                            "total_price": 0,
+                            "orders": set(),
+                        }
+                    ),
+                }
+            )
+
+            for sale in sales:
+                date_key = sale.date.strftime("%d-%m-%Y")
+                for sale_product in sale.products:
+                    product = sale_product.product
+                    if product.category == "cocteleria":
+                        continue
+
+                    category_key = (
+                        "food"
+                        if product.category in ["comida", "postre", "trago"]
+                        else "non_food"
+                    )
+
+                    # Agregar producto al día y categoría correspondiente
+                    product_entry = sales_by_day[date_key][category_key][product.name]
+                    product_entry["quantity"] += sale_product.quantity
+                    if sale_product.unit_price:
+                        product_entry["unit_price"] = sale_product.unit_price
+                    product_entry["total_price"] += sale_product.total_price
+                    product_entry["orders"].add(sale.sale_number)
+
+            # Formatear para la plantilla
+            daily_sales = []
+            for date, categories in sales_by_day.items():
+                non_food_list = [
+                    {
+                        "name": name,
+                        "quantity": data["quantity"],
+                        "unit_price": round(data["unit_price"], 2),
+                        "total_price": round(data["total_price"], 2),
+                        "orders": sorted(data["orders"]),
+                    }
+                    for name, data in categories["non_food"].items()
+                ]
+                non_food_list.sort(key=lambda x: x["name"])  # Ordenar por nombre
+
+                food_list = [
+                    {
+                        "name": name,
+                        "quantity": data["quantity"],
+                        "unit_price": round(data["unit_price"], 2),
+                        "total_price": round(data["total_price"], 2),
+                        "orders": sorted(data["orders"]),
+                    }
+                    for name, data in categories["food"].items()
+                ]
+                food_list.sort(key=lambda x: x["name"])  # Ordenar por nombre
+
+                daily_sales.append(
+                    {
+                        "date": date,
+                        "non_food": non_food_list,
+                        "food": food_list,
+                    }
+                )
+
+        except ValueError:
+            flash("Formato de mes inválido. Usa YYYY-MM.", "error")
+
+    return render_template(
+        "report/ipv_report.html",
+        business=business,
+        daily_sales=daily_sales,
+        daily_sales_json=json.dumps(daily_sales),
+        selected_month=selected_month,
+    )
+
+
+@bp.route("/export-ipv", methods=["POST"])
+def export_ipv(business_id):
+    business = Business.query.get_or_404(business_id)
+    business_name = business.name if business.is_general else business.parent_name()
+    month = request.form.get("selected_month", "_")
+
+    try:
+        # Convertir los datos JSON a una estructura de Python
+        data = json.loads(request.form.get("ipv_data", "[]"))
+    except json.JSONDecodeError:
+        flash("Los datos recibidos no son válidos.", "error")
+        return redirect(url_for("report.ipv_report", business_id=business.id))
+
+    try:
+        # Generar el reporte en MS Excel
+        excel_file = generate_excel_ipv(business_name, data, month)
+    except Exception as e:
+        flash("Ocurrio un error al tratar de generar el reporte en MS Excel.", "error")
+        return redirect(url_for("report.ipv_report", business_id=business.id))
+
+    return send_file(
+        excel_file,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name=f"IPV_{business_name}_{month}.xlsx",
+    )
+
+
+@bp.route("/monthly-sales-cocteleria", methods=["GET", "POST"])
+def monthly_sales_coctelera(business_id):
+    # Obtener el negocio (asegúrate de que exista)
+    business = Business.query.get_or_404(business_id)
+    business_filters = business_service.get_parent_filters(business)
+
+    # Inicializar variables
+    daily_sales = []
+    selected_month = None
+    excluded_sales = []
+    excluded_products = []
+
+    if request.method == "POST":
+        # Obtener el mes seleccionado desde el formulario
+        selected_month = request.form.get("month")
+
+        if not selected_month:
+            flash("Por favor, selecciona un mes.", "error")
+            return render_template(
+                "report/monthly_sales_by_product.html",
+                business=business,
+                daily_sales=daily_sales,
+                selected_month=selected_month,
+            )
+
+        try:
+
+            sales, formated_daily_sales = sales_service.get_daily_sales(
+                selected_month,
+                business_filters["business_id"],
+                business_filters.get("specific_business_id"),
+            )
+
+            # Procesar los datos
+            sales_by_day = {}
+            for sale in sales:
+                date_key = sale.date.strftime("%Y-%m-%d")
+                if date_key not in sales_by_day:
+                    sales_by_day[date_key] = {
+                        "total_products": 0,
+                        "total_income": 0,
+                        "products": {},
+                    }
+
+                # Ordenar los productos dentro de la venta por nombre
+                sorted_products = sorted(
+                    sale.products, key=lambda sale_detail: sale_detail.product.name
+                )
+                # logging.debug("Datos generados para el reporte: %s", sale.products)
+
+                for sale_detail in sorted_products:
+                    product = sale_detail.product
+                    if product.category != 'cocteleria':
+                        continue
+                    product_key = product.name
+                    if product_key not in sales_by_day[date_key]["products"]:
+                        sales_by_day[date_key]["products"][product_key] = {
+                            "quantity": 0,
+                            "total_amount": 0,
+                            "orders": set(),  # Usamos un conjunto para evitar duplicados,
+                        }
+
+                    sales_by_day[date_key]["products"][product_key][
+                        "quantity"
+                    ] += sale_detail.quantity
+                    sales_by_day[date_key]["products"][product_key][
+                        "total_amount"
+                    ] += sale_detail.quantity * product.price
+
+                    # Añadir la tupla (sale_id, sale_number) al conjunto
+                    sales_by_day[date_key]["products"][product_key]["orders"].add(
+                        (sale.id, sale.sale_number)
+                    )
+
+                    # Actualizar totales
+                    sales_by_day[date_key]["total_products"] += sale_detail.quantity
+
+                    sales_by_day[date_key]["total_income"] += sale_detail.quantity * product.price
+
+            # Formatear los datos para la plantilla
+            for date, data in sales_by_day.items():
+                # Ordenar los productos por nombre
+                sorted_products = sorted(
+                    data["products"].items(),
+                    key=lambda item: item[
+                        0
+                    ],  # Ordenar por el nombre del producto (item[0])
+                )
+
+                daily_sales.append(
+                    {
+                        "date": date,
+                        "total_products": data["total_products"],
+                        "total_income": data["total_income"],
+                        "products": [
+                            {
+                                "name": name,
+                                "quantity": product["quantity"],
+                                "total_amount": product["total_amount"],
+                                "orders": sorted(
+                                    list(product["orders"]), key=lambda order: order[1]
+                                ),
+                            }
+                            for name, product in sorted_products  # Usar los productos ordenados
+                        ],
+                    }
+                )
+
+        except ValueError:
+            # Manejar errores si el formato del mes es incorrecto
+            flash("Por favor, selecciona un mes válido.", "error")
+
+    # logging.basicConfig(level=logging.DEBUG)
+    # logging.debug("Datos generados para el reporte: %s", daily_sales)
+
+    return render_template(
+        "report/monthly_sales_cocteleria.html",
+        business=business,
+        daily_sales=daily_sales,
+        daily_sales_json=json.dumps(daily_sales),
+        selected_month=selected_month,
     )
