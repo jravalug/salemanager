@@ -1,16 +1,8 @@
-from flask_wtf import FlaskForm
 from wtforms import (
     HiddenField,
-    StringField,
-    FileField,
     IntegerField,
-    FloatField,
     SubmitField,
-    DateField,
 )
-from wtforms.validators import DataRequired, NumberRange
-from werkzeug.utils import secure_filename
-
 
 from flask_wtf import FlaskForm
 from wtforms import StringField, DateField, SelectField, FloatField, BooleanField
@@ -90,7 +82,7 @@ class SaleForm(FlaskForm):
     def __init__(self, parent_business_id, *args, **kwargs):
         super(SaleForm, self).__init__(*args, **kwargs)
 
-        # Obtener subnegocios
+        # Obtener sub negocios
         sub_businesses = Business.query.filter_by(
             parent_business_id=parent_business_id
         ).all()
@@ -141,7 +133,7 @@ class UpdateSaleDetailForm(FlaskForm):
         validators=[
             DataRequired(message="El ID de la Venta del Producto es obligatorio.")
         ],
-        description="ID de la relacion de la Venta y el Producto.",
+        description="ID de la relación de la Venta y el Producto.",
     )
     quantity = IntegerField(
         "Cantidad",
@@ -167,6 +159,6 @@ class RemoveSaleDetailForm(FlaskForm):
         validators=[
             DataRequired(message="El ID de la Venta del Producto es obligatorio.")
         ],
-        description="ID de la relacion de la Venta y el Producto.",
+        description="ID de la relación de la Venta y el Producto.",
     )
     submit = SubmitField("Eliminar Producto")

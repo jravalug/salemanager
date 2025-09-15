@@ -12,7 +12,7 @@ class BusinessService:
         Crea un nuevo negocio en la base de datos.
 
         :param kwargs: Campos y valores para crear el negocio (por ejemplo, name, description, logo, etc.).
-        :return: El objeto `Business` recién creado.
+        :return: El objeto Business recién creado.
         """
         try:
             # Validar que los campos obligatorios estén presentes

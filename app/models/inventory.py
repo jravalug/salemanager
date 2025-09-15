@@ -1,4 +1,3 @@
-import datetime
 from app.extensions import db
 
 
@@ -20,7 +19,7 @@ class Inventory(db.Model):
     purchase_price = db.Column(db.Float, nullable=False)  # Precio de compra
     date = db.Column(db.Date, nullable=False)  # Fecha de entrada al almacén
 
-    # Foreing Keys
+    # Foreign Keys
     invoice_id = db.Column(
         db.Integer, db.ForeignKey("invoice.id"), nullable=True
     )  # Referencia cruzada con la factura

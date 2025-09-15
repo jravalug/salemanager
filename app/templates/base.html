@@ -99,10 +99,17 @@
                   >RFecha</a
                 >
               </li>
+              <li>
+                <a
+                  href="{{ url_for('report.ipv_report', business_id=business.id) }}"
+                  class="text-muted-foreground transition-colors hover:text-foreground"
+                  >RIPV</a
+                >
+              </li>
             {% else %}
               <li>
                 <a
-                  href="{{ url_for('business.list') }}"
+                  href="{{ url_for('business.business_list') }}"
                   class="text-foreground transition-colors hover:text-foreground"
                   >Negocios</a
                 >

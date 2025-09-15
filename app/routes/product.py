@@ -1,7 +1,6 @@
 from flask import (
     Blueprint,
     current_app,
-    jsonify,
     render_template,
     redirect,
     url_for,
@@ -11,7 +10,7 @@ from flask import (
 
 from app.extensions import db
 from app.forms import ProductForm, ProductDetailForm, DeleteProductDetailForm
-from app.models import Business, Product, ProductDetail, InventoryItem
+from app.models import Business, InventoryItem
 from app.services import BusinessService, ProductService
 
 

@@ -29,14 +29,14 @@ class SalesReportService:
         end_date = start_date + relativedelta(months=1, days=-1)
 
         # Obtener las ventas del repositorio
-        all_dayly_sales = self.repository.get_sales_for_month(
+        all_daily_sales = self.repository.get_sales_for_month(
             business_id, specific_business_id, start_date, end_date
         )
 
         # Procesar las ventas
-        gruped_sales_by_day = self._group_sales_by_day(all_dayly_sales)
-        formated_daily_sales = format_daily_sales(gruped_sales_by_day)
-        return all_dayly_sales, formated_daily_sales
+        grouped_sales_by_day = self._group_sales_by_day(all_daily_sales)
+        formated_daily_sales = format_daily_sales(grouped_sales_by_day)
+        return all_daily_sales, formated_daily_sales
 
     def get_monthly_totals(self, daily_sales: List[Sale]) -> dict:
         """

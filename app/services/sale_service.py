@@ -1,9 +1,8 @@
-from collections import defaultdict
 from typing import Dict, Optional
 from sqlalchemy import desc, func
 
-from flask_wtf import FlaskForm
 from app import db
+from app.forms import SaleForm
 from app.models import Sale, Product, SaleDetail
 from app.models.business import Business
 from app.repositories.sales_repository import SalesRepository
@@ -53,17 +52,17 @@ class SalesService:
         """Obtiene los productos de una venta específica"""
         return SaleDetail.query.filter_by(sale_id=sale_id).join(Product).all()
 
-    def add_sale(self, business: Business, form: FlaskForm) -> Sale:
+    def add_sale(self, business: Business, form: SaleForm) -> Sale:
         """
-        Crea una nueva venta asociado a un negocio.
+        Crea una nueva venta asociada a un negocio.
 
 
         Args:
-            business_id (int): ID del negocio al que pertenece la venta.
-            form (FlaskForm): Campos y valores para crear la venta.
+            business (Business): Id del negocio al que pertenece la venta.
+            form (SaleForm): Campos y valores para crear la venta.
 
         Returns:
-            Sale: El objeto Venta recién creado.
+            Sale: El objeto Venta recién generado.
         """
         business_filter = self.business.get_parent_filters(business)
 
@@ -87,13 +86,13 @@ class SalesService:
         }
         return self.repository.add_sale(business_filter["business_id"], **data)
 
-    def update_sale(self, sale: Sale, form: FlaskForm):
+    def update_sale(self, sale: Sale, form: SaleForm):
         """
         Actualiza una venta existente con los datos proporcionados en el formulario.
 
         Args:
             sale (Sale): Instancia de Sale a actualizar
-            form (FlaskForm): Formulario con los nuevos datos validados
+            form (SaleForm): Formulario con los nuevos datos validados
 
         Returns:
             Sale: Instancia actualizada de Sale
@@ -115,7 +114,17 @@ class SalesService:
     def add_product_to_sale(
         self, sale: Sale, product_id: int, quantity: int, discount: float
     ) -> SaleDetail:
-        """Agrega un producto a una venta existente"""
+        """
+        Agrega un producto a una venta existente
+
+        Args:
+            sale (Sale): Instancia de Sale a actualizar
+            product_id (int): Id del producto
+            quantity (int): Cantidad del producto
+            discount (float): Descuento aplicado al producto en la venta
+        Returns:
+            SaleDetail: El objeto SaleDetail actualizado.
+        """
         product = Product.query.get_or_404(product_id)
 
         return self.repository.add_sale_detail(
@@ -124,7 +133,7 @@ class SalesService:
             quantity=quantity,
             unit_price=product.price,
             discount=discount or 0.0,
-            total_price=self.calculate_sale_detail_total(
+            total_price=self._calculate_sale_detail_total(
                 product.price, quantity, discount
             ),
         )
@@ -136,7 +145,18 @@ class SalesService:
         quantity: int,
         discount: float,
     ) -> SaleDetail:
-        """Actualiza un producto en una venta"""
+        """
+        Actualiza un producto en una venta
+
+        Args:
+            sale (Sale): Instancia de Sale a actualizar
+            sale_detail (SaleDetail): El objeto SaleDetail a actualizar
+            quantity (int): Cantidad del producto
+            discount (float): Descuento aplicado al producto en la venta
+
+        Returns:
+            SaleDetail: El objeto SaleDetail actualizado.
+        """
         if sale_detail.unit_price and sale_detail.unit_price > 0:
             unit_price = sale_detail.unit_price
         else:
@@ -148,32 +168,57 @@ class SalesService:
             quantity=quantity,
             unit_price=unit_price,
             discount=discount or 0.0,
-            total_price=self.calculate_sale_detail_total(
+            total_price=self._calculate_sale_detail_total(
                 unit_price, quantity, discount
             ),
         )
 
     def remove_product_from_sale(self, sale: Sale, sale_detail: SaleDetail) -> Product:
-        """Elimina un producto de una venta"""
+        """
+        Elimina un producto de una venta
+
+        Args:
+            sale (Sale): Instancia de Sale a actualizar
+            sale_detail (SaleDetail): El objeto SaleDetail a eliminar
+        Returns:
+            Product: El objeto Product que se eliminó de la venta.
+        """
         removed_product = Product.query.first_or_404(sale_detail.product_id)
         self.repository.remove_sale_detail(sale.id, sale_detail.id)
         return removed_product
 
     # Helpers Methods
-    def calculate_sale_detail_total(
+    def _calculate_sale_detail_total(
         self, unit_price: float, quantity: int, discount: float
     ):
-        """Calcula el total por producto considerando descuentos"""
+        """
+        Calcula el total por producto considerando descuentos
+
+        Args:
+            unit_price (float): Precio unitario del producto
+            quantity (int): Cantidad del producto
+            discount (float): Descuento aplicado al producto
+
+        Returns:
+            float: Total por producto
+        """
         print(f"La cantidad es: {discount}")
         return round(unit_price * quantity * (1 - (discount or 0.0)), 2)
 
+    @staticmethod
     def generate_monthly_totals_sales(
-        self,
         business_id: int,
         specific_business_id: Optional[int] = None,  # Parámetro opcional
     ) -> Dict[str, float]:
         """
         Genera totales mensuales de ventas para un negocio.
+
+        Args:
+            business_id (int): Id del negocio
+            specific_business_id (int): Id del negocio específico
+
+        Returns:
+            Dict[str, float]: Ventas mensuales para el negocio.
         """
         try:
             # Construir la consulta base
@@ -182,7 +227,7 @@ class SalesService:
                 func.sum(Sale.total_amount).label("total"),
             ).filter(Sale.business_id == business_id)
 
-            # Aplicar filtro de subnegocio si existe
+            # Aplicar filtro de sub negocio si existe
             if specific_business_id is not None:
                 query = query.filter(Sale.specific_business_id == specific_business_id)
 

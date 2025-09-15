@@ -9,7 +9,7 @@ from wtforms import (
     TextAreaField,
 )
 from wtforms.validators import DataRequired, NumberRange, Length, Optional
-from app.models import ProductDetail, InventoryItem  # Importa el modelo ProductDetail
+from app.models import InventoryItem  # Importa el modelo ProductDetail
 
 
 class ProductForm(FlaskForm):
@@ -151,7 +151,7 @@ class ProductDetailForm(FlaskForm):
         """
         Carga las materias primas disponibles desde la base de datos.
 
-        :return: Lista de tuplas (id, nombre) para el campo SelectField.
+        :return: Lista de túplas (id, nombre) para el campo SelectField.
         """
         return [
             (material.id, f"{material.name} ({material.unit})")

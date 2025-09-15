@@ -35,7 +35,7 @@ class Sale(db.Model):
         db.Float, nullable=False
     )  # Total de la venta (incluyendo descuento e impuesto)
 
-    # Foreing Keys
+    # Foreign Keys
     business_id = db.Column(
         db.Integer, db.ForeignKey("business.id"), nullable=False
     )  # Asociación con el negocio
@@ -63,14 +63,20 @@ class Sale(db.Model):
         ),
     )
     # Añadir check constraint para tax >= 0
-    __table_args__ = (db.CheckConstraint("tax >= 0", name="tax_non_negative"),)
     __table_args__ = (
-        db.CheckConstraint("discount >= 0", name="discount_non_negative"),
+        db.CheckConstraint("tax >= 0", name="tax_non_negative"),
+        db.CheckConstraint("discount >= 0", name="discount_non_negative")
     )
 
     def calculate_total(self):
         self.subtotal_amount = sum(sp.total_price for sp in self.products)
         self.total_amount = self.subtotal_amount * (1 - self.discount) * (1 + self.tax)
+
+    def has_specific_business(self):
+        return self.specific_business_id is not None
+
+    def is_transfer(self):
+        return self.payment_method == "transfer"
 
     def __repr__(self):
         return f"Sale #{self.sale_number} - Business: {self.business.name} - Date: {self.date}"

@@ -6,11 +6,10 @@ from flask import (
     flash,
     request,
 )
-from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.extensions import db
-from app.models import Business, Product, Sale, SaleDetail
+from app.models import Business
 from app.forms import BusinessForm
 from app.repositories.business_repository import BusinessRepository
 from app.services import BusinessService, SalesService
@@ -24,7 +23,7 @@ sale_service = SalesService()
 
 
 @bp.route("/list", methods=["GET", "POST"])
-def list():
+def business_list():
     """
     Muestra la lista de negocios y maneja la creación de nuevos negocios.
     """
@@ -40,7 +39,7 @@ def list():
             logo_path = handle_logo_upload(form.logo.data)
             if logo_path is None:
                 return redirect(
-                    url_for("business.list")
+                    url_for("business.business_list")
                 )  # Detener si hay un error en la subida
 
         try:
@@ -53,10 +52,10 @@ def list():
             flash(f"Error al agregar el negocio: {str(e)}", "error")
         except Exception as e:
             flash(f"Error inesperado: {str(e)}", "error")
-        return redirect(url_for("business.list"))
+        return redirect(url_for("business.business_list"))
 
-    business_list = business_repo.get_parent_business()
-    return render_template("business/list.html", business_list=business_list, form=form)
+    parent_business_list = business_repo.get_parent_business()
+    return render_template("business/list.html", business_list=parent_business_list, form=form)
 
 
 @bp.route("/<int:business_id>", methods=["GET", "POST"])
@@ -64,7 +63,6 @@ def detail_or_edit(business_id):
     """
     Muestra los detalles de un negocio y maneja su edición.
     """
-    business_service = BusinessService()
     business = Business.query.get_or_404(business_id)
     edit = request.args.get("edit", False)
     form = BusinessForm(obj=business)

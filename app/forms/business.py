@@ -16,6 +16,6 @@ class BusinessForm(FlaskForm):
             "no",
             "0",
         ),  # Valores que se consideran False
-        description="Marque esta casilla para convertir en negocio pricipal.",
+        description="Marque esta casilla para convertir en negocio principal.",
     )
     logo = FileField("Logo", validators=[Optional()])  # Campo opcional

@@ -113,18 +113,18 @@ class SalesRepository:
         """
         Consulta las ventas de un negocio en un rango de fechas específico.
 
-        Args:
-            business_id (int): ID del negocio principal.
-            specific_business_id (Optional[int]): ID del subnegocio (opcional).
-            start_date (date): Fecha de inicio del rango.
-            end_date (date): Fecha de fin del rango.
+        Parameters:
+        business_id (int): El ID del negocio principal
+        specific_business_id (Optional[int]): El ID del sub negocio (opcional)
+        start_date (date): Fecha de inicio del rango
+        end_date (date): Fecha de fin del rango
 
         Returns:
-            List[Sale]: Lista de objetos Sale que cumplen con los criterios.
+        List[Sale]: Lista de objetos Sale que cumplen con los criterios
 
         Raises:
-            ValueError: Si las fechas no son válidas o si falta algún parámetro obligatorio.
-            RuntimeError: Si ocurre un error durante la consulta.
+        ValueError: Si las fechas no son válidas o si falta algún parámetro obligatorio
+        RuntimeError: Si ocurre un error durante la consulta
         """
         # Validar que se proporcionen fechas válidas
         if not all([start_date, end_date]):
@@ -140,7 +140,7 @@ class SalesRepository:
                 Sale.business_id == business_id, Sale.date.between(start_date, end_date)
             )
 
-            # Filtrar por subnegocio si se proporciona
+            # Filtrar por sub negocio si se proporciona
             if specific_business_id is not None:
                 query = query.filter(Sale.specific_business_id == specific_business_id)
 
@@ -161,9 +161,9 @@ class SalesRepository:
 
     def add_sale(self, business_id, **kwargs):
         """
-        Crea una nueva venta asociado a un negocio.
+        Crea una nueva venta asociada a un negocio.
 
-        :param business_id: ID del negocio al que pertenece la venta.
+        :param business_id: El ID del negocio al que pertenece la venta.
         :param kwargs: Atributos adicionales de la venta.
         :return: El objeto Sale recién creado.
         """
@@ -275,8 +275,8 @@ class SalesRepository:
         Agrega una materia prima a un producto.
 
         Args:
-            sale_id (int): ID de la venta.
-            product_id (int): ID del producto.
+            sale_id (int): El ID de la venta.
+            product_id (int): El ID del producto.
             quantity (int): Cantidad del producto.
             unit_price (float): Precio unitario del producto.
             discount (float): Descuento de la venta del producto.
@@ -323,8 +323,8 @@ class SalesRepository:
         Actualiza la cantidad de un producto asociada a una venta.
 
         Args:
-            sale_id (int): ID de la venta.
-            sale_detail_id (int): ID de la venta del producto.
+            sale_id (int): El ID de la venta.
+            sale_detail_id (int): El ID de la venta del producto.
             quantity (int): Cantidad del producto.
             unit_price (float): Precio unitario del producto.
             discount (float): Descuento de la venta del producto.
@@ -368,8 +368,8 @@ class SalesRepository:
         """
         Elimina una relación entre una venta y un producto.
         Args:
-            sale_id (int): ID de la venta.
-            sale_detail_id (int): ID de la venta del producto.
+            sale_id (int): El ID de la venta.
+            sale_detail_id (int): El ID de la venta del producto.
         Returns:
             bool: True si la relación fue eliminada correctamente.
         Raises:

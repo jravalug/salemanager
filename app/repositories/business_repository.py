@@ -2,6 +2,7 @@ from app.models import Business
 
 
 class BusinessRepository:
+
     def _query_business(self, filters=None, order_by=None):
         """
         Método privado para realizar consultas genéricas sobre negocios.
@@ -13,7 +14,10 @@ class BusinessRepository:
         try:
             query = Business.query
             if filters:
-                query = query.filter_by(**filters)
+                if isinstance(filters, dict):
+                    query = query.filter_by(**filters)
+                else:
+                    query = query.filter_by(*filters)
             if order_by is not None:  # ✅ Corrección clave
                 query = query.order_by(order_by)
             return query.all()
@@ -47,7 +51,7 @@ class BusinessRepository:
     def get_sub_business_parent(self, sub_business_id):
         """
         Devuelve el negocio general de un negocio específico.
-        :param sub_business_id: ID del negocio específico.
+        :param sub_business_id: El ID del negocio específico.
         :return: El negocio general (parent_business) asociado al negocio específico.
         """
         try:

@@ -12,7 +12,7 @@ class ProductRepository:
         """
         Obtiene todos los productos asociados a un negocio específico.
 
-        :param business_id: ID del negocio.
+        :param business_id: El ID del negocio.
         :return: Lista de productos ordenados por nombre.
         """
         try:
@@ -28,8 +28,8 @@ class ProductRepository:
         """
         Obtiene un producto por su ID, verificando que pertenezca a un negocio específico.
 
-        :param business_id: ID del negocio al que debe pertenecer el producto.
-        :param product_id: ID del producto.
+        :param business_id: El ID del negocio al que debe pertenecer el producto.
+        :param product_id: El ID del producto.
         :return: Objeto Product si existe y pertenece al negocio, None en caso contrario.
         """
         try:
@@ -46,8 +46,8 @@ class ProductRepository:
         Obtiene un producto específico que pertenece a un negocio dado,
         incluyendo sus materias primas asociadas.
 
-        :param business_id: ID del negocio al que pertenece el producto.
-        :param product_id: ID del producto a buscar.
+        :param business_id: El ID del negocio al que pertenece el producto.
+        :param product_id: El ID del producto a buscar.
         :return: Objeto Product si existe y pertenece al negocio, None en caso contrario.
         """
         try:
@@ -72,7 +72,7 @@ class ProductRepository:
         """
         Obtiene todos los productos de un negocio junto con sus materias primas asociadas.
 
-        :param business_id: ID del negocio.
+        :param business_id: El ID del negocio.
         :return: Lista de productos con sus materias primas cargadas.
         """
         try:
@@ -91,7 +91,7 @@ class ProductRepository:
         """
         Crea un nuevo producto asociado a un negocio.
 
-        :param business_id: ID del negocio al que pertenece el producto.
+        :param business_id: El ID del negocio al que pertenece el producto.
         :param kwargs: Atributos adicionales del producto (name, price, description, etc.).
         :return: El objeto Product recién creado.
         """
@@ -185,8 +185,8 @@ class ProductRepository:
         """
         Agrega una materia prima a un producto.
 
-        :param product_id: ID del producto.
-        :param raw_material_id: ID de la materia prima.
+        :param product_id: El ID del producto.
+        :param raw_material_id: El ID de la materia prima.
         :param quantity: Cantidad de la materia prima.
         :return: La relación ProductDetail creada.
         :raises ValueError: Si la materia prima ya está asociada al producto.
@@ -218,8 +218,8 @@ class ProductRepository:
         """
         Actualiza la cantidad de una materia prima asociada a un producto.
 
-        :param product_id: ID del producto.
-        :param raw_material_id: ID de la materia prima.
+        :param product_id: El ID del producto.
+        :param raw_material_id: El ID de la materia prima.
         :param quantity: Nueva cantidad de la materia prima.
         :return: La relación ProductDetail actualizada.
         :raises ValueError: Si la relación no existe.
@@ -255,8 +255,8 @@ class ProductRepository:
         """
         Elimina una relación entre un producto y una materia prima.
 
-        :param product_id: ID del producto.
-        :param raw_material_id: ID de la materia prima.
+        :param product_id: El ID del producto.
+        :param raw_material_id: El ID de la materia prima.
         :return: True si la relación fue eliminada correctamente.
         :raises ValueError: Si la relación no existe.
         :raises RuntimeError: Si ocurre un error durante la operación.
@@ -287,7 +287,7 @@ class ProductRepository:
             db.session.rollback()
             raise RuntimeError(f"Error al eliminar la relación: {str(e)}")
 
-    def _validate_require_product_fields(**kwargs):
+    def _validate_require_product_fields(self, **kwargs):
         # Validar campos obligatorios
         required_fields = ["name", "price"]
         for field in required_fields:
@@ -298,8 +298,8 @@ class ProductRepository:
         """
         Valida que no exista una relación previa entre el producto y la materia prima.
 
-        :param product_id: ID del producto.
-        :param raw_material_id: ID de la materia prima.
+        :param product_id: El ID del producto.
+        :param raw_material_id: El ID de la materia prima.
         :raises ValueError: Si la relación ya existe.
         """
         existing_relation = ProductDetail.query.filter_by(
