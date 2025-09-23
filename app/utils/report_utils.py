@@ -355,3 +355,140 @@ def generate_excel_ipv(business_name, data, month):
     excel_file.seek(0)
 
     return excel_file
+
+
+def generate_excel_inventory_consumption(business, data, month):
+    """
+    Genera un Excel con el consumo de materias primas agrupado por día.
+
+    Args:
+        business: instancia Business (usada para el título)
+        data: lista de días con estructura [{'date': 'YYYY-MM-DD', 'items': [ {name, unit, total_consumed, product_usages}, ... ]}, ...]
+        month: mes en formato YYYY-MM
+
+    Returns:
+        BytesIO con el archivo Excel listo para enviar.
+    """
+
+    workbook = Workbook()
+    # crear hoja principal con resumen
+    sheet = workbook.active
+    sheet.title = "Consumo Inventario"
+
+    bold_font = Font(bold=True)
+    title_font = Font(size=14, bold=True, color="000000")
+    center_alignment = Alignment(horizontal="center", vertical="center")
+    left_alignment = Alignment(horizontal="left", vertical="center")
+    right_alignment = Alignment(horizontal="right", vertical="center")
+    header_fill = PatternFill(
+        start_color="BFBFBF", end_color="BFBFBF", fill_type="solid"
+    )
+    border = Border(
+        left=Side(style="thin"),
+        right=Side(style="thin"),
+        top=Side(style="thin"),
+        bottom=Side(style="thin"),
+    )
+
+    # Título
+    sheet.merge_cells(start_row=1, start_column=1, end_row=1, end_column=4)
+    sheet.cell(
+        row=1, column=1, value=f"Consumo de Inventario - {business.name}"
+    ).font = title_font
+    sheet.cell(row=1, column=1).alignment = center_alignment
+
+    sheet.merge_cells(start_row=2, start_column=1, end_row=2, end_column=4)
+    sheet.cell(row=2, column=1, value=f"Mes: {month}").font = bold_font
+    sheet.cell(row=2, column=1).alignment = center_alignment
+
+    # Espacio
+    sheet.append([])
+
+    # Encabezados de la tabla principal
+    headers = ["FECHA", "MATERIA PRIMA", "UNIDAD", "TOTAL CONSUMIDO"]
+    sheet.append(headers)
+    header_row = sheet.max_row
+    for col_idx, header in enumerate(headers, start=1):
+        cell = sheet.cell(row=header_row, column=col_idx)
+        cell.font = bold_font
+        cell.fill = header_fill
+        cell.border = border
+        cell.alignment = center_alignment
+
+    # Llenar datos: una fila por cada item por día
+    for day in data:
+        date = day.get("date")
+        for item in day.get("items", []):
+            row = [
+                date,
+                item.get("name"),
+                item.get("unit"),
+                round(item.get("total_consumed", 0), 4),
+            ]
+            sheet.append(row)
+            current_row = sheet.max_row
+            # aplicar estilos
+            for col in range(1, 5):
+                cell = sheet.cell(row=current_row, column=col)
+                cell.border = border
+                if col == 4:
+                    cell.alignment = right_alignment
+                else:
+                    cell.alignment = left_alignment
+
+    # Agregar hojas detalladas por día (cada hoja con usos por producto)
+    for day in data:
+        date = day.get("date")
+        sheet_day = workbook.create_sheet(title=date)
+        # encabezados
+        headers = ["Materia Prima", "Unidad", "Total Consumido", "Usos por Producto"]
+        sheet_day.append(headers)
+        header_row = sheet_day.max_row
+        for col_idx, header in enumerate(headers, start=1):
+            cell = sheet_day.cell(row=header_row, column=col_idx)
+            cell.font = bold_font
+            cell.fill = header_fill
+            cell.border = border
+            cell.alignment = center_alignment
+
+        for item in day.get("items", []):
+            usos = []
+            pu = item.get("product_usages", {}) or {}
+            for prod, qty in pu.items():
+                usos.append(f"{prod}: {qty}")
+            usos_text = ", ".join(usos)
+            row = [
+                item.get("name"),
+                item.get("unit"),
+                round(item.get("total_consumed", 0), 4),
+                usos_text,
+            ]
+            sheet_day.append(row)
+            current_row = sheet_day.max_row
+            for col in range(1, 5):
+                cell = sheet_day.cell(row=current_row, column=col)
+                cell.border = border
+                if col == 3:
+                    cell.alignment = right_alignment
+                else:
+                    cell.alignment = left_alignment
+
+        # ajustar anchos
+        widths = [40, 12, 18, 80]
+        for idx, w in enumerate(widths, start=1):
+            try:
+                sheet_day.column_dimensions[get_column_letter(idx)].width = w
+            except Exception:
+                pass
+
+    # Ajustar ancho de la hoja principal
+    for idx, w in enumerate([12, 40, 12, 18], start=1):
+        try:
+            sheet.column_dimensions[get_column_letter(idx)].width = w
+        except Exception:
+            pass
+
+    excel_file = BytesIO()
+    workbook.save(excel_file)
+    excel_file.seek(0)
+    return excel_file

@@ -18,7 +18,12 @@ from dateutil.relativedelta import relativedelta
 from app.forms import MonthForm
 from app.models import Business, Sale, SaleDetail
 from app.services import SalesReportService, BusinessService
-from app.utils import generate_excel_sales_by_date, generate_excel_ipv
+from app.utils import (
+    generate_excel_sales_by_date,
+    generate_excel_ipv,
+    generate_excel_inventory_consumption,
+)
+from flask import jsonify
 
 
 bp = Blueprint("report", __name__, url_prefix="/business/<int:business_id>/report")
@@ -650,6 +655,42 @@ def export_ipv(business_id):
     )
 
 
+@bp.route("/export-to-excel/inventory-consumption", methods=["POST"])
+def export_to_excel_inventory_consumption(business_id):
+    # Exporta el consumo de inventario a un archivo Excel
+    business = Business.query.get_or_404(business_id)
+    month = request.form.get("selected_month", "_")
+
+    try:
+        data = json.loads(request.form.get("consumption_export", "[]"))
+    except json.JSONDecodeError:
+        flash("Los datos recibidos no son válidos.", "error")
+        return redirect(
+            url_for("report.inventory_consumption_view", business_id=business.id)
+        )
+
+    if not data:
+        flash("No hay datos disponibles para exportar.", "error")
+        return redirect(
+            url_for("report.inventory_consumption_view", business_id=business.id)
+        )
+
+    try:
+        excel_file = generate_excel_inventory_consumption(business, data, month)
+    except Exception as e:
+        flash("Ocurrió un error al generar el archivo Excel.", "error")
+        return redirect(
+            url_for("report.inventory_consumption_view", business_id=business.id)
+        )
+
+    return send_file(
+        excel_file,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name=f"ConsumoInventario_{business.name}_{month}.xlsx",
+    )
+
+
 @bp.route("/monthly-sales-cocteleria", methods=["GET", "POST"])
 def monthly_sales_coctelera(business_id):
     # Obtener el negocio (asegúrate de que exista)
@@ -702,7 +743,7 @@ def monthly_sales_coctelera(business_id):
 
                 for sale_detail in sorted_products:
                     product = sale_detail.product
-                    if product.category != 'cocteleria':
+                    if product.category != "cocteleria":
                         continue
                     product_key = product.name
                     if product_key not in sales_by_day[date_key]["products"]:
@@ -715,9 +756,9 @@ def monthly_sales_coctelera(business_id):
                     sales_by_day[date_key]["products"][product_key][
                         "quantity"
                     ] += sale_detail.quantity
-                    sales_by_day[date_key]["products"][product_key][
-                        "total_amount"
-                    ] += sale_detail.quantity * product.price
+                    sales_by_day[date_key]["products"][product_key]["total_amount"] += (
+                        sale_detail.quantity * product.price
+                    )
 
                     # Añadir la tupla (sale_id, sale_number) al conjunto
                     sales_by_day[date_key]["products"][product_key]["orders"].add(
@@ -727,7 +768,9 @@ def monthly_sales_coctelera(business_id):
                     # Actualizar totales
                     sales_by_day[date_key]["total_products"] += sale_detail.quantity
 
-                    sales_by_day[date_key]["total_income"] += sale_detail.quantity * product.price
+                    sales_by_day[date_key]["total_income"] += (
+                        sale_detail.quantity * product.price
+                    )
 
             # Formatear los datos para la plantilla
             for date, data in sales_by_day.items():
@@ -770,5 +813,88 @@ def monthly_sales_coctelera(business_id):
         business=business,
         daily_sales=daily_sales,
         daily_sales_json=json.dumps(daily_sales),
+        selected_month=selected_month,
+    )
+
+
+@bp.route("/inventory-consumption", methods=["POST"])
+def inventory_consumption(business_id):
+    """Devuelve el consumo de materias primas (InventoryItem) derivado de las ventas de un mes.
+
+    Espera un formulario o JSON con 'month' en formato YYYY-MM.
+    """
+    business = None
+    try:
+        from app.models import Business
+
+        business = Business.query.get_or_404(business_id)
+    except Exception:
+        # Si falla, devolvemos 404 implícito por get_or_404 o un error genérico
+        pass
+
+    month = (
+        request.form.get("month") or request.json.get("month")
+        if request.is_json
+        else None
+    )
+    if not month:
+        return jsonify({"error": "El parámetro 'month' (YYYY-MM) es requerido."}), 400
+
+    try:
+        business_filters = (
+            business_service.get_parent_filters(business)
+            if business
+            else {"business_id": business_id}
+        )
+        specific_business_id = business_filters.get("specific_business_id")
+        data = sales_service.get_inventory_consumption(
+            month, business_filters["business_id"], specific_business_id
+        )
+        return jsonify({"month": month, "consumption": data})
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return (
+            jsonify(
+                {"error": "Error interno al calcular el consumo.", "detail": str(e)}
+            ),
+            500,
+        )
+
+
+@bp.route("/inventory-consumption/view", methods=["GET", "POST"])
+def inventory_consumption_view(business_id):
+    """Renderiza una plantilla con el consumo de inventario para el mes seleccionado."""
+    business = Business.query.get_or_404(business_id)
+    business_filters = business_service.get_parent_filters(business)
+
+    selected_month = None
+    consumption_by_day = []
+
+    if request.method == "POST":
+        selected_month = request.form.get("month")
+        if not selected_month:
+            flash("Por favor, selecciona un mes.", "error")
+            # no hay consumo porque no se seleccionó mes
+            return render_template(
+                "report/inventory_consumption.html",
+                business=business,
+                consumption_by_day=[],
+                selected_month=selected_month,
+            )
+
+        try:
+            consumption_by_day = sales_service.get_inventory_consumption_by_day(
+                selected_month,
+                business_filters["business_id"],
+                business_filters.get("specific_business_id"),
+            )
+        except ValueError:
+            flash("Formato de mes inválido. Usa YYYY-MM.", "error")
+
+    return render_template(
+        "report/inventory_consumption.html",
+        business=business,
+        consumption_by_day=consumption_by_day,
         selected_month=selected_month,
     )

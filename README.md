@@ -19,6 +19,23 @@ Este proyecto es un sistema de gestión diseñado para administrar negocios y su
 - **Reportes Mensuales:**
   - Generar reportes de ventas por día y por producto.
   - Exportar reportes a formato Excel.
+  Nota: Se añadió un endpoint API para obtener el consumo de materias primas derivado de las ventas de un mes.
+
+  - Ruta: POST /business/<business_id>/report/inventory-consumption
+  - Parámetros: month (form o JSON) en formato YYYY-MM
+  - Respuesta: JSON con la estructura {"month": "YYYY-MM", "consumption": {inventory_item_id: {name, unit, total_consumed, product_usages}}}
+
+  Ejemplo con curl (fish shell):
+
+  ```fish
+  curl -X POST -F "month=2025-09" http://localhost:5000/business/1/report/inventory-consumption
+  ```
+
+  O como JSON:
+
+  ```fish
+  curl -X POST -H "Content-Type: application/json" -d '{"month":"2025-09"}' http://localhost:5000/business/1/report/inventory-consumption
+  ```
 - **Diseño Moderno:**
   - Interfaz responsiva y compatible con modo oscuro gracias a **Flowbite** y **Tailwind CSS**.
 
