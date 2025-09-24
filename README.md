@@ -129,7 +129,7 @@ Crea un archivo `src/input.css` con el siguiente contenido:
 Compila Tailwind CSS:
 
 ```bash
-npx tailwindcss -i ./app/static/src/tailwind.css -o ./app/static/css/styles.css --watch
+npx tailwindcss -i ./app/static/css/tailwind.css -o ./app/static/css/styles.css --watch
 ```
 
 c. Instalar Flowbite
