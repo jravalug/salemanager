@@ -7,7 +7,7 @@ from .filters import (
     format_sale_status,
     format_sale_status_badge,
 )
-from .context_processors import inject_now
+from .context_processors import inject_now, inject_request
 from app.routes import register_web_blueprints
 from app.routes.api import register_api_blueprints
 
@@ -28,6 +28,7 @@ def create_app():
 
     # Registrar context processors
     app.context_processor(inject_now)
+    app.context_processor(inject_request)
 
     # Registrar blueprints
     register_web_blueprints(app)

@@ -47,9 +47,11 @@
               <strong>Ingreso Total del Mes:</strong>
               {{ month_totals[month] | currency }}
             </p>
-            <div class="overflow-x-auto relative">
+            <div
+              class="overflow-x-auto relative bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-100 dark:border-gray-700"
+            >
               <table
-                class="w-full text-sm text-left text-gray-500 dark:text-gray-400"
+                class="sales-table w-full text-sm text-left text-gray-500 dark:text-gray-400"
               >
                 <thead
                   class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
@@ -77,7 +79,8 @@
                         {% for sale in data.sales %}
                           <a
                             href="{{ url_for('sale.details', business_id=business.id, sale_id=sale.id) }}"
-                            class=" hover:underline {{ 'text-blue-500 dark:text-blue-400' if sale.has_specific_business() }}{{ 'text-red-500 dark:text-red-400' if sale.excluded }}">
+                            class=" hover:underline {{ 'text-blue-500 dark:text-blue-400' if sale.has_specific_business() }}{{ 'text-red-500 dark:text-red-400' if sale.excluded }}"
+                          >
                             {{ 'TRF-' if sale.is_transfer() }}[{{ sale.sale_number }}]
                           </a>
                         {% endfor %}
@@ -343,14 +346,38 @@
 
 {% block custom_javascript %}
   <script type="application/javascript">
-    if (
-      document.getElementById("sales-table") &&
-      typeof simpleDatatables.DataTable !== "undefined"
-    ) {
-      const dataTable = new simpleDatatables.DataTable("#sales-table", {
-        paging: true,
-        sortable: true,
+    (function () {
+      if (
+        typeof simpleDatatables === "undefined" ||
+        typeof simpleDatatables.DataTable === "undefined"
+      )
+        return;
+
+      // Initialize all tables with the .sales-table class
+      document.querySelectorAll(".sales-table").forEach(function (table) {
+        try {
+          new simpleDatatables.DataTable(table, {
+            paging: true,
+            sortable: true,
+          });
+        } catch (e) {
+          // ignore individual table init errors
+          console.warn("simple-datatables init error", e);
+        }
       });
-    }
+
+      // Backwards compatibility: single table with id
+      var single = document.getElementById("sales-table");
+      if (single) {
+        try {
+          new simpleDatatables.DataTable(single, {
+            paging: true,
+            sortable: true,
+          });
+        } catch (e) {
+          console.warn("simple-datatables init error", e);
+        }
+      }
+    })();
   </script>
 {% endblock custom_javascript %}

@@ -68,21 +68,36 @@
         </div>
 
         <div class="mt-6 sm:mt-8">
-          <div class="border-b border-gray-200 dark:border-gray-800">
+            <div class="border-b border-gray-200 dark:border-gray-800 p-4 overflow-x-auto">
             <table
-              class="w-full text-left font-medium text-gray-900 dark:text-white md:table-fixed"
+              class="w-full text-left font-medium text-gray-900 dark:text-white"
             >
+              <!-- Colgroup con porcentajes para que la tabla sea responsiva en distintos dispositivos -->
+              <colgroup>
+                <col style="width:60%" />
+                <col style="width:15%" />
+                <col style="width:10%" />
+                <col style="width:15%" />
+              </colgroup>
+              <thead>
+                <tr class="text-sm ">
+                  <th class="py-2 text-left">Producto</th>
+                  <th class="py-2 text-right">Precio Unit.</th>
+                  <th class="py-2 text-center">Cantidad</th>
+                  <th class="py-2 text-right">Total</th>
+                </tr>
+              </thead>
               <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
                 {% if sale.products %}
                   {% for detail in sale.products %}
                     <tr>
-                      <td class="py-4 md:w-[300px]">
+                      <td class="py-4 px-2 overflow-hidden align-top">
                         <button
                           type="button"
                           data-popover-target="popover-detail-{{ detail.id }}"
                           data-popover-placement="right"
                           data-popover-trigger="click"
-                          class="text-base font-medium text-primary-700 hover:underline dark:text-primary-500"
+                          class="text-base font-medium text-primary-700 hover:underline dark:text-primary-500 block truncate max-w-full text-left"
                         >
                           {{ detail.product.name }}
                         </button>
@@ -127,19 +142,13 @@
                         </div>
                       </td>
 
-                      <td
-                        class="p-4 text-base font-normal text-gray-900 dark:text-white"
-                      >
+                      <td class="p-4 px-2 text-base font-normal text-gray-900 dark:text-white text-right">
                         {{ detail.unit_price | currency }}
                       </td>
-                      <td
-                        class="p-4 text-center text-base font-bold text-gray-900 dark:text-white"
-                      >
+                      <td class="p-4 px-2 text-center text-base font-bold text-gray-900 dark:text-white">
                         {{ detail.quantity }}
                       </td>
-                      <td
-                        class="p-4 text-right text-base font-bold text-gray-900 dark:text-white"
-                      >
+                      <td class="p-4 px-2 text-right text-base font-bold text-gray-900 dark:text-white">
                         {{ detail.total_price | currency }}
                       </td>
                     </tr>
@@ -188,13 +197,11 @@
                 </dl>
               </div>
 
-              <dl
-                class="flex items-center justify-between gap-4 border-t border-gray-200 pt-2 dark:border-gray-700"
-              >
+              <dl class="flex items-center justify-between gap-4 border-t border-gray-200 pt-2 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-3 ">
                 <dt class="text-lg font-bold text-gray-900 dark:text-white">
                   Total
                 </dt>
-                <dd class="text-lg font-bold text-gray-900 dark:text-white">
+                <dd class="text-lg font-bold text-primary-700 dark:text-primary-400">
                   {{ sale.total_amount | currency }}
                 </dd>
               </dl>
