@@ -3,12 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Gestión Integral de Ventas y Compras" />
-    <meta name="keywords" content="Ventas, Compras, Gestión, Sistema" />
+    <meta name="description" content="Bookkeeping Management" />
+    <meta
+      name="keywords"
+      content="Bookkeeping, Account, Finance, Sales, Spenses, Management"
+    />
     <meta name="author" content="Jose Abadia" />
+    {# icon same as svg logo#}
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="{{ url_for('static', filename='images/output_logo.svg') }}"
+    />
     <title>
       {% block title %}
-        SALEManager | Gestión Integral
+        Bookkeeply | Gestión Integral
       {% endblock title %}
     </title>
     <!-- Enlazar el archivo CSS compilado de Tailwind -->
@@ -55,16 +64,37 @@
           class="flex items-center space-x-3 rtl:space-x-reverse"
         >
           <img
-            src="{{ url_for('static', filename='images/salemanager-logo.svg') }}"
+            src="{{ url_for('static', filename='images/output_logo.svg') }}"
             class="h-8"
             alt="SALEManager logo"
           />
           <span
-            class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white"
-            >SALEManager</span
+            class="self-center text-2xl font-extrabold whitespace-nowrap text-logo-light dark:text-logo-dark"
+            >Bookkeeply</span
           >
         </a>
         <div class="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
+          <!-- Mobile sidebar open button -->
+          <button
+            id="mobile-sidebar-open"
+            class="lg:hidden text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 me-2"
+            aria-label="Open sidebar"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              ></path>
+            </svg>
+          </button>
           <button
             id="theme-toggle"
             type="button"
@@ -95,295 +125,406 @@
               ></path>
             </svg>
           </button>
-          <button
-            data-collapse-toggle="navbar-sticky"
-            type="button"
-            class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
-            aria-controls="navbar-sticky"
-            aria-expanded="false"
-          >
-            <span class="sr-only">Open main menu</span>
-            <svg
-              class="w-5 h-5"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 17 14"
-            >
-              <path
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M1 1h15M1 7h15M1 13h15"
-              />
-            </svg>
-          </button>
         </div>
-        <nav
-          class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1"
-          id="navbar-sticky"
-        >
-          <ul
-            class="flex flex-col p-4 md:p-0 mt-4 font-medium border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700"
-          >
-            {% if business %}
-              {# Compute canonical hrefs so we can compare with request_path for active state #}
-              {% set href_dashboard = url_for('business.dashboard', business_id=business.id) %}
-              {% set href_sales = url_for('sale.sales', business_id=business.id) %}
-              {% set href_products = url_for('product.list', business_id=business.id) %}
-              {% set href_inventory = url_for('inventory.item_list', business_id=business.id) %}
+      </div>
+    </header>
 
-              <li>
-                {% set is_active = request_path is not none and request_path.startswith(href_dashboard) %}
-                <a
-                  href="{{ href_dashboard }}"
-                  class="flex items-center py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700 {{ 'bg-gray-100 md:bg-transparent' if is_active else '' }}"
-                >
-                  {{ building('w-5 h-5 me-2 ' ~ ('text-blue-700 dark:text-blue-400' if is_active else 'text-gray-500 dark:text-gray-300')) }}
-                  Negocio
-                </a>
-              </li>
-              <li>
-                {% set is_active = request_path is not none and request_path.startswith(href_sales) %}
-                <a
-                  href="{{ href_sales }}"
-                  class="flex items-center py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700 {{ 'bg-gray-100 md:bg-transparent' if is_active else '' }}"
-                >
-                  {{ receipt('w-5 h-5 me-2 ' ~ ('text-blue-700 dark:text-blue-400' if is_active else 'text-gray-500 dark:text-gray-300')) }}
-                  Ventas
-                </a>
-              </li>
-              <li>
-                {% set is_active = request_path is not none and request_path.startswith(href_products) %}
-                <a
-                  href="{{ href_products }}"
-                  class="flex items-center py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700 {{ 'bg-gray-100 md:bg-transparent' if is_active else '' }}"
-                >
-                  {{ box('w-5 h-5 me-2 ' ~ ('text-blue-700 dark:text-blue-400' if is_active else 'text-gray-500 dark:text-gray-300')) }}
-                  Productos
-                </a>
-              </li>
-              <li>
-                {% set is_active = request_path is not none and request_path.startswith(href_inventory) %}
-                <a
-                  href="{{ href_inventory }}"
-                  class="flex items-center py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700 {{ 'bg-gray-100 md:bg-transparent' if is_active else '' }}"
-                >
-                  {{ inventory('w-5 h-5 me-2 ' ~ ('text-blue-700 dark:text-blue-400' if is_active else 'text-gray-500 dark:text-gray-300')) }}
-                  Inventario
-                </a>
-              </li>
-              <li>
+    <!-- Contenido principal: layout con sidebar a la izquierda y área de contenido a la derecha -->
+    <main class="max-w-screen-xl mx-auto px-4 py-6 mt-20 mb-20">
+      <div class="lg:flex lg:gap-6">
+        <!-- Sidebar izquierdo -->
+        {% if business %}
+
+          {# Compute canonical hrefs so we can compare with request_path for active state #}
+          {% set href_dashboard = url_for('business.dashboard', business_id=business.id) %}
+          {% set href_sales = url_for('sale.sales', business_id=business.id) %}
+          {% set href_products = url_for('product.list', business_id=business.id) %}
+          {% set href_inventory = url_for('inventory.item_list', business_id=business.id) %}
+          {% set href_monthly_sales_by_date = url_for('report.monthly_sales_by_date', business_id=business.id) %}
+          {% set href_monthly_sales_by_product = url_for('report.monthly_sales_by_produc', business_id=business.id) %}
+          {% set href_inventory_consumption = url_for('report.inventory_consumption_view', business_id=business.id) %}
+          {% set href_ipv_report = url_for('report.ipv_report', business_id=business.id) %}
+          <aside
+            id="principal-sidebar"
+            class="hidden lg:block w-full lg:w-72 shrink-0"
+          >
+            <div
+              class="rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-200"
+            >
+              <div class="flex items-center gap-3 mb-6">
+                {% if business.logo %}
+                  <img
+                    src="{{ url_for('static', filename=business.logo) }}"
+                    alt="Logo de {{ business.name }}"
+                    class="h-12 w-12 rounded-md object-cover"
+                  />
+                {% endif %}
+                <div>
+                  <div class="font-semibold">Jose Angel Perez</div>
+                  <div class="text-sm text-gray-400">{{ business.name }}</div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-3 mb-6">
                 <button
-                  id="dropdownNavbarLink"
-                  data-dropdown-toggle="dropdownNavbar"
-                  class="flex items-center justify-between w-full py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 md:w-auto dark:text-white md:dark:hover:text-blue-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent"
+                  class="bg-indigo-600 text-white rounded-md py-2 px-3 text-sm"
                 >
-                  {{ stats('w-5 h-5 me-2 text-gray-500 dark:text-gray-300') }}
-                  Reportes
-                  <svg
-                    class="w-2.5 h-2.5 ms-2.5"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 10 6"
-                  >
-                    <path
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="m1 1 4 4 4-4"
-                    />
-                  </svg>
+                  Profile
                 </button>
-                <!-- Dropdown menu -->
-                <div
-                  id="dropdownNavbar"
-                  class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-60 dark:bg-gray-700 dark:divide-gray-600"
+                <button
+                  class="bg-purple-600 text-white rounded-md py-2 px-3 text-sm"
                 >
+                  Gifts
+                </button>
+                <button
+                  class="bg-emerald-600 text-white rounded-md py-2 px-3 text-sm"
+                >
+                  Wallet
+                </button>
+              </div>
+
+              <ul class="space-y-2 font-medium">
+                <li>
+                  {% set is_active = request_path is not none and request_path.startswith(href_dashboard) %}
+                  <a
+                    class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+                    href="{{ href_dashboard }}"
+                    >{{ receipt('w-5 h-5') }} Dashboard</a
+                  >
+                </li>
+                <li>
+                  {% set is_active = request_path is not none and request_path.startswith(href_sales) %}
+                  <a
+                    class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+                    href="{{ href_sales }}"
+                    >{{ receipt('w-5 h-5') }} Ventas</a
+                  >
+                </li>
+                <li>
+                  {% set is_active = request_path is not none and request_path.startswith(href_products) %}
+                  <a
+                    class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+                    href="{{ href_products }}"
+                    >{{ box('w-5 h-5') }} Productos</a
+                  >
+                </li>
+                <li>
+                  {% set is_active = request_path is not none and request_path.startswith(href_inventory) %}
+                  <a
+                    class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+                    href="{{ href_inventory }}"
+                    >{{ inventory('w-5 h-5') }} Inventarios</a
+                  >
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+                    aria-controls="dropdown-report"
+                    data-collapse-toggle="dropdown-report"
+                  >
+                    {{ stats('shrink-0 w-5 h-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white') }}
+                    <span
+                      class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap"
+                      >Reportes</span
+                    >
+                    <svg
+                      class="w-3 h-3"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 10 6"
+                    >
+                      <path
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="m1 1 4 4 4-4"
+                      />
+                    </svg>
+                  </button>
+                  {# Hacer que este abierto si el request_path comienza por alguno de los reportes #}
+                  {%
+                    set is_report_active = request_path is not none and (
+                      request_path.startswith(href_monthly_sales_by_date) or
+                      request_path.startswith(href_monthly_sales_by_product) or
+                      request_path.startswith(href_inventory_consumption) or
+                      request_path.startswith(href_ipv_report)
+                    )
+                  %}
                   <ul
-                    class="py-2 text-sm text-gray-700 dark:text-gray-400"
-                    aria-labelledby="dropdownLargeButton"
+                    id="dropdown-report"
+                    class="{{ 'block' if is_report_active else 'hidden' }} py-2 space-y-2"
                   >
                     <li>
+                      {% set is_active = request_path is not none and request_path.startswith(href_monthly_sales_by_date) %}
                       <a
-                        href="{{ url_for('report.monthly_sales_by_date', business_id=business.id) }}"
-                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                        >Ventas por Fecha</a
+                        href="{{ href_monthly_sales_by_date }}"
+                        class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
+                        >Ventas por fecha</a
                       >
                     </li>
                     <li>
+                      {% set is_active = request_path is not none and request_path.startswith(href_monthly_sales_by_product) %}
                       <a
-                        href="{{ url_for('report.monthly_sales_by_produc', business_id=business.id) }}"
-                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                        href="{{ href_monthly_sales_by_product }}"
+                        class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
                         >Ventas por Producto</a
                       >
                     </li>
                     <li>
+                      {% set is_active = request_path is not none and request_path.startswith(href_ipv_report) %}
                       <a
-                        href="{{ url_for('report.ipv_report', business_id=business.id) }}"
-                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                        href="{{ href_ipv_report }}"
+                        class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
                         >Inventario a Precio de Venta</a
                       >
                     </li>
                     <li>
+                      {% set is_active = request_path is not none and request_path.startswith(href_inventory_consumption) %}
                       <a
-                        href="{{ url_for('report.inventory_consumption_view', business_id=business.id) }}"
-                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                        href="{{ href_inventory_consumption }}"
+                        class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
                         >Consumo de Materias Primas</a
                       >
                     </li>
                   </ul>
-                </div>
-              </li>
-            {% else %}
-              {% set href_business_list = url_for('business.business_list') %}
-              {% set is_active = request_path is not none and request_path.startswith(href_business_list) %}
-              <li>
-                <a
-                  href="{{ href_business_list }}"
-                  class="flex items-center py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700 {{ 'bg-gray-100 md:bg-transparent' if is_active else '' }}"
-                >
-                  {{ list_icon('w-5 h-5 me-2 ' ~ ('text-blue-700 dark:text-blue-400' if is_active else 'text-gray-500 dark:text-gray-300')) }}
-                  Negocios
-                </a>
-              </li>
-            {% endif %}
-          </ul>
-        </nav>
-      </div>
-    </header>
+                </li>
+              </ul>
 
-    <!-- Contenido principal con márgenes -->
-    <main class="container mx-auto px-4 py-6 mt-20 mb-20">
-      <!-- Mensajes flash -->
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          {% for category, message in messages %}
-            <!-- Componente Toast de Flowbite -->
-            <div
-              id="toast-{{ category }}"
-              class="fixed top-20 right-5 flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow-sm dark:text-gray-400 dark:bg-gray-800"
-              role="alert"
-            >
-              <!-- Icon -->
-              <div
-                class="inline-flex items-center justify-center shrink-0 w-8 h-8 rounded-lg 
-                {% if category == 'success' %}
-                  bg-green-100 text-green-700 dark:bg-green-200
-                  dark:text-green-800
-                {% elif category == 'error' %}
-                  bg-red-100 text-red-700 dark:bg-red-200 dark:text-red-800
-                {% elif category == 'warning' %}
-                  bg-yellow-100 text-yellow-700 dark:bg-yellow-200
-                  dark:text-yellow-800
-                {% elif category == 'info' %}
-                  bg-blue-100 text-blue-700 dark:bg-blue-200 dark:text-blue-800
-                {% endif %}"
-              >
-                {% if category == 'success' %}
-                  <svg
-                    class="w-5 h-5"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M12 2c-.791 0-1.55.314-2.11.874l-.893.893a.985.985 0 0 1-.696.288H7.04A2.984 2.984 0 0 0 4.055 7.04v1.262a.986.986 0 0 1-.288.696l-.893.893a2.984 2.984 0 0 0 0 4.22l.893.893a.985.985 0 0 1 .288.696v1.262a2.984 2.984 0 0 0 2.984 2.984h1.262c.261 0 .512.104.696.288l.893.893a2.984 2.984 0 0 0 4.22 0l.893-.893a.985.985 0 0 1 .696-.288h1.262a2.984 2.984 0 0 0 2.984-2.984V15.7c0-.261.104-.512.288-.696l.893-.893a2.984 2.984 0 0 0 0-4.22l-.893-.893a.985.985 0 0 1-.288-.696V7.04a2.984 2.984 0 0 0-2.984-2.984h-1.262a.985.985 0 0 1-.696-.288l-.893-.893A2.984 2.984 0 0 0 12 2Zm3.683 7.73a1 1 0 1 0-1.414-1.413l-4.253 4.253-1.277-1.277a1 1 0 0 0-1.415 1.414l1.985 1.984a1 1 0 0 0 1.414 0l4.96-4.96Z"
-                      clip-rule="evenodd"
-                    ></path>
-                  </svg>
-                {% elif category == 'error' %}
-                  <svg
-                    class="w-5 h-5"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm7.707-3.707a1 1 0 0 0-1.414 1.414L10.586 12l-2.293 2.293a1 1 0 1 0 1.414 1.414L12 13.414l2.293 2.293a1 1 0 0 0 1.414-1.414L13.414 12l2.293-2.293a1 1 0 0 0-1.414-1.414L12 10.586 9.707 8.293Z"
-                      clip-rule="evenodd"
-                    ></path>
-                  </svg>
-                {% elif category == 'warning' %}
-                  <svg
-                    class="w-6 h-6"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm11-4a1 1 0 1 0-2 0v5a1 1 0 1 0 2 0V8Zm-1 7a1 1 0 1 0 0 2h.01a1 1 0 1 0 0-2H12Z"
-                      clip-rule="evenodd"
-                    ></path>
-                  </svg>
-                {% elif category == 'info' %}
-                  <svg
-                    class="w-6 h-6"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm9.408-5.5a1 1 0 1 0 0 2h.01a1 1 0 1 0 0-2h-.01ZM10 10a1 1 0 1 0 0 2h1v3h-1a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2h-1v-4a1 1 0 0 0-1-1h-2Z"
-                      clip-rule="evenodd"
-                    ></path>
-                  </svg>
-                {% endif %}
-                <span class="sr-only">Check icon</span>
-              </div>
-              <!-- Menssage -->
-              <div class="ml-3 text-sm font-medium">{{ message }}</div>
-              <!-- Close button -->
-              <button
-                type="button"
-                class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
-                data-dismiss-target="#toast-{{ category }}"
-                aria-label="Close"
-              >
-                <span class="sr-only">Close</span>
-                <svg
-                  class="w-3 h-3"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 14 14"
+              <div class="mt-6 border-t border-gray-700 pt-4">
+                <a
+                  class="flex items-center gap-3 p-2 rounded hover:bg-gray-700"
+                  href="#"
+                  >Settings</a
                 >
-                  <path
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                  ></path>
-                </svg>
-              </button>
+                <a
+                  class="flex items-center gap-3 p-2 rounded text-red-400 hover:bg-gray-700 mt-2"
+                  href="#"
+                  >Log out</a
+                >
+              </div>
             </div>
-          {% endfor %}
+          </aside>
         {% endif %}
-      {% endwith %}
-      <!-- Bloque de contenido -->
-      {% block content %}
-      {% endblock content %}
+        <!-- Área de contenido derecha -->
+        <section class="flex-1">
+          <!-- Mensajes flash (moved here so they appear above the card) -->
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+                <div
+                  id="toast-{{ category }}"
+                  class="mb-4 w-full max-w-2xl p-4 rounded-lg shadow-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200"
+                >
+                  <div class="font-medium">{{ message }}</div>
+                </div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+
+          <!-- Card placeholder a la derecha -->
+          {% block content %}
+          {% endblock content %}
+        </section>
+      </div>
     </main>
+    <div
+      id="mobile-sidebar-backdrop"
+      class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden"
+    ></div>
+    <aside
+      id="mobile-sidebar"
+      class="fixed left-0 top-0 h-full w-72 bg-gray-800 dark:bg-gray-900 text-gray-100 z-50 transform -translate-x-full transition-transform duration-200 lg:hidden"
+    >
+      <div class="p-4">
+        <div class="flex items-center gap-3 mb-6">
+          {% if business and business.logo %}
+            <img
+              src="{{ url_for('static', filename=business.logo) }}"
+              alt="logo"
+              class="h-12 w-12 rounded-md object-cover"
+            />
+          {% else %}
+            <img
+              src="{{ url_for('static', filename='images/output_logo.svg') }}"
+              alt="logo"
+              class="h-12 w-12 rounded-md object-cover"
+            />
+          {% endif %}
+          <div>
+            <div class="font-semibold">
+              {% if business %}{{ business.name }}{% else %}Usuario{% endif %}
+            </div>
+            <div class="text-sm text-gray-400">
+              {% if business %}{{ business.name }}{% else %}email@example.com{% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-3 mb-6">
+          <button class="bg-indigo-600 text-white rounded-md py-2 px-3 text-sm">
+            Profile
+          </button>
+          <button class="bg-purple-600 text-white rounded-md py-2 px-3 text-sm">
+            Gifts
+          </button>
+          <button
+            class="bg-emerald-600 text-white rounded-md py-2 px-3 text-sm"
+          >
+            Wallet
+          </button>
+        </div>
+        {# TODO: CREATE THE LINK FOR PAGES #}
+        <nav class="space-y-3 text-sm">
+          <div>
+            {% set is_active = request_path is not none and request_path.startswith(href_dashboard) %}
+            <a
+              class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+              href="{{ href_dashboard }}"
+              >{{ receipt('w-5 h-5') }} Dashboard</a
+            >
+          </div>
+          <div>
+            {% set is_active = request_path is not none and request_path.startswith(href_sales) %}
+            <a
+              class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+              href="{{ href_sales }}"
+              >{{ receipt('w-5 h-5') }} Ventas</a
+            >
+          </div>
+          <div>
+            {% set is_active = request_path is not none and request_path.startswith(href_products) %}
+            <a
+              class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+              href="{{ href_products }}"
+              >{{ box('w-5 h-5') }} Productos</a
+            >
+          </div>
+          <div>
+            {% set is_active = request_path is not none and request_path.startswith(href_inventory) %}
+            <a
+              class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+              href="{{ href_inventory }}"
+              >{{ inventory('w-5 h-5') }} Inventarios</a
+            >
+          </div>
+          <div>
+            <button
+              type="button"
+              class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+              aria-controls="dropdown-report"
+              data-collapse-toggle="dropdown-report"
+            >
+              {{ stats('shrink-0 w-5 h-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white') }}
+              <span
+                class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap"
+                >Reportes</span
+              >
+              <svg
+                class="w-3 h-3"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 10 6"
+              >
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="m1 1 4 4 4-4"
+                />
+              </svg>
+            </button>
+            {# Hacer que este abierto si el request_path comienza por alguno de los reportes #}
+            {%
+              set is_report_active = request_path is not none and (
+                request_path.startswith(href_monthly_sales_by_date) or
+                request_path.startswith(href_monthly_sales_by_product) or
+                request_path.startswith(href_inventory_consumption) or
+                request_path.startswith(href_ipv_report)
+              )
+            %}
+            <ul
+              id="dropdown-report"
+              class="{{ 'block' if is_report_active else 'hidden' }} py-2 space-y-2"
+            >
+              <li>
+                {% set is_active = request_path is not none and request_path.startswith(href_monthly_sales_by_date) %}
+                <a
+                  href="{{ href_monthly_sales_by_date }}"
+                  class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
+                  >Ventas por fecha</a
+                >
+              </li>
+              <li>
+                {% set is_active = request_path is not none and request_path.startswith(href_monthly_sales_by_product) %}
+                <a
+                  href="{{ href_monthly_sales_by_product }}"
+                  class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
+                  >Ventas por Producto</a
+                >
+              </li>
+              <li>
+                {% set is_active = request_path is not none and request_path.startswith(href_ipv_report) %}
+                <a
+                  href="{{ href_ipv_report }}"
+                  class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
+                  >Inventario a Precio de Venta</a
+                >
+              </li>
+              <li>
+                {% set is_active = request_path is not none and request_path.startswith(href_inventory_consumption) %}
+                <a
+                  href="{{ href_inventory_consumption }}"
+                  class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
+                  >Consumo de Materias Primas</a
+                >
+              </li>
+            </ul>
+          </div>
+        </nav>
+        <div class="mt-6 border-t border-gray-700 pt-4">
+          <a
+            class="flex items-center gap-3 p-2 rounded hover:bg-gray-700"
+            href="#"
+            >Settings</a
+          >
+          <a
+            class="flex items-center gap-3 p-2 rounded text-red-400 hover:bg-gray-700 mt-2"
+            href="#"
+            >Log out</a
+          >
+        </div>
+      </div>
+    </aside>
+
+    <script>
+      (function () {
+        const openBtn = document.getElementById("mobile-sidebar-open");
+        const backdrop = document.getElementById("mobile-sidebar-backdrop");
+        const sidebar = document.getElementById("mobile-sidebar");
+
+        function open() {
+          sidebar.classList.remove("-translate-x-full");
+          backdrop.classList.remove("hidden");
+        }
+
+        function close() {
+          sidebar.classList.add("-translate-x-full");
+          backdrop.classList.add("hidden");
+        }
+
+        if (openBtn) openBtn.addEventListener("click", open);
+        if (backdrop) backdrop.addEventListener("click", close);
+
+        // close on escape
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") close();
+        });
+      })();
+    </script>
 
     <!-- Pie de página fijo -->
     <footer
@@ -392,7 +533,7 @@
       <div
         class="container mx-auto px-4 text-center text-gray-600 dark:text-gray-300"
       >
-        © {{ now().year }} SALEManager | Grupo CONFIANZA.
+        © {{ now().year }} Bookkeeply | Grupo CONFIANZA.
       </div>
     </footer>
 
