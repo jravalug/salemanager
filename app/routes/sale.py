@@ -51,13 +51,64 @@ def sales(business_id):
         flash(str(e), "error")
         return redirect(url_for("business.business_list"))
 
-    # Obtener todas las ventas con sus productos cargados
-    all_sales = (
+    # Obtener todas las ventas con sus productos cargados (sin filtrar por mes) para construir opciones de filtro
+    all_sales_unfiltered = (
         Sale.query.options(joinedload(Sale.products))
         .filter_by(**filters)
         .order_by(Sale.date.desc())
         .all()
     )
+
+    # Lista de meses disponibles (YYYY-MM) a partir de las ventas sin filtrar
+    sales_by_months_unfiltered = group_sales_by_month(all_sales_unfiltered)
+    months = sorted(list(sales_by_months_unfiltered.keys()), reverse=True)
+
+    # Preparar etiqueta legible para cada mes (ej: 'Noviembre 2025')
+    month_names = [
+        "Enero",
+        "Febrero",
+        "Marzo",
+        "Abril",
+        "Mayo",
+        "Junio",
+        "Julio",
+        "Agosto",
+        "Septiembre",
+        "Octubre",
+        "Noviembre",
+        "Diciembre",
+    ]
+    months_display = []
+    for m in months:
+        try:
+            dt = datetime.strptime(m, "%Y-%m").date()
+            label = f"{month_names[dt.month - 1]} {dt.year}"
+        except Exception:
+            label = m
+        months_display.append((m, label))
+
+    # Si el usuario envía un parámetro de mes, filtrar las ventas por ese mes
+    month_param = request.args.get("month")
+    selected_month = month_param if month_param else None
+    if month_param:
+        try:
+            selected = datetime.strptime(month_param, "%Y-%m").date()
+            start_date = selected.replace(day=1)
+            end_date = start_date + relativedelta(months=1, days=-1)
+
+            all_sales = (
+                Sale.query.options(joinedload(Sale.products))
+                .filter_by(**filters)
+                .filter(Sale.date.between(start_date, end_date))
+                .order_by(Sale.date.desc())
+                .all()
+            )
+        except ValueError:
+            flash("Formato de mes inválido. Usa YYYY-MM.", "error")
+            all_sales = all_sales_unfiltered
+            selected_month = None
+    else:
+        all_sales = all_sales_unfiltered
     print(f"Los filtros son: {business.is_general}")
 
     # Crear una instancia del formulario
@@ -90,17 +141,113 @@ def sales(business_id):
             flash(f"Error inesperado: {str(e)}", "error")
             return redirect(url_for("sale.sales", business_id=business.id))
 
-    # Agrupar ventas por mes y calcular totales
+    # Agrupar ventas por mes y calcular totales (para compatibilidad)
     sales_by_months = group_sales_by_month(all_sales)
     month_totals = calculate_month_totals(sales_by_months)
 
-    # Renderizar la plantilla con los datos
+    # Construir una lista plana de ventas por día (fecha -> datos) a partir de sales_by_months
+    # Esto preserva el comportamiento anterior: una fila por día con totales y enlaces a ventas
+    daily_sales = {}
+    for month_key, dates in sales_by_months.items():
+        for date_key, data in dates.items():
+            # Si la fecha ya existe (no debería en condiciones normales), acumulamos
+            if date_key in daily_sales:
+                daily_sales[date_key]["total_products"] += data.get("total_products", 0)
+                daily_sales[date_key]["total_income"] += data.get("total_income", 0)
+                daily_sales[date_key]["sales"].extend(data.get("sales", []))
+            else:
+                daily_sales[date_key] = {
+                    "total_products": data.get("total_products", 0),
+                    "total_income": data.get("total_income", 0),
+                    "sales": list(data.get("sales", [])),
+                }
+
+    # Ordenar fechas descendente
+    daily_sales_sorted = sorted(daily_sales.items(), key=lambda x: x[0], reverse=True)
+    # Resumir productos por cada venta (cantidad total y total por producto)
+    sale_summaries = {}
+    for date_key, data in daily_sales.items():
+        for sale in data.get("sales", []):
+            summary = {}
+            for sd in getattr(sale, "products", []):
+                # Nombre legible del producto
+                try:
+                    pname = sd.product.name if sd.product else f"#{sd.product_id}"
+                except Exception:
+                    pname = f"#{sd.product_id}"
+
+                if pname in summary:
+                    summary[pname]["quantity"] += sd.quantity or 0
+                    summary[pname]["total_price"] += sd.total_price or 0
+                else:
+                    summary[pname] = {
+                        "quantity": sd.quantity or 0,
+                        "total_price": sd.total_price or 0,
+                        "unit_price": sd.unit_price or 0,
+                    }
+
+            # Convertir a lista para el template
+            sale_summaries[sale.id] = [
+                {
+                    "name": k,
+                    "quantity": v["quantity"],
+                    "total_price": v["total_price"],
+                    "unit_price": v["unit_price"],
+                }
+                for k, v in summary.items()
+            ]
+    # Determinar mes anterior/siguiente para la paginación por mes y nombre mostrable
+    prev_month = None
+    next_month = None
+    display_month_name = None
+    if selected_month and selected_month in months:
+        try:
+            idx = months.index(selected_month)
+            # months está ordenado en orden descendente (más reciente primero)
+            if idx + 1 < len(months):
+                prev_month = months[idx + 1]
+            if idx - 1 >= 0:
+                next_month = months[idx - 1]
+
+            # Formatear nombre del mes en español (ej: 'Marzo 2025')
+            dt = datetime.strptime(selected_month, "%Y-%m").date()
+            month_names = [
+                "Enero",
+                "Febrero",
+                "Marzo",
+                "Abril",
+                "Mayo",
+                "Junio",
+                "Julio",
+                "Agosto",
+                "Septiembre",
+                "Octubre",
+                "Noviembre",
+                "Diciembre",
+            ]
+            display_month_name = f"{month_names[dt.month - 1]} {dt.year}"
+        except Exception:
+            # En caso de cualquier error de parseo/índice, caemos a mostrar el raw
+            display_month_name = selected_month
+    else:
+        display_month_name = "Todos"
+
+    # Renderizar la plantilla con los datos y opciones de filtro
     return render_template(
         "sale/list.html",
         business=business,
         sales_by_months=sales_by_months,
         month_totals=month_totals,
         add_sale_form=add_sale_form,
+        months=months,
+        months_display=months_display,
+        all_sales=all_sales,
+        selected_month=selected_month,
+        daily_sales_sorted=daily_sales_sorted,
+        prev_month=prev_month,
+        next_month=next_month,
+        display_month_name=display_month_name,
+        sale_summaries=sale_summaries,
     )
 
 

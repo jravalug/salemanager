@@ -4,111 +4,389 @@
   <script src="{{ url_for('main.node_modules', filename='simple-datatables/dist/umd/simple-datatables.js') }}"></script>
 {% endblock vendor_javascript %}
 {% block content %}
-  <!-- Hero Section -->
-  <section class="py-12">
-    <div class="container mx-auto px-4 text-center">
-      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
-        Gestión de Ventas - {{ business.name }}
-      </h1>
-      <p class="text-lg text-gray-600 dark:text-gray-300 mt-2">
-        Administra las ventas de tu negocio.
-      </p>
-    </div>
-  </section>
-
-  <!-- Formulario para Agregar una Nueva Venta -->
-  <section class="bg-white py-12 dark:bg-gray-800">
-    <div class="container mx-auto px-4">
-      <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">
-        Agregar Nueva Venta
-      </h2>
-
-      <button
-        type="button"
-        data-modal-target="add_sale_modal"
-        data-modal-toggle="add_sale_modal"
-        class="mt-4 flex w-full items-center justify-center rounded-lg bg-primary-700  px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-800 focus:outline-none focus:ring-4 focus:ring-primary-300  dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 sm:mt-0"
-      >
-        Agregar Venta
-      </button>
-    </div>
-  </section>
-
-  <!-- Listado de Ventas Agrupadas por Mes -->
-  <section class="bg-gray-100 py-12 dark:bg-gray-800">
-    <div class="container mx-auto px-4">
-      {% if sales_by_months %}
-        {% for month, sales_by_month in sales_by_months.items() %}
-          <div class="mb-12">
-            <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">
-              Mes: {{ month }}
-            </h3>
-            <p class="text-gray-600 dark:text-gray-300 mb-6">
-              <strong>Ingreso Total del Mes:</strong>
-              {{ month_totals[month] | currency }}
-            </p>
-            <div
-              class="overflow-x-auto relative bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-100 dark:border-gray-700"
+  <section class="bg-gray-50 dark:bg-gray-900">
+    <div class="">
+      <div class="bg-white shadow-md dark:bg-gray-800 sm:rounded-lg">
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-white p-6">
+          Gestión de Ventas - {{ business.name }}
+        </h3>
+        <div
+          class="flex flex-col px-4 py-3 space-y-3 lg:flex-row lg:items-center lg:justify-between lg:space-y-0 lg:space-x-4"
+        >
+          <div class="flex items-center flex-1 space-x-4">
+            <h5>
+              <span class="text-gray-500">Ventas:</span>
+              <span class="dark:text-white">{{ all_sales|length }}</span>
+            </h5>
+            <h5>
+              <span class="text-gray-500">Total ventas:</span>
+              <span class="dark:text-white">
+                {% if selected_month %}
+                  {{ month_totals.get(selected_month, 0) | currency }}
+                {% else %}
+                  {{ month_totals.values() | sum | currency }}
+                {% endif %}
+              </span>
+            </h5>
+          </div>
+          <div
+            class="flex flex-col flex-shrink-0 space-y-3 md:flex-row md:items-center lg:justify-end md:space-y-0 md:space-x-3"
+          >
+            <button
+              type="button"
+              data-modal-target="add_sale_modal"
+              data-modal-toggle="add_sale_modal"
+              class="flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800"
             >
-              <table
-                class="sales-table w-full text-sm text-left text-gray-500 dark:text-gray-400"
+              <svg
+                class="h-3.5 w-3.5 mr-2"
+                fill="currentColor"
+                viewbox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
               >
-                <thead
-                  class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
-                >
-                  <tr>
-                    <th scope="col" class="py-3 px-6">Fecha</th>
-                    <th scope="col" class="py-3 px-6">
-                      Cantidad de Productos Vendidos
-                    </th>
-                    <th scope="col" class="py-3 px-6">Ingresos Totales</th>
-                    <th scope="col" class="py-3 px-6">Ventas</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for date, data in sales_by_month.items() %}
-                    <tr
-                      class="bg-white border-b dark:bg-gray-800 dark:border-gray-700"
+                <path
+                  clip-rule="evenodd"
+                  fill-rule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                />
+              </svg>
+              Agregar venta
+            </button>
+            <form
+              method="get"
+              action="{{ url_for('sale.sales', business_id=business.id) }}"
+              class="flex items-center space-x-2"
+            >
+              <label for="month_top" class="sr-only">Filtrar por mes</label>
+              <select
+                id="month_top"
+                name="month"
+                onchange="this.form.submit()"
+                class="text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+              >
+                <option value="">Todos</option>
+                {% if months_display %}
+                  {% for m, label in months_display %}
+                    <option
+                      value="{{ m }}"
+                      {% if m == selected_month %}selected{% endif %}
                     >
-                      <td class="py-4 px-6">{{ date }}</td>
-                      <td class="py-4 px-6">{{ data.total_products }}</td>
-                      <td class="py-4 px-6">
-                        {{ data.total_income | currency }}
-                      </td>
-                      <td class="py-4 px-6">
-                        {% for sale in data.sales %}
-                          <a
-                            href="{{ url_for('sale.details', business_id=business.id, sale_id=sale.id) }}"
-                            class=" hover:underline {{ 'text-blue-500 dark:text-blue-400' if sale.has_specific_business() }}{{ 'text-red-500 dark:text-red-400' if sale.excluded }}"
-                          >
-                            {{ 'TRF-' if sale.is_transfer() }}[{{ sale.sale_number }}]
-                          </a>
-                        {% endfor %}
-                      </td>
-                    </tr>
+                      {{ label }}
+                    </option>
                   {% endfor %}
-                </tbody>
-              </table>
+                {% else %}
+                  {% if months %}
+                    {% for m in months %}
+                      <option
+                        value="{{ m }}"
+                        {% if m == selected_month %}selected{% endif %}
+                      >
+                        {{ m }}
+                      </option>
+                    {% endfor %}
+                  {% endif %}
+                {% endif %}
+              </select>
+              <!-- Fallback button for users without JS -->
+              <noscript>
+                <button
+                  type="submit"
+                  class="inline-flex items-center rounded-lg bg-primary-700 px-3 py-2 text-sm font-medium text-white hover:bg-primary-800"
+                >
+                  Filtrar
+                </button>
+              </noscript>
+            </form>
+          </div>
+        </div>
+        <div class="overflow-x-auto min-h-52 md:min-h-64 lg:min-h-72">
+          <table
+            class="w-full text-sm text-left text-gray-500 dark:text-gray-400"
+          >
+            <thead
+              class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+            >
+              <tr>
+                <th scope="col" class="px-4 py-3 text-left">Día</th>
+                <th scope="col" class="px-4 py-3 text-center">Órdenes</th>
+                <th scope="col" class="px-4 py-3 text-center">Productos</th>
+                <th scope="col" class="px-4 py-3 text-left">Ventas</th>
+                <th scope="col" class="px-4 py-3 text-right">Ingresos</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if daily_sales_sorted and daily_sales_sorted|length > 0 %}
+                {% for date, data in daily_sales_sorted %}
+                  {% set parts = date.split('-') %}
+                  {% set formatted_date = parts[2] ~ '/' ~ parts[1] ~ '/' ~ parts[0] %}
+                  {% set sales_count = data.sales|length %}
+                  <tr
+                    class="border-b dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer clickable-row"
+                    data-date="{{ date }}"
+                    tabindex="0"
+                    role="button"
+                    aria-expanded="false"
+                  >
+                    <td
+                      class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                    >
+                      {{ formatted_date }}
+                    </td>
+                    <td class="px-4 py-2 text-center">{{ sales_count }}</td>
+                    <td class="px-4 py-2 text-center">
+                      {{ data.total_products }}
+                    </td>
+
+                    <td class="px-4 py-2">
+                      {% for sale in data.sales %}
+                        <a
+                          href="{{ url_for('sale.details', business_id=business.id, sale_id=sale.id) }}"
+                          class="inline-block me-2 hover:underline {{ 'text-blue-500 dark:text-blue-400' if sale.has_specific_business() }}{{ 'text-red-500 dark:text-red-400' if sale.excluded }}"
+                        >
+                          {{ 'TRF-' if sale.is_transfer() }}[{{ sale.sale_number }}]
+                        </a>
+                      {% endfor %}
+                    </td>
+                    <td class="px-4 py-2 text-right">
+                      <div class="flex items-center">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewbox="0 0 24 24"
+                          fill="currentColor"
+                          class="w-5 h-5 mr-2 text-gray-400"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M2.25 2.25a.75.75 0 000 1.5h1.386c.17 0 .318.114.362.278l2.558 9.592a3.752 3.752 0 00-2.806 3.63c0 .414.336.75.75.75h15.75a.75.75 0 000-1.5H5.378A2.25 2.25 0 017.5 15h11.218a.75.75 0 00.674-.421 60.358 60.358 0 002.96-7.228.75.75 0 00-.525-.965A60.864 60.864 0 005.68 4.509l-.232-.867A1.875 1.875 0 003.636 2.25H2.25zM3.75 20.25a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zM16.5 20.25a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z"
+                          />
+                        </svg>
+
+                        {{ data.total_income | currency }}
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="details-row hidden bg-gray-50 dark:bg-gray-800">
+                    <td colspan="5" class="px-4 py-3">
+                      <div class="space-y-2">
+                        {% for sale in data.sales %}
+                          <div
+                            class="p-3 bg-white dark:bg-gray-900 rounded border"
+                          >
+                            <div
+                              class="flex flex-col md:flex-row md:items-start md:justify-between md:space-x-4"
+                            >
+                              <div class="flex-1">
+                                <div class="flex items-baseline space-x-3">
+                                  <a
+                                    href="{{ url_for('sale.details', business_id=business.id, sale_id=sale.id) }}"
+                                    class="font-medium hover:underline {{ 'text-blue-500 dark:text-blue-400' if sale.has_specific_business() }}{{ 'text-red-500 dark:text-red-400' if sale.excluded }}"
+                                    >{{ 'TRF-' if sale.is_transfer() }}[{{ sale.sale_number }}]</a
+                                  >
+                                  <span class="text-xs text-gray-500"
+                                    >{% if sale.date %}{{ sale.date.strftime('%d/%m/%Y') }}{% endif %}</span
+                                  >
+                                  <span class="text-xs text-gray-400">•</span>
+                                  <span class="text-xs text-gray-500"
+                                    >{{ sale.payment_method }}</span
+                                  >
+                                  <span class="text-xs text-gray-400">•</span>
+                                  <span class="text-xs text-gray-500"
+                                    >{{ sale.status }}</span
+                                  >
+                                </div>
+                                {% if sale.customer_name %}
+                                  <div
+                                    class="text-sm text-gray-600 dark:text-gray-300 mt-1"
+                                  >
+                                    Cliente:
+                                    <span
+                                      class="font-medium text-gray-800 dark:text-white"
+                                      >{{ sale.customer_name }}</span
+                                    >
+                                  </div>
+                                {% endif %}
+                                {% set summary = sale_summaries.get(sale.id) if sale_summaries is defined else none %}
+                                {% if summary %}
+                                  <div
+                                    class="mt-2 text-sm text-gray-600 dark:text-gray-300"
+                                  >
+                                    <strong class="text-xs text-gray-500"
+                                      >Productos (resumen):</strong
+                                    >
+                                    <ul
+                                      class="mt-1 list-disc list-inside text-xs"
+                                    >
+                                      {% for p in summary %}
+                                        <li>
+                                          {{ p.name }} — {{ p.quantity }} ×
+                                          {{ p.unit_price | currency }}
+                                          <span class="text-gray-500"
+                                            >({{ p.total_price | currency }})</span
+                                          >
+                                        </li>
+                                      {% endfor %}
+                                    </ul>
+                                  </div>
+                                {% elif sale.products and sale.products|length > 0 %}
+                                  <div
+                                    class="mt-2 text-sm text-gray-600 dark:text-gray-300"
+                                  >
+                                    <strong class="text-xs text-gray-500"
+                                      >Productos:</strong
+                                    >
+                                    <ul
+                                      class="mt-1 list-disc list-inside text-xs"
+                                    >
+                                      {% for p in sale.products %}
+                                        <li>
+                                          {{ p.product.name if p.product else 'N/A' }}
+                                          — {{ p.quantity }} ×
+                                          {{ p.unit_price | currency }}
+                                          <span class="text-gray-500"
+                                            >({{ p.total_price | currency }})</span
+                                          >
+                                        </li>
+                                      {% endfor %}
+                                    </ul>
+                                  </div>
+                                {% endif %}
+                              </div>
+
+                              <div
+                                class="mt-3 md:mt-0 md:flex md:flex-col md:items-end md:justify-center"
+                              >
+                                <div class="text-sm text-gray-500">
+                                  Subtotal:
+                                  <span
+                                    class="font-medium text-gray-900 dark:text-white"
+                                    >{{ sale.subtotal_amount | currency }}</span
+                                  >
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                  Descuento:
+                                  <span
+                                    class="font-medium text-gray-900 dark:text-white"
+                                    >{{ sale.discount | currency }}</span
+                                  >
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                  Impuesto:
+                                  <span
+                                    class="font-medium text-gray-900 dark:text-white"
+                                    >{{ sale.tax | currency }}</span
+                                  >
+                                </div>
+                                <div
+                                  class="text-base font-semibold text-gray-900 dark:text-white mt-1"
+                                >
+                                  Total: {{ sale.total_amount | currency }}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        {% endfor %}
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td
+                    colspan="6"
+                    class="px-4 py-4 text-center text-gray-600 dark:text-gray-300"
+                  >
+                    No hay ventas registradas.
+                  </td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+        <nav class="w-full p-4" aria-label="Paginación por mes">
+          <div class="flex items-center justify-between">
+            <div class="flex-1 flex justify-start">
+              {% if prev_month %}
+                <a
+                  href="{{ url_for('sale.sales', business_id=business.id, month=prev_month) }}"
+                  class="inline-flex items-center px-4 py-2 text-sm font-medium text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none"
+                >
+                  &larr; Anterior
+                </a>
+              {% else %}
+                <button
+                  type="button"
+                  disabled
+                  class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed"
+                >
+                  &larr; Anterior
+                </button>
+              {% endif %}
+            </div>
+
+            <div class="flex-1 text-center">
+              <span class="text-sm font-semibold text-gray-900 dark:text-white"
+                >{{ display_month_name }}</span
+              >
+            </div>
+
+            <div class="flex-1 flex justify-end">
+              {% if next_month %}
+                <a
+                  href="{{ url_for('sale.sales', business_id=business.id, month=next_month) }}"
+                  class="inline-flex items-center px-4 py-2 text-sm font-medium text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none"
+                >
+                  Siguiente &rarr;
+                </a>
+              {% else %}
+                <button
+                  type="button"
+                  disabled
+                  class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed"
+                >
+                  Siguiente &rarr;
+                </button>
+              {% endif %}
             </div>
           </div>
-        {% endfor %}
-      {% else %}
-        <div class="text-center text-gray-600 dark:text-gray-300">
-          <p>No hay ventas registradas.</p>
-        </div>
-      {% endif %}
-    </div>
-  </section>
+        </nav>
+        <script>
+          (function () {
+            function toggleDetails(row) {
+              var next = row.nextElementSibling;
+              if (!next || !next.classList.contains("details-row")) return;
+              var isHidden = next.classList.contains("hidden");
+              if (isHidden) {
+                next.classList.remove("hidden");
+                row.setAttribute("aria-expanded", "true");
+              } else {
+                next.classList.add("hidden");
+                row.setAttribute("aria-expanded", "false");
+              }
+            }
 
-  <!-- Botón para Regresar al Dashboard -->
-  <section class="bg-white py-6 dark:bg-gray-800">
-    <div class="container mx-auto px-4 text-center">
-      <a
-        href="{{ url_for('business.dashboard', business_id=business.id) }}"
-        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-      >
-        Regresar al Dashboard
-      </a>
+            document.addEventListener("DOMContentLoaded", function () {
+              var rows = document.querySelectorAll(".clickable-row");
+              rows.forEach(function (r) {
+                r.addEventListener("click", function (e) {
+                  if (e.target.closest("a")) return; // don't toggle when clicking a link
+                  toggleDetails(r);
+                });
+                r.addEventListener("keydown", function (e) {
+                  if (
+                    e.key === "Enter" ||
+                    e.key === " " ||
+                    e.key === "Spacebar"
+                  ) {
+                    e.preventDefault();
+                    toggleDetails(r);
+                  }
+                });
+              });
+            });
+          })();
+        </script>
+      </div>
     </div>
   </section>
 

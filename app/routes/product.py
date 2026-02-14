@@ -11,6 +11,8 @@ from flask import (
 from app.extensions import db
 from app.forms import ProductForm, ProductDetailForm, DeleteProductDetailForm
 from app.models import Business, InventoryItem
+from app.models import Business, InventoryItem, Sale, SaleDetail, ProductDetail
+from sqlalchemy import func
 from app.services import BusinessService, ProductService
 
 
@@ -59,11 +61,96 @@ def list(business_id):
     products_list = product_service.get_all_products(
         business_id=business_filter["business_id"]
     )
+    # Obtener lista de categorías únicas para el filtro
+    categories = sorted(
+        {p.category for p in products_list if getattr(p, "category", None)}
+    )
+    # Calcular estadísticas de ventas por producto: total cantidad vendida y fecha de última venta
+    sale_stats = {}
+    product_ids = [p.id for p in products_list]
+    if product_ids:
+        rows = (
+            db.session.query(
+                SaleDetail.product_id,
+                func.coalesce(func.sum(SaleDetail.quantity), 0).label("total_sold"),
+                func.count(func.distinct(SaleDetail.sale_id)).label("orders_count"),
+                func.max(Sale.date).label("last_sale_date"),
+            )
+            .join(Sale, Sale.id == SaleDetail.sale_id)
+            .filter(Sale.business_id == business_filter["business_id"])
+            .filter(SaleDetail.product_id.in_(product_ids))
+            .group_by(SaleDetail.product_id)
+            .all()
+        )
+        for pid, total_sold, orders_count, last_date in rows:
+            sale_stats[pid] = {
+                "total_sold": int(total_sold) if total_sold is not None else 0,
+                "orders_count": int(orders_count) if orders_count is not None else 0,
+                "last_sale_date": last_date,
+            }
+
+        # Fetch product -> raw materials (ProductDetail) and compute used quantities
+        pd_rows = (
+            db.session.query(
+                ProductDetail.product_id,
+                ProductDetail.raw_material_id,
+                ProductDetail.quantity.label("qty_per_product"),
+                InventoryItem.name.label("raw_name"),
+                InventoryItem.unit.label("raw_unit"),
+            )
+            .join(InventoryItem, InventoryItem.id == ProductDetail.raw_material_id)
+            .filter(ProductDetail.product_id.in_(product_ids))
+            .all()
+        )
+        raw_map = {}
+        for prod_id, raw_id, qty_per_product, raw_name, raw_unit in pd_rows:
+            raw_map.setdefault(prod_id, []).append(
+                {
+                    "raw_id": raw_id,
+                    "raw_name": raw_name,
+                    "raw_unit": raw_unit,
+                    "qty_per_product": qty_per_product,
+                }
+            )
+
+        # attach raw materials usage to sale_stats
+        for pid in product_ids:
+            stats = sale_stats.get(
+                pid, {"total_sold": 0, "orders_count": 0, "last_sale_date": None}
+            )
+            total_sold = stats.get("total_sold", 0)
+            materials = []
+            for m in raw_map.get(pid, []):
+                used_total = None
+                try:
+                    used_total = float(m["qty_per_product"]) * float(total_sold)
+                except Exception:
+                    used_total = 0
+                materials.append(
+                    {
+                        "raw_id": m["raw_id"],
+                        "raw_name": m["raw_name"],
+                        "raw_unit": m["raw_unit"],
+                        "qty_per_product": m["qty_per_product"],
+                        "used_total": used_total,
+                    }
+                )
+            if pid in sale_stats:
+                sale_stats[pid]["raw_materials"] = materials
+            else:
+                sale_stats[pid] = {
+                    "total_sold": 0,
+                    "orders_count": 0,
+                    "last_sale_date": None,
+                    "raw_materials": materials,
+                }
     return render_template(
         "product/list.html",
         business=business,
         products=products_list,
         add_product_form=add_product_form,
+        categories=categories,
+        sale_stats=sale_stats,
     )
 
 

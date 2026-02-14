@@ -3,93 +3,6 @@
   <script src="{{ url_for('main.node_modules', filename='simple-datatables/dist/umd/simple-datatables.js') }}"></script>
 {% endblock vendor_javascript %}
 {% block content %}
-  <!-- Hero Section -->
-  <section class="py-12">
-    <div class="container mx-auto px-4 text-center">
-      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
-        Gestión de Productos - {{ business.name }}
-      </h1>
-      <p class="text-lg text-gray-600 dark:text-gray-300 mt-2">
-        Administra los productos de tu negocio.
-      </p>
-    </div>
-  </section>
-
-  <!-- Formulario para Agregar un Nuevo Producto -->
-  <section class="bg-white py-12 dark:bg-gray-800">
-    <div class="container mx-auto px-4">
-      <h2
-        class="text-2xl font-bold text-gray-800 dark:text-white mb-6 text-center"
-      >
-        Agregar Nuevo Producto
-      </h2>
-
-      <!-- Botón de Envío -->
-      <button
-        type="button"
-        data-modal-target="add_product_modal"
-        data-modal-toggle="add_product_modal"
-        class="mt-4 flex w-full items-center justify-center rounded-lg bg-primary-700  px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-800 focus:outline-none focus:ring-4 focus:ring-primary-300  dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 sm:mt-0"
-      >
-        Agregar Producto
-      </button>
-    </div>
-  </section>
-
-  <!-- Listado de Productos -->
-  {# <section class="bg-gray-100 py-12 dark:bg-gray-800">
-    <div class="container mx-auto px-4">
-      <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">
-        Listado de Productos
-      </h3>
-      <div class="overflow-x-auto relative">
-        <!-- Tabla de Productos -->
-        <table
-          class="w-full text-sm text-left text-gray-500 dark:text-gray-400"
-        >
-          <thead
-            class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
-          >
-            <tr>
-              <th scope="col" class="py-3 px-6">ID</th>
-              <th scope="col" class="py-3 px-6">Nombre</th>
-              <th scope="col" class="py-3 px-6">Precio</th>
-              <th scope="col" class="py-3 px-6">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for product in products %}
-              <tr
-                class="bg-white border-b dark:bg-gray-800 dark:border-gray-700"
-              >
-                <td class="py-4 px-6">{{ product.id }}</td>
-                <td class="py-4 px-6">
-                  <a
-                    href="{{ url_for('product.technical_card', business_id=business.id, product_id=product.id) }}"
-                    >{{ product.name }}</a
-                  >
-                </td>
-                <td class="py-4 px-6">${{ product.price | currency }}</td>
-              </tr>
-              <tr></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section> #}
-
-  <!-- Botón para Regresar al Dashboard -->
-  <section class="bg-white py-6 dark:bg-gray-800">
-    <div class="container mx-auto px-4 text-center">
-      <a
-        href="{{ url_for('business.dashboard', business_id=business.id) }}"
-        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-      >
-        Regresar al Dashboard
-      </a>
-    </div>
-  </section>
 
   {# Modal Agregar Producto #}
   <div
@@ -280,167 +193,676 @@
     </div>
   </div>
 
-  <section class="bg-gray-50 dark:bg-gray-900 p-3 sm:p-5 antialiased">
-    <table id="products-table">
-      <thead>
-        <tr>
-          <th>
-            <span class="flex items-center">
-              Nombre
-              <svg
-                class="w-4 h-4 ms-1"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                fill="none"
-                viewBox="0 0 24 24"
+  <section class="bg-gray-50 dark:bg-gray-900">
+    <div class="">
+      <div class="bg-white shadow-md dark:bg-gray-800 sm:rounded-lg">
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-white p-6">
+          Listado de Productos - {{ business.name }}
+        </h3>
+        <div
+          class="flex flex-col px-4 py-3 space-y-3 lg:flex-row lg:items-center lg:justify-between lg:space-y-0 lg:space-x-4"
+        >
+          <div class="flex items-center flex-1 space-x-4">
+            <h5>
+              <span class="text-gray-500">Productos:</span>
+              <span id="products-count-visible" class="dark:text-white"
+                >{{ products|length }}</span
               >
-                <path
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="m8 15 4 4 4-4m0-6-4-4-4 4"
-                />
-              </svg>
-            </span>
-          </th>
-          <th>
-            <span class="flex items-center">
-              Categoria
-              <svg
-                class="w-4 h-4 ms-1"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                fill="none"
-                viewBox="0 0 24 24"
+              <span class="text-gray-400">/</span>
+              <span id="products-count-total" class="dark:text-white"
+                >{{ products|length }}</span
               >
-                <path
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="m8 15 4 4 4-4m0-6-4-4-4 4"
-                />
-              </svg>
-            </span>
-          </th>
-          <th>
-            <span class="flex items-center">
-              Precio
-              <svg
-                class="w-4 h-4 ms-1"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                fill="none"
-                viewBox="0 0 24 24"
+            </h5>
+            <div class="flex items-center space-x-3">
+              <label for="products-search" class="sr-only"
+                >Buscar productos</label
               >
-                <path
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="m8 15 4 4 4-4m0-6-4-4-4 4"
+              <div class="relative w-full">
+                <div
+                  class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="w-5 h-5 text-gray-500 dark:text-gray-400"
+                    fill="currentColor"
+                    viewbox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  id="products-search"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                  placeholder="Buscar productos..."
+                  required=""
                 />
-              </svg>
-            </span>
-          </th>
-          <th>
-            <span class="flex items-center">
-              Estado
-              <svg
-                class="w-4 h-4 ms-1"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="m8 15 4 4 4-4m0-6-4-4-4 4"
-                />
-              </svg>
-            </span>
-          </th>
-          <th>
-            <span class="flex items-center"> Acciones </span>
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for product in products %}
-          <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
-            <td
-              class="font-medium text-gray-900 whitespace-nowrap dark:text-white"
+              </div>
+            </div>
+          </div>
+          <div
+            class="flex flex-col flex-shrink-0 space-y-3 md:flex-row md:items-center lg:justify-end md:space-y-0 md:space-x-3"
+          >
+            <button
+              type="button"
+              data-modal-target="add_product_modal"
+              data-modal-toggle="add_product_modal"
+              class="flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800"
             >
-              <a
-                href="{{ url_for('product.technical_card', business_id=business.id, product_id=product.id ) }}"
-                >{{ product.name }}</a
+              <svg
+                class="h-3.5 w-3.5 mr-2"
+                fill="currentColor"
+                viewbox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
               >
-            </td>
-            <td>{{ product.category }}</td>
-            <td>{{ product.price|currency }}</td>
-            <td>
-              {% if product.is_active %}
-                <span
-                  class="bg-green-100 text-green-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded-sm dark:bg-gray-700 dark:text-green-400 border border-green-400"
-                  >Producto activo</span
+                <path
+                  clip-rule="evenodd"
+                  fill-rule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                />
+              </svg>
+              Agregar producto
+            </button>
+            {% if categories is defined and categories|length > 0 %}
+              <div class="">
+                <label for="products-category" class="sr-only"
+                  >Filtrar por categoría</label
                 >
+                <select
+                  id="products-category"
+                  class="text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                >
+                  <option value="">Todas las categorías</option>
+                  {% for c in categories %}
+                    <option value="{{ c }}">{{ c }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="overflow-x-auto min-h-52 md:min-h-64 lg:min-h-72">
+          <table
+            id="products-table"
+            class="w-full text-sm text-left text-gray-500 dark:text-gray-400 table-fixed"
+            style="table-layout: fixed;"
+          >
+            <colgroup>
+              <!-- Primera columna más ancha; las demás se mantienen al mínimo (10% cada una) -->
+              <col style="width:40%;" />
+              <col style="width:10%;" />
+              <col style="width:10%;" />
+              <col style="width:10%;" />
+              <col style="width:10%;" />
+              <col style="width:10%;" />
+            </colgroup>
+            <thead
+              class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+            >
+              <tr>
+                <th
+                  scope="col"
+                  data-type="string"
+                  class="px-4 py-3 text-left cursor-pointer select-none"
+                  tabindex="0"
+                  aria-sort="none"
+                >
+                  Nombre
+                </th>
+                <th
+                  scope="col"
+                  data-type="string"
+                  class="px-4 py-3 text-center cursor-pointer select-none"
+                  tabindex="0"
+                  aria-sort="none"
+                >
+                  Categoría
+                </th>
+                <th
+                  scope="col"
+                  data-type="number"
+                  class="px-4 py-3 text-center cursor-pointer select-none"
+                  tabindex="0"
+                  aria-sort="none"
+                >
+                  Total vendidos
+                </th>
+                <th
+                  scope="col"
+                  data-type="date"
+                  class="px-4 py-3 text-center cursor-pointer select-none"
+                  tabindex="0"
+                  aria-sort="none"
+                >
+                  Última venta
+                </th>
+                <th
+                  scope="col"
+                  data-type="string"
+                  class="px-4 py-3 text-center cursor-pointer select-none"
+                  tabindex="0"
+                  aria-sort="none"
+                >
+                  Estado
+                </th>
+                <th
+                  scope="col"
+                  data-type="number"
+                  class="px-4 py-3 text-right cursor-pointer select-none"
+                  tabindex="0"
+                  aria-sort="none"
+                >
+                  Precio
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if products and products|length > 0 %}
+                {% for product in products %}
+                  <tr
+                    class="border-b dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer clickable-row"
+                    tabindex="0"
+                    role="button"
+                    aria-expanded="false"
+                    data-product-id="{{ product.id }}"
+                  >
+                    <td
+                      class="px-4 py-2 font-medium text-gray-900 dark:text-white"
+                    >
+                      <a
+                        href="{{ url_for('product.technical_card', business_id=business.id, product_id=product.id ) }}"
+                        >{{ product.name }}</a
+                      >
+                    </td>
+                    <td class="px-4 py-2 text-center">
+                      {{ product.category }}
+                    </td>
+                    {% set stats = sale_stats.get(product.id) if sale_stats is defined else None %}
+                    <td class="px-4 py-2 text-center">
+                      {{ stats.total_sold if stats and stats.total_sold is not none else 0 }}
+                    </td>
+                    <td class="px-4 py-2 text-center">
+                      {% if stats and stats.last_sale_date %}
+                        {{ stats.last_sale_date.strftime('%d/%m/%Y') }}
+                      {% else %}
+                        —
+                      {% endif %}
+                    </td>
+                    <td class="px-4 py-2 text-center">
+                      {% if product.is_active %}
+                        <span
+                          class="bg-green-100 text-green-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded-sm dark:bg-gray-700 dark:text-green-400 border border-green-400"
+                          >Activo</span
+                        >
+                      {% else %}
+                        <span
+                          class="bg-red-100 text-red-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded-sm dark:bg-red-900 dark:text-red-300"
+                          >Inactivo</span
+                        >
+                      {% endif %}
+                    </td>
+                    <td class="px-4 py-2 text-right">
+                      {{ product.price|currency }}
+                    </td>
+                  </tr>
+                  <tr class="details-row hidden bg-gray-50 dark:bg-gray-800">
+                    <td colspan="6" class="px-4 py-3">
+                      <div class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <div class="text-sm text-gray-500">Descripción</div>
+                            <div class="text-sm text-gray-800 dark:text-white">
+                              {{ product.description or '—' }}
+                            </div>
+                            <div class="text-sm text-gray-500 mt-3">
+                              Instrucciones
+                            </div>
+                            <div class="text-sm text-gray-800 dark:text-white">
+                              {{ product.instructions or '—' }}
+                            </div>
+                          </div>
+                          <div>
+                            <div class="text-sm text-gray-500">Información</div>
+                            <ul
+                              class="text-sm text-gray-800 dark:text-white space-y-1 mt-1"
+                            >
+                              <li>
+                                <strong>Unidad:</strong>
+                                {{ product.unit or '—' }}
+                              </li>
+                              <li>
+                                <strong>SKU:</strong> {{ product.sku or '—' }}
+                              </li>
+                              <li>
+                                <strong>Barcode:</strong>
+                                {{ product.barcode or '—' }}
+                              </li>
+                              <li>
+                                <strong>Precio:</strong>
+                                {{ product.price|currency }}
+                              </li>
+                              <li>
+                                <strong>Costo unitario:</strong>
+                                {% if product.cost_price %}{{ product.cost_price|currency }}{% else %}—{% endif %}
+                              </li>
+                              <li>
+                                <strong>Preparado por lotes:</strong>
+                                {{ 'Sí' if product.is_batch_prepared else 'No' }}
+                              </li>
+                              <li>
+                                <strong>Tamaño de lote:</strong>
+                                {{ product.batch_size or '—' }}
+                              </li>
+                              <li>
+                                <strong>Stock mínimo:</strong>
+                                {{ product.min_stock or '—' }}
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <div class="text-sm text-gray-500">
+                              Pedidos que incluyen este producto
+                            </div>
+                            <div
+                              class="text-lg font-semibold text-gray-900 dark:text-white mt-1"
+                            >
+                              {{ sale_stats.get(product.id).orders_count if sale_stats.get(product.id) else 0 }}
+                            </div>
+                          </div>
+                          <div>
+                            <div class="text-sm text-gray-500">
+                              Cantidad total vendida
+                            </div>
+                            <div
+                              class="text-lg font-semibold text-gray-900 dark:text-white mt-1"
+                            >
+                              {{ sale_stats.get(product.id).total_sold if sale_stats.get(product.id) else 0 }}
+                            </div>
+                          </div>
+                          <div>
+                            <div class="text-sm text-gray-500">
+                              Última venta
+                            </div>
+                            <div
+                              class="text-lg font-semibold text-gray-900 dark:text-white mt-1"
+                            >
+                              {% if sale_stats.get(product.id) and sale_stats.get(product.id).last_sale_date %}{{ sale_stats.get(product.id).last_sale_date.strftime('%d/%m/%Y') }}{% else %}—{% endif %}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div class="text-sm text-gray-500 mb-2">
+                            Materias primas utilizadas
+                          </div>
+                          {% set mats = sale_stats.get(product.id).raw_materials if sale_stats.get(product.id) else [] %}
+                          {% if mats and mats|length > 0 %}
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              {% for m in mats %}
+                                <div
+                                  class="border rounded-md p-3 bg-white dark:bg-gray-700"
+                                >
+                                  <div
+                                    class="flex items-center justify-between"
+                                  >
+                                    <div
+                                      class="text-sm font-semibold text-gray-900 dark:text-white"
+                                    >
+                                      {{ m.raw_name }}
+                                    </div>
+                                    <div class="text-xs text-gray-500">
+                                      {{ m.raw_unit or '—' }}
+                                    </div>
+                                  </div>
+                                  <div
+                                    class="mt-2 text-sm text-gray-700 dark:text-gray-200"
+                                  >
+                                    <div>
+                                      <span class="text-gray-500"
+                                        >Cant. por producto:</span
+                                      >
+                                      <span class="font-medium"
+                                        >{{ m.qty_per_product|round(2) }}</span
+                                      >
+                                    </div>
+                                    <div class="mt-1">
+                                      <span class="text-gray-500"
+                                        >Total usado:</span
+                                      >
+                                      <span class="font-medium"
+                                        >{{ m.used_total|round(2) }}</span
+                                      >
+                                    </div>
+                                  </div>
+                                </div>
+                              {% endfor %}
+                            </div>
+                          {% else %}
+                            <div class="text-sm text-gray-500">
+                              No hay materias primas asociadas a este producto.
+                            </div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
               {% else %}
-                <span
-                  class="bg-red-100 text-red-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded-sm dark:bg-red-900 dark:text-red-300"
-                  >Producto inactivo</span
-                >
+                <tr>
+                  <td
+                    colspan="6"
+                    class="px-4 py-4 text-center text-gray-600 dark:text-gray-300"
+                  >
+                    No tiene productos en existencia.
+                  </td>
+                </tr>
               {% endif %}
-            </td>
-            <td>Actions {{ loop }}</td>
-          </tr>
-        {% else %}
-          No tiene productos en existencia.
-        {% endfor %}
-      </tbody>
-    </table>
+            </tbody>
+          </table>
+        </div>
+        <div class="p-4">
+          <span class="text-sm text-gray-500"
+            >Mostrando
+            <span
+              id="products-count-footer"
+              class="font-semibold text-gray-900 dark:text-white"
+              >{{ products|length }}</span
+            >
+            de
+            <span
+              id="products-count-total-footer"
+              class="font-semibold text-gray-900 dark:text-white"
+              >{{ products|length }}</span
+            ></span
+          >
+        </div>
+      </div>
+    </div>
   </section>
   <!-- Campo oculto para almacenar el business_id -->
   <input type="hidden" id="business-id" value="{{ business.id }}" />
-
-  <table id="demo-table"></table>
 {% endblock %}
 
 {% block custom_javascript %}
   <script>
-    if (
-      document.getElementById("products-table") &&
-      typeof simpleDatatables.DataTable !== "undefined"
-    ) {
-      const dataTable = new simpleDatatables.DataTable("#products-table", {
-        paging: true,
-        sortable: true,
-        locale: "es-ES", // set the locale for sorting
-        numeric: true, // enable or disable numeric sorting
-        caseFirst: "false", // set the case first for sorting (upper, lower)
-        ignorePunctuation: true, // enable or disable punctuation sorting
-        searchable: true,
-        classes: {
-          bottom:
-            "datatable-bottom flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4",
-          container: "datatable-container overflow-x-auto",
-          top: "datatable-top flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4",
-          wrapper:
-            "datatable-wrapper bg-white dark:bg-gray-800 relative shadow-md sm:rounded-lg overflow-hidden",
-        },
+    document.addEventListener("DOMContentLoaded", function () {
+      const table = document.getElementById("products-table");
+      const searchInput = document.getElementById("products-search");
+      if (!table) return;
+      const tbody = table.tBodies[0];
+
+      function filterRows() {
+        const q = searchInput ? searchInput.value.trim().toLowerCase() : "";
+        const categorySelect = document.getElementById("products-category");
+        const selectedCat = categorySelect
+          ? categorySelect.value.trim().toLowerCase()
+          : "";
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        let visible = 0;
+        for (let i = 0; i < rows.length; i++) {
+          const r = rows[i];
+          if (r.classList.contains("details-row")) continue;
+          const text = (r.textContent || "").replace(/\s+/g, " ").toLowerCase();
+          // category is in the second cell (index 1)
+          let catText = "";
+          if (r.cells && r.cells.length > 1) {
+            catText = (r.cells[1].textContent || "").trim().toLowerCase();
+          }
+          const matchText = q === "" || text.indexOf(q) !== -1;
+          const matchCat = selectedCat === "" || catText === selectedCat;
+          const match = matchText && matchCat;
+          r.style.display = match ? "" : "none";
+          const next = r.nextElementSibling;
+          if (next && next.classList.contains("details-row")) {
+            next.style.display = match ? "" : "none";
+          }
+          if (match) visible++;
+        }
+
+        // show no-results row if nothing matches
+        let noRow = tbody.querySelector("#no-results-row");
+        if (visible === 0) {
+          if (!noRow) {
+            noRow = document.createElement("tr");
+            noRow.id = "no-results-row";
+            noRow.innerHTML = `<td colspan="${table.tHead.rows[0].cells.length}" class="px-4 py-4 text-center text-gray-600 dark:text-gray-300">No se encontraron productos.</td>`;
+            tbody.appendChild(noRow);
+          }
+        } else if (noRow) {
+          noRow.remove();
+        }
+        // actualizar contadores visibles
+        const visibleEl = document.getElementById("products-count-visible");
+        const footerEl = document.getElementById("products-count-footer");
+        const totalEl = document.getElementById("products-count-total");
+        const totalFooterEl = document.getElementById(
+          "products-count-total-footer",
+        );
+        if (visibleEl) visibleEl.textContent = visible;
+        if (footerEl) footerEl.textContent = visible;
+        // asegurar que elementos de total muestren el total inicial (no cambian con filtros)
+        if (totalEl && totalEl.textContent.trim() === "")
+          totalEl.textContent = table.querySelectorAll(
+            "tbody > tr:not(.details-row)",
+          ).length;
+        if (totalFooterEl && totalFooterEl.textContent.trim() === "")
+          totalFooterEl.textContent = table.querySelectorAll(
+            "tbody > tr:not(.details-row)",
+          ).length;
+      }
+
+      if (searchInput) {
+        searchInput.addEventListener("input", filterRows);
+      }
+      const categorySelect = document.getElementById("products-category");
+      if (categorySelect) {
+        categorySelect.addEventListener("change", filterRows);
+      }
+
+      // --- Sorting support for columns ---
+      function parseCellValue(cell, type) {
+        if (!cell) return "";
+        let txt = (cell.textContent || "").trim();
+        if (type === "number") {
+          // normalize currency/number formats:
+          // - remove currency symbols and spaces, keep digits, dot, comma, minus
+          txt = txt.replace(/[^0-9.,\-]/g, "").trim();
+          if (txt === "") return -Infinity;
+          const hasDot = txt.indexOf(".") !== -1;
+          const hasComma = txt.indexOf(",") !== -1;
+          if (hasDot && hasComma) {
+            // both separators present: choose decimal separator by which appears last
+            const lastDot = txt.lastIndexOf(".");
+            const lastComma = txt.lastIndexOf(",");
+            if (lastDot > lastComma) {
+              // dot appears last -> dot is decimal, comma thousands
+              txt = txt.replace(/,/g, "");
+            } else {
+              // comma appears last -> comma is decimal, dot thousands
+              txt = txt.replace(/\./g, "").replace(/,/g, ".");
+            }
+          } else if (hasComma && !hasDot) {
+            // assume comma is decimal separator
+            txt = txt.replace(/,/g, ".");
+          }
+          // remove anything else
+          txt = txt.replace(/[^0-9.\-]/g, "");
+          // if multiple dots exist, keep only last as decimal separator
+          const parts = txt.split(".");
+          if (parts.length > 2) {
+            const last = parts.pop();
+            txt = parts.join("") + "." + last;
+          }
+          const v = parseFloat(txt);
+          return isNaN(v) ? -Infinity : v;
+        }
+        if (type === "date") {
+          // expects dd/mm/yyyy
+          const m = txt.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+          if (m)
+            return new Date(
+              parseInt(m[3]),
+              parseInt(m[2]) - 1,
+              parseInt(m[1]),
+            ).getTime();
+          return 0;
+        }
+        return txt.toLowerCase();
+      }
+
+      function sortByColumn(header) {
+        const type = header.getAttribute("data-type") || "string";
+        // compute column index by locating the header in the first thead row
+        const headerCells = Array.from(table.tHead.rows[0].cells);
+        const index = headerCells.indexOf(header);
+        const currentDir = header.getAttribute("data-sort-dir") || "none";
+        const dir = currentDir === "asc" ? "desc" : "asc";
+
+        // reset aria-sort on all headers
+        const allHeaders = table.tHead.querySelectorAll("th[data-type]");
+        allHeaders.forEach((h) => {
+          h.removeAttribute("data-sort-dir");
+          h.setAttribute("aria-sort", "none");
+        });
+
+        header.setAttribute("data-sort-dir", dir);
+        header.setAttribute(
+          "aria-sort",
+          dir === "asc" ? "ascending" : "descending",
+        );
+
+        // collect rows (exclude details-row)
+        const dataRows = Array.from(tbody.querySelectorAll("tr")).filter(
+          (r) => !r.classList.contains("details-row"),
+        );
+        const rows = dataRows.map((r) => ({
+          row: r,
+          detail:
+            r.nextElementSibling &&
+            r.nextElementSibling.classList.contains("details-row")
+              ? r.nextElementSibling
+              : null,
+        }));
+
+        rows.sort((a, b) => {
+          // pick the corresponding TD from the main row (ignore details)
+          const aCells = a.row.querySelectorAll("td");
+          const bCells = b.row.querySelectorAll("td");
+          const aCell = aCells[index] || a.row.cells[index] || null;
+          const bCell = bCells[index] || b.row.cells[index] || null;
+          const aVal = parseCellValue(aCell, type);
+          const bVal = parseCellValue(bCell, type);
+          if (aVal < bVal) return dir === "asc" ? -1 : 1;
+          if (aVal > bVal) return dir === "asc" ? 1 : -1;
+          return 0;
+        });
+
+        // re-append in sorted order
+        rows.forEach((item) => {
+          tbody.appendChild(item.row);
+          if (item.detail) tbody.appendChild(item.detail);
+        });
+
+        // re-run filterRows to preserve visibility/no-results
+        filterRows();
+      }
+
+      // attach sort handlers
+      const sortableHeaders = table.tHead.querySelectorAll("th[data-type]");
+      sortableHeaders.forEach((h) => {
+        h.addEventListener("click", () => sortByColumn(h));
+        h.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+            e.preventDefault();
+            sortByColumn(h);
+          }
+        });
       });
-    }
+
+      // toggler for detail rows
+      function toggleDetails(row) {
+        var next = row.nextElementSibling;
+        if (!next || !next.classList.contains("details-row")) return;
+        var isHidden = next.classList.contains("hidden");
+        if (isHidden) {
+          next.classList.remove("hidden");
+          row.setAttribute("aria-expanded", "true");
+        } else {
+          next.classList.add("hidden");
+          row.setAttribute("aria-expanded", "false");
+        }
+      }
+
+      // attach click/keyboard handlers
+      function attachTogglers() {
+        var rows = table.querySelectorAll(".clickable-row");
+        rows.forEach(function (r) {
+          r.addEventListener("click", function (e) {
+            if (e.target.closest("a")) return; // don't toggle when clicking a link
+            toggleDetails(r);
+          });
+          r.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+              e.preventDefault();
+              toggleDetails(r);
+            }
+          });
+        });
+      }
+
+      attachTogglers();
+
+      // --- Category color badges ---
+      (function applyCategoryColors() {
+        const palette = [
+          "#fde68a", // yellow
+          "#fca5a5", // red
+          "#bfdbfe", // blue
+          "#bbf7d0", // green
+          "#fbcfe8", // pink
+          "#fef3c7", // amber
+          "#e9d5ff", // purple
+          "#fee2e2", // light red
+          "#c7f9cc", // mint
+        ];
+        const catMap = {};
+        let next = 0;
+        const dataRows = Array.from(tbody.querySelectorAll("tr")).filter(
+          (r) => !r.classList.contains("details-row"),
+        );
+        dataRows.forEach((r) => {
+          const catCell = r.cells && r.cells.length > 1 ? r.cells[1] : null;
+          if (!catCell) return;
+          const name = (catCell.textContent || "").trim();
+          if (!name) return;
+          if (!catMap[name]) {
+            catMap[name] = palette[next % palette.length];
+            next += 1;
+          }
+          const color = catMap[name];
+          // create a badge with inline styles (keeps it simple and deterministic)
+          const badge = document.createElement("span");
+          badge.className =
+            "inline-block px-2 py-0.5 text-xs font-medium rounded-full";
+          badge.style.background = color;
+          badge.style.color = "#000";
+          badge.textContent = name;
+          // clear cell and append badge
+          catCell.innerHTML = "";
+          catCell.appendChild(badge);
+        });
+      })();
+    });
   </script>
   <script
     src="{{url_for('static', filename='js/products-table.js')}}"

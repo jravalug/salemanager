@@ -309,7 +309,7 @@
           </aside>
         {% endif %}
         <!-- Área de contenido derecha -->
-        <section class="flex-1">
+        <div class="flex-1">
           <!-- Mensajes flash (moved here so they appear above the card) -->
           {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -327,7 +327,7 @@
           <!-- Card placeholder a la derecha -->
           {% block content %}
           {% endblock content %}
-        </section>
+        </div>
       </div>
     </main>
     <div
@@ -338,166 +338,174 @@
       id="mobile-sidebar"
       class="fixed left-0 top-0 h-full w-72 bg-gray-800 dark:bg-gray-900 text-gray-100 z-50 transform -translate-x-full transition-transform duration-200 lg:hidden"
     >
-      <div class="p-4">
-        <div class="flex items-center gap-3 mb-6">
-          {% if business and business.logo %}
-            <img
-              src="{{ url_for('static', filename=business.logo) }}"
-              alt="logo"
-              class="h-12 w-12 rounded-md object-cover"
-            />
-          {% else %}
-            <img
-              src="{{ url_for('static', filename='images/output_logo.svg') }}"
-              alt="logo"
-              class="h-12 w-12 rounded-md object-cover"
-            />
-          {% endif %}
-          <div>
-            <div class="font-semibold">
-              {% if business %}{{ business.name }}{% else %}Usuario{% endif %}
+      {% if business %}
+        <div class="p-4">
+          <div class="flex items-center gap-3 mb-6">
+            {% if business and business.logo %}
+              <img
+                src="{{ url_for('static', filename=business.logo) }}"
+                alt="logo"
+                class="h-12 w-12 rounded-md object-cover"
+              />
+            {% else %}
+              <img
+                src="{{ url_for('static', filename='images/output_logo.svg') }}"
+                alt="logo"
+                class="h-12 w-12 rounded-md object-cover"
+              />
+            {% endif %}
+            <div>
+              <div class="font-semibold">
+                {% if business %}{{ business.name }}{% else %}Usuario{% endif %}
+              </div>
+              <div class="text-sm text-gray-400">
+                {% if business %}{{ business.name }}{% else %}email@example.com{% endif %}
+              </div>
             </div>
-            <div class="text-sm text-gray-400">
-              {% if business %}{{ business.name }}{% else %}email@example.com{% endif %}
-            </div>
           </div>
-        </div>
-        <div class="grid grid-cols-3 gap-3 mb-6">
-          <button class="bg-indigo-600 text-white rounded-md py-2 px-3 text-sm">
-            Profile
-          </button>
-          <button class="bg-purple-600 text-white rounded-md py-2 px-3 text-sm">
-            Gifts
-          </button>
-          <button
-            class="bg-emerald-600 text-white rounded-md py-2 px-3 text-sm"
-          >
-            Wallet
-          </button>
-        </div>
-        {# TODO: CREATE THE LINK FOR PAGES #}
-        <nav class="space-y-3 text-sm">
-          <div>
-            {% set is_active = request_path is not none and request_path.startswith(href_dashboard) %}
-            <a
-              class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
-              href="{{ href_dashboard }}"
-              >{{ receipt('w-5 h-5') }} Dashboard</a
-            >
-          </div>
-          <div>
-            {% set is_active = request_path is not none and request_path.startswith(href_sales) %}
-            <a
-              class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
-              href="{{ href_sales }}"
-              >{{ receipt('w-5 h-5') }} Ventas</a
-            >
-          </div>
-          <div>
-            {% set is_active = request_path is not none and request_path.startswith(href_products) %}
-            <a
-              class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
-              href="{{ href_products }}"
-              >{{ box('w-5 h-5') }} Productos</a
-            >
-          </div>
-          <div>
-            {% set is_active = request_path is not none and request_path.startswith(href_inventory) %}
-            <a
-              class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
-              href="{{ href_inventory }}"
-              >{{ inventory('w-5 h-5') }} Inventarios</a
-            >
-          </div>
-          <div>
+          <div class="grid grid-cols-3 gap-3 mb-6">
             <button
-              type="button"
-              class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-              aria-controls="dropdown-report"
-              data-collapse-toggle="dropdown-report"
+              class="bg-indigo-600 text-white rounded-md py-2 px-3 text-sm"
             >
-              {{ stats('shrink-0 w-5 h-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white') }}
-              <span
-                class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap"
-                >Reportes</span
-              >
-              <svg
-                class="w-3 h-3"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 10 6"
-              >
-                <path
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="m1 1 4 4 4-4"
-                />
-              </svg>
+              Profile
             </button>
-            {# Hacer que este abierto si el request_path comienza por alguno de los reportes #}
-            {%
-              set is_report_active = request_path is not none and (
-                request_path.startswith(href_monthly_sales_by_date) or
-                request_path.startswith(href_monthly_sales_by_product) or
-                request_path.startswith(href_inventory_consumption) or
-                request_path.startswith(href_ipv_report)
-              )
-            %}
-            <ul
-              id="dropdown-report"
-              class="{{ 'block' if is_report_active else 'hidden' }} py-2 space-y-2"
+            <button
+              class="bg-purple-600 text-white rounded-md py-2 px-3 text-sm"
             >
-              <li>
-                {% set is_active = request_path is not none and request_path.startswith(href_monthly_sales_by_date) %}
-                <a
-                  href="{{ href_monthly_sales_by_date }}"
-                  class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
-                  >Ventas por fecha</a
-                >
-              </li>
-              <li>
-                {% set is_active = request_path is not none and request_path.startswith(href_monthly_sales_by_product) %}
-                <a
-                  href="{{ href_monthly_sales_by_product }}"
-                  class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
-                  >Ventas por Producto</a
-                >
-              </li>
-              <li>
-                {% set is_active = request_path is not none and request_path.startswith(href_ipv_report) %}
-                <a
-                  href="{{ href_ipv_report }}"
-                  class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
-                  >Inventario a Precio de Venta</a
-                >
-              </li>
-              <li>
-                {% set is_active = request_path is not none and request_path.startswith(href_inventory_consumption) %}
-                <a
-                  href="{{ href_inventory_consumption }}"
-                  class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
-                  >Consumo de Materias Primas</a
-                >
-              </li>
-            </ul>
+              Gifts
+            </button>
+            <button
+              class="bg-emerald-600 text-white rounded-md py-2 px-3 text-sm"
+            >
+              Wallet
+            </button>
           </div>
-        </nav>
-        <div class="mt-6 border-t border-gray-700 pt-4">
-          <a
-            class="flex items-center gap-3 p-2 rounded hover:bg-gray-700"
-            href="#"
-            >Settings</a
-          >
-          <a
-            class="flex items-center gap-3 p-2 rounded text-red-400 hover:bg-gray-700 mt-2"
-            href="#"
-            >Log out</a
-          >
+          {# TODO: CREATE THE LINK FOR PAGES #}
+          <nav class="space-y-3 text-sm">
+            <div>
+              {% set is_active = request_path is not none and request_path.startswith(href_dashboard) %}
+              <a
+                class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+                href="{{ href_dashboard }}"
+                >{{ receipt('w-5 h-5') }} Dashboard</a
+              >
+            </div>
+            <div>
+              {% set is_active = request_path is not none and request_path.startswith(href_sales) %}
+              <a
+                class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+                href="{{ href_sales }}"
+                >{{ receipt('w-5 h-5') }} Ventas</a
+              >
+            </div>
+            <div>
+              {% set is_active = request_path is not none and request_path.startswith(href_products) %}
+              <a
+                class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+                href="{{ href_products }}"
+                >{{ box('w-5 h-5') }} Productos</a
+              >
+            </div>
+            <div>
+              {% set is_active = request_path is not none and request_path.startswith(href_inventory) %}
+              <a
+                class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+                href="{{ href_inventory }}"
+                >{{ inventory('w-5 h-5') }} Inventarios</a
+              >
+            </div>
+            <div>
+              <button
+                type="button"
+                class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+                aria-controls="dropdown-report"
+                data-collapse-toggle="dropdown-report"
+              >
+                {{ stats('shrink-0 w-5 h-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white') }}
+                <span
+                  class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap"
+                  >Reportes</span
+                >
+                <svg
+                  class="w-3 h-3"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 10 6"
+                >
+                  <path
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="m1 1 4 4 4-4"
+                  />
+                </svg>
+              </button>
+              {# Hacer que este abierto si el request_path comienza por alguno de los reportes #}
+              {%
+                set is_report_active = request_path is not none and (
+                  request_path.startswith(href_monthly_sales_by_date) or
+                  request_path.startswith(href_monthly_sales_by_product) or
+                  request_path.startswith(href_inventory_consumption) or
+                  request_path.startswith(href_ipv_report)
+                )
+              %}
+              <ul
+                id="dropdown-report"
+                class="{{ 'block' if is_report_active else 'hidden' }} py-2 space-y-2"
+              >
+                <li>
+                  {% set is_active = request_path is not none and request_path.startswith(href_monthly_sales_by_date) %}
+                  <a
+                    href="{{ href_monthly_sales_by_date }}"
+                    class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
+                    >Ventas por fecha</a
+                  >
+                </li>
+                <li>
+                  {% set is_active = request_path is not none and request_path.startswith(href_monthly_sales_by_product) %}
+                  <a
+                    href="{{ href_monthly_sales_by_product }}"
+                    class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
+                    >Ventas por Producto</a
+                  >
+                </li>
+                <li>
+                  {% set is_active = request_path is not none and request_path.startswith(href_ipv_report) %}
+                  <a
+                    href="{{ href_ipv_report }}"
+                    class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
+                    >Inventario a Precio de Venta</a
+                  >
+                </li>
+                <li>
+                  {% set is_active = request_path is not none and request_path.startswith(href_inventory_consumption) %}
+                  <a
+                    href="{{ href_inventory_consumption }}"
+                    class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
+                    >Consumo de Materias Primas</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </nav>
+          <div class="mt-6 border-t border-gray-700 pt-4">
+            <a
+              class="flex items-center gap-3 p-2 rounded hover:bg-gray-700"
+              href="#"
+              >Settings</a
+            >
+            <a
+              class="flex items-center gap-3 p-2 rounded text-red-400 hover:bg-gray-700 mt-2"
+              href="#"
+              >Log out</a
+            >
+          </div>
         </div>
-      </div>
+      {% else %}
+
+      {% endif %}
     </aside>
 
     <script>
