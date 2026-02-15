@@ -1,5 +1,8 @@
+import os
+from pathlib import Path
 from flask import Flask
-from config import Config
+from dotenv import load_dotenv
+from config import get_config
 from .extensions import db, migrate
 from .filters import (
     format_currency_filter,
@@ -12,9 +15,34 @@ from app.routes import register_web_blueprints
 from app.routes.api import register_api_blueprints
 
 
-def create_app():
+def create_app(env=None):
+    """
+    Factory para crear la aplicación Flask.
+
+    Args:
+        env (str): Ambiente a usar. Si no se proporciona, usa FLASK_ENV.
+
+    Returns:
+        Flask: Instancia de la aplicación configurada.
+    """
     app = Flask(__name__)
-    app.config.from_object(Config)
+
+    # Decidir si debemos cargar archivos .env automáticamente.
+    # Sólo cargar automáticamente en `development` o `testing` para evitar
+    # filtrar secretos en staging/production.
+    effective_env = env or os.environ.get("FLASK_ENV", "development")
+    project_root = Path(__file__).resolve().parents[1]
+    env_local = project_root / ".env.local"
+    env_default = project_root / ".env"
+    if effective_env in ("development", "testing"):
+        if env_local.exists():
+            load_dotenv(env_local)
+        elif env_default.exists():
+            load_dotenv(env_default)
+
+    # Obtener y aplicar configuración según el ambiente
+    config_class = get_config(env)
+    app.config.from_object(config_class)
 
     # Inicializar extensiones
     db.init_app(app)

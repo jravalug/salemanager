@@ -8,3 +8,5 @@ python-dateutil~=2.9.0.post0
 babel~=2.17.0
 Flask-Migrate~=4.1.0
 alembic~=1.14.1
+python-dotenv~=1.0.0
+Flask-SQLAlchemy~=3.0.0

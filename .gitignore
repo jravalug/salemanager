@@ -8,3 +8,43 @@ instance
 **/images
 **/load_initial_data.py
 **/excluded_sales_of_jannuary.py
+# Archivos de entorno - NO versionados
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+
+# IDE
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Bases de datos
+*.db
+*.sqlite
+*.sqlite3
+
+# Caché
+.cache/
+*.pyc
+
+# Celery
+celerybeat-schedule
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# Build
+dist/
+build/
+*.egg-info/
