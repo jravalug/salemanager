@@ -8,6 +8,8 @@ instance
 **/images
 **/load_initial_data.py
 **/excluded_sales_of_jannuary.py
+
+start_server.fish
 # Archivos de entorno - NO versionados
 .env
 .env.local
