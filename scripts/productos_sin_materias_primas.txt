@@ -1,0 +1,1729 @@
+================================================================================
+PRODUCTOS SIN MATERIAS PRIMAS
+(Categorías: Comida, Postre, Coctelería)
+Generado: 13/02/2026 17:21:15
+================================================================================
+
+NEGOCIO: El Solar
+ID: 2
+--------------------------------------------------------------------------------
+Total de productos sin materias primas: 41
+
+  1. BATIDO
+     ID: 321
+     SKU: N/A
+     Categoría: cocteleria
+     Precio: $190.00
+     Activo: No
+     Veces vendido: 0
+     Órdenes únicas: 0
+
+  2. CHULETA DE CERDO AHUMADO
+     ID: 270
+     SKU: N/A
+     Categoría: comida
+     Precio: $1190.00
+     Activo: No
+     Veces vendido: 0
+     Órdenes únicas: 0
+
+  3. COPA DE HELADO 350
+     ID: 314
+     SKU: N/A
+     Categoría: postre
+     Precio: $350.00
+     Activo: No
+     Veces vendido: 0
+     Órdenes únicas: 0
+
+  4. COPA LOLITA
+     ID: 287
+     SKU: N/A
+     Categoría: postre
+     Precio: $690.00
+     Activo: No
+     Veces vendido: 0
+     Órdenes únicas: 0
+
+  5. ENSALADA DE COL
+     ID: 254
+     SKU: N/A
+     Categoría: comida
+     Precio: $350.00
+     Activo: No
+     Veces vendido: 0
+     Órdenes únicas: 0
+
+  6. ESPAGUETIS CON ATUN
+     ID: 281
+     SKU: N/A
+     Categoría: comida
+     Precio: $690.00
+     Activo: No
+     Veces vendido: 0
+     Órdenes únicas: 0
+
+  7. FAJITAS DE POLLO
+     ID: 320
+     SKU: N/A
+     Categoría: comida
+     Precio: $1300.00
+     Activo: No
+     Veces vendido: 0
+     Órdenes únicas: 0
+
+  8. JUGO DE GUANABANA
+     ID: 227
+     SKU: N/A
+     Categoría: cocteleria
+     Precio: $155.00
+     Activo: No
+     Veces vendido: 0
+     Órdenes únicas: 0
+
+  9. PIERNA DE CERDO AZADA
+     ID: 97
+     SKU: N/A
+     Categoría: comida
+     Precio: $1625.00
+     Activo: No
+     Veces vendido: 0
+     Órdenes únicas: 0
+
+  10. POLLO EN SALSA
+     ID: 237
+     SKU: N/A
+     Categoría: comida
+     Precio: $950.00
+     Activo: No
+     Veces vendido: 0
+     Órdenes únicas: 0
+
+  11. POTE CON HELADO
+     ID: 286
+     SKU: N/A
+     Categoría: comida
+     Precio: $1200.00
+     Activo: No
+     Veces vendido: 0
+     Órdenes únicas: 0
+
+  12. POZUELO
+     ID: 225
+     SKU: N/A
+     Categoría: comida
+     Precio: $90.00
+     Activo: No
+     Veces vendido: 0
+     Órdenes únicas: 0
+
+  13. TOSTONES NATURALES 475
+     ID: 247
+     SKU: N/A
+     Categoría: comida
+     Precio: $475.00
+     Activo: No
+     Veces vendido: 0
+     Órdenes únicas: 0
+
+  14. TOSTONES RELLENOS CON QUESO
+     ID: 309
+     SKU: N/A
+     Categoría: comida
+     Precio: $475.00
+     Activo: No
+     Veces vendido: 0
+     Órdenes únicas: 0
+
+  15. BATIDO DE GUANABANA
+     ID: 312
+     SKU: N/A
+     Categoría: cocteleria
+     Precio: $250.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 2496
+
+  16. CERVEZA
+     ID: 440
+     SKU: N/A
+     Categoría: comida
+     Precio: $400.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 6117
+
+  17. DULCE DE FRUTABOMBA
+     ID: 386
+     SKU: N/A
+     Categoría: postre
+     Precio: $480.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 2454
+
+  18. ENSALADA DE TOMATE PEPINO Y COL
+     ID: 439
+     SKU: N/A
+     Categoría: comida
+     Precio: $350.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 6075
+
+  19. ENSALADA DE TOMATE Y PEPINO
+     ID: 435
+     SKU: N/A
+     Categoría: comida
+     Precio: $350.00
+     Activo: No
+     Veces vendido: 2
+     Órdenes únicas: 2
+     IDs de órdenes: 5865, 5875
+
+  20. HELADO
+     ID: 436
+     SKU: N/A
+     Categoría: postre
+     Precio: $500.00
+     Activo: No
+     Veces vendido: 2
+     Órdenes únicas: 2
+     IDs de órdenes: 5875, 6098
+
+  21. JUGO DE MANGO
+     ID: 385
+     SKU: N/A
+     Categoría: cocteleria
+     Precio: $200.00
+     Activo: No
+     Veces vendido: 2
+     Órdenes únicas: 2
+     IDs de órdenes: 2442, 4189
+
+  22. BATIDO DE MANGO
+     ID: 387
+     SKU: N/A
+     Categoría: cocteleria
+     Precio: $250.00
+     Activo: No
+     Veces vendido: 3
+     Órdenes únicas: 3
+     IDs de órdenes: 2495, 3092, 4050
+
+  23. ESPAGUETIS CON JAMON
+     ID: 311
+     SKU: N/A
+     Categoría: comida
+     Precio: $575.00
+     Activo: No
+     Veces vendido: 3
+     Órdenes únicas: 3
+     IDs de órdenes: 762, 1000, 1617
+
+  24. ESPAGUETIS CON BEICON
+     ID: 241
+     SKU: N/A
+     Categoría: comida
+     Precio: $615.00
+     Activo: No
+     Veces vendido: 5
+     Órdenes únicas: 5
+     IDs de órdenes: 639, 762, 1197, 1591, 1613
+
+  25. TOSTONES RELLENOS CON BEICON
+     ID: 239
+     SKU: N/A
+     Categoría: comida
+     Precio: $475.00
+     Activo: No
+     Veces vendido: 5
+     Órdenes únicas: 5
+     IDs de órdenes: 731, 740, 848, 1102, 1626
+
+  26. ESPAGUETIS CON JAMÓN Y QUESO
+     ID: 109
+     SKU: N/A
+     Categoría: comida
+     Precio: $575.00
+     Activo: No
+     Veces vendido: 7
+     Órdenes únicas: 7
+     IDs de órdenes: 9, 37, 72, 125, 174, 1216, 1611
+
+  27. ENERGIZANTE
+     ID: 259
+     SKU: N/A
+     Categoría: comida
+     Precio: $700.00
+     Activo: No
+     Veces vendido: 9
+     Órdenes únicas: 8
+     IDs de órdenes: 701, 816, 5134, 5231, 5896, 6174, 6176, 6177
+
+  28. ESPAGUETIS NAPOLITANO
+     ID: 95
+     SKU: N/A
+     Categoría: comida
+     Precio: $440.00
+     Activo: No
+     Veces vendido: 10
+     Órdenes únicas: 10
+     IDs de órdenes: 137, 1000, 1010, 1101, 1611, 1617, 1677, 1684, 1693, 1702
+
+  29. JUGO DE TOMATE NP
+     ID: 359
+     SKU: N/A
+     Categoría: cocteleria
+     Precio: $345.00
+     Activo: No
+     Veces vendido: 13
+     Órdenes únicas: 12
+     IDs de órdenes: 2363, 3232, 4306, 5214, 5238, 5266, 5432, 5515, 5549, 6008, 6117, 6135
+
+  30. ENSALADA DE AGUACATE
+     ID: 416
+     SKU: N/A
+     Categoría: comida
+     Precio: $500.00
+     Activo: No
+     Veces vendido: 14
+     Órdenes únicas: 14
+     IDs de órdenes: 3949, 3971, 4049, 4675, 4710, 4852, 4859, 4860, 5098, 5141, 5174, 5466, 5527, 5894
+
+  31. ENSALADA TOMATE 500
+     ID: 78
+     SKU: N/A
+     Categoría: comida
+     Precio: $500.00
+     Activo: No
+     Veces vendido: 15
+     Órdenes únicas: 15
+     IDs de órdenes: 32, 5200, 5214, 5238, 5493, 5506, 5526, 5917, 6008, 6117, 6120, 6130, 6144, 6173, 6184
+
+  32. BISTEC DE CERDO URUGUAYO
+     ID: 69
+     SKU: N/A
+     Categoría: comida
+     Precio: $1350.00
+     Activo: No
+     Veces vendido: 17
+     Órdenes únicas: 17
+     IDs de órdenes: 18, 23, 32, 36, 68, 84, 87, 671, 701, 847, 868, 995, 1029, 1038, 1160, 1171, 1556
+
+  33. BISTEC DE POLLO GRILLET
+     ID: 70
+     SKU: N/A
+     Categoría: comida
+     Precio: $975.00
+     Activo: No
+     Veces vendido: 18
+     Órdenes únicas: 18
+     IDs de órdenes: 20, 33, 83, 89, 611, 658, 1011, 1024, 1055, 1072, 1081, 1110, 1111, 1131, 1215, 1590, 1648, 1676
+
+  34. SOPA DE POLLO
+     ID: 107
+     SKU: N/A
+     Categoría: comida
+     Precio: $440.00
+     Activo: No
+     Veces vendido: 31
+     Órdenes únicas: 31
+     IDs de órdenes: 16, 25, 29, 106, 123, 146, 147, 157, 606, 684, 747, 1009, 1018, 1023, 1046, 1065, 1096, 1121, 1124, 1143, 1162, 1170, 1180, 1189, 1608, 1609, 1631, 1647, 1657, 1678, 5436
+
+  35. BISTEC DE POLLO GRILLE NP
+     ID: 361
+     SKU: N/A
+     Categoría: comida
+     Precio: $990.00
+     Activo: No
+     Veces vendido: 35
+     Órdenes únicas: 35
+     IDs de órdenes: 1716, 2268, 2296, 2306, 2315, 2363, 2403, 2469, 3038, 3040, 3139, 3182, 3212, 3949, 3988, 4039, 4165, 4248, 4296, 4341, 4737, 4861, 4863, 5064, 5122, 5161, 5162, 5266, 5432, 5493, 5549, 5568, 5624, 6135, 6202
+
+  36. BISTEC DE CERDO GRILLET CON AJO Y CEBOLLA
+     ID: 68
+     SKU: N/A
+     Categoría: comida
+     Precio: $975.00
+     Activo: No
+     Veces vendido: 39
+     Órdenes únicas: 39
+     IDs de órdenes: 17, 29, 37, 62, 69, 70, 634, 651, 671, 758, 782, 791, 792, 848, 855, 876, 1008, 1018, 1026, 1037, 1038, 1047, 1048, 1080, 1094, 1101, 1140, 1159, 1179, 1197, 1589, 1601, 1610, 1638, 1644, 1672, 1674, 1733, 1742
+
+  37. REFRESCO DE LATA 300
+     ID: 104
+     SKU: N/A
+     Categoría: comida
+     Precio: $300.00
+     Activo: No
+     Veces vendido: 62
+     Órdenes únicas: 59
+     IDs de órdenes: 13, 60, 62, 71, 78, 84, 121, 134, 174, 4760, 4775, 4782, 4783, 4799, 4812, 4828, 4863, 5075, 5076, 5083, 5084, 5087, 5092, 5123, 5166, 5170, 5192, 5202, 5229, 5257, 5282, 5458, 5471, 5476, 5490, 5491, 5494, 5559, 5567, 5586, 5587, 5865, 5875, 5919, 5987, 5988, 6044, 6083, 6091, 6093, 6129, 6141, 6142, 6144, 6152, 6160, 6163, 6172, 6185
+
+  38. ARROZ BLANCO
+     ID: 62
+     SKU: N/A
+     Categoría: comida
+     Precio: $125.00
+     Activo: No
+     Veces vendido: 75
+     Órdenes únicas: 74
+     IDs de órdenes: 29, 35, 67, 78, 87, 89, 90, 96, 119, 140, 151, 157, 158, 171, 173, 595, 600, 630, 643, 658, 674, 676, 684, 694, 699, 702, 706, 730, 776, 800, 814, 829, 1012, 1016, 1019, 1022, 1050, 1051, 1063, 1066, 1072, 1073, 1080, 1082, 1084, 1085, 1096, 1097, 1112, 1122, 1133, 1134, 1141, 1142, 1162, 1164, 1170, 1182, 1198, 1201, 1215, 1556, 1587, 1590, 1603, 1608, 1612, 1630, 1649, 1660, 1667, 1669, 1732, 2457
+
+  39. ARROZ MOROS Y CRISTIANOS
+     ID: 65
+     SKU: N/A
+     Categoría: comida
+     Precio: $165.00
+     Activo: No
+     Veces vendido: 89
+     Órdenes únicas: 88
+     IDs de órdenes: 18, 33, 36, 37, 61, 62, 68, 78, 84, 101, 120, 122, 127, 131, 133, 136, 148, 153, 155, 156, 159, 599, 634, 651, 657, 658, 671, 692, 697, 708, 742, 745, 758, 782, 809, 821, 831, 848, 855, 868, 876, 994, 995, 1007, 1025, 1026, 1037, 1038, 1039, 1044, 1045, 1047, 1049, 1083, 1094, 1101, 1110, 1132, 1140, 1149, 1151, 1159, 1163, 1171, 1179, 1197, 1559, 1588, 1589, 1610, 1621, 1625, 1629, 1638, 1639, 1640, 1648, 1658, 1674, 1675, 1676, 1683, 1691, 1730, 1733, 1739, 1741, 1742
+
+  40. ENSALADA MIXTA 500
+     ID: 77
+     SKU: N/A
+     Categoría: comida
+     Precio: $500.00
+     Activo: No
+     Veces vendido: 109
+     Órdenes únicas: 108
+     IDs de órdenes: 29, 33, 34, 36, 68, 84, 92, 98, 120, 136, 150, 153, 595, 671, 701, 742, 782, 792, 821, 848, 855, 868, 876, 994, 995, 1026, 1038, 1044, 1047, 1055, 1071, 1080, 1082, 1094, 1095, 1101, 1110, 1140, 1149, 1159, 1190, 1556, 1588, 1589, 1602, 1617, 1638, 1644, 1687, 1691, 1733, 2274, 2307, 2316, 2318, 2324, 2336, 2351, 2403, 2433, 2435, 2451, 2470, 2492, 3019, 3040, 3074, 3108, 3118, 3138, 3147, 3148, 3171, 3190, 3246, 3997, 4061, 4067, 4111, 4119, 4143, 4152, 4189, 4200, 4225, 4271, 4295, 4296, 4307, 4341, 4737, 4753, 4761, 4788, 5057, 5064, 5065, 5092, 5121, 5163, 5255, 5256, 5445, 5446, 5464, 5566, 5624, 5647
+
+  41. SOPA DE POLLO NP
+     ID: 360
+     SKU: N/A
+     Categoría: comida
+     Precio: $460.00
+     Activo: No
+     Veces vendido: 109
+     Órdenes únicas: 108
+     IDs de órdenes: 1706, 2116, 2307, 2325, 2326, 2335, 2366, 2383, 2392, 2395, 2416, 2423, 2424, 2425, 2432, 2444, 2452, 2472, 3024, 3075, 3109, 3143, 3149, 3164, 3173, 3215, 3228, 3950, 3956, 3959, 3989, 4026, 4055, 4105, 4119, 4128, 4761, 4775, 4776, 4777, 4790, 5057, 5093, 5102, 5122, 5157, 5164, 5166, 5177, 5181, 5182, 5206, 5207, 5218, 5229, 5233, 5239, 5257, 5283, 5434, 5435, 5437, 5446, 5496, 5499, 5508, 5509, 5521, 5530, 5540, 5541, 5542, 5559, 5560, 5589, 5590, 5608, 5879, 5930, 5933, 5940, 5941, 5942, 5989, 5998, 6010, 6011, 6036, 6037, 6049, 6078, 6093, 6100, 6105, 6114, 6118, 6121, 6127, 6133, 6165, 6169, 6180, 6186, 6188, 6189, 6190, 6192, 6206
+
+
+NEGOCIO: La Casa del Arquitecto
+ID: 1
+--------------------------------------------------------------------------------
+Total de productos sin materias primas: 131
+
+  1. ENSALADA DE TOMATE 350
+     ID: 328
+     SKU: N/A
+     Categoría: comida
+     Precio: $350.00
+     Activo: No
+     Veces vendido: 0
+     Órdenes únicas: 0
+
+  2. AGREGO DE CEBOLLA
+     ID: 395
+     SKU: N/A
+     Categoría: comida
+     Precio: $120.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 3372
+
+  3. AGREGO DE JAMON
+     ID: 420
+     SKU: N/A
+     Categoría: comida
+     Precio: $160.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 4408
+
+  4. AGREGO KETCHUP
+     ID: 119
+     SKU: N/A
+     Categoría: comida
+     Precio: $120.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 184
+
+  5. ARROZ FRITO SIN CAMARÓN
+     ID: 199
+     SKU: N/A
+     Categoría: comida
+     Precio: $750.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 429
+
+  6. BATIDO
+     ID: 213
+     SKU: N/A
+     Categoría: cocteleria
+     Precio: $450.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 525
+
+  7. BATIDO DE PIÑA
+     ID: 393
+     SKU: N/A
+     Categoría: cocteleria
+     Precio: $400.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 2924
+
+  8. BISTEC ESPECIAL DE POLLO
+     ID: 430
+     SKU: N/A
+     Categoría: comida
+     Precio: $1400.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 5427
+
+  9. BLOODY MARY
+     ID: 388
+     SKU: N/A
+     Categoría: cocteleria
+     Precio: $500.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 2503
+
+  10. BOTELLA HABANA CLUB ESPECIAL 1 litro
+     ID: 427
+     SKU: N/A
+     Categoría: comida
+     Precio: $5500.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 5002
+
+  11. ENCHILADO DE CARNERO
+     ID: 132
+     SKU: N/A
+     Categoría: comida
+     Precio: $1200.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 191
+
+  12. ENSALADA DE COL
+     ID: 163
+     SKU: N/A
+     Categoría: comida
+     Precio: $250.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 298
+
+  13. ENSALADA DE COL 200
+     ID: 333
+     SKU: N/A
+     Categoría: comida
+     Precio: $200.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 960
+
+  14. ENSALADA DE PEPINO
+     ID: 397
+     SKU: N/A
+     Categoría: comida
+     Precio: $200.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 3488
+
+  15. FRICACE DE POLLO
+     ID: 336
+     SKU: N/A
+     Categoría: comida
+     Precio: $1250.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 1254
+
+  16. LANGOSTA AL AJILLO
+     ID: 327
+     SKU: N/A
+     Categoría: comida
+     Precio: $1600.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 920
+
+  17. LASCA DE QUESO
+     ID: 400
+     SKU: N/A
+     Categoría: comida
+     Precio: $30.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 3601
+
+  18. PICADILLO CRIOLLO DE CERDO
+     ID: 396
+     SKU: N/A
+     Categoría: comida
+     Precio: $1350.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 3414
+
+  19. POLLO FRITO ESPECIAL
+     ID: 211
+     SKU: N/A
+     Categoría: comida
+     Precio: $1400.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 507
+
+  20. QUESO
+     ID: 419
+     SKU: N/A
+     Categoría: comida
+     Precio: $120.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 4408
+
+  21. TINTO VERANO
+     ID: 421
+     SKU: N/A
+     Categoría: cocteleria
+     Precio: $750.00
+     Activo: No
+     Veces vendido: 1
+     Órdenes únicas: 1
+     IDs de órdenes: 4497
+
+  22. ARROZ CON VEGETALES
+     ID: 8
+     SKU: N/A
+     Categoría: comida
+     Precio: $750.00
+     Activo: No
+     Veces vendido: 2
+     Órdenes únicas: 2
+     IDs de órdenes: 201, 229
+
+  23. BISTEC DE RES A LA DUTCH
+     ID: 195
+     SKU: N/A
+     Categoría: comida
+     Precio: $1000.00
+     Activo: No
+     Veces vendido: 2
+     Órdenes únicas: 2
+     IDs de órdenes: 421, 2589
+
+  24. CHELADA
+     ID: 422
+     SKU: N/A
+     Categoría: cocteleria
+     Precio: $600.00
+     Activo: No
+     Veces vendido: 2
+     Órdenes únicas: 2
+     IDs de órdenes: 4511, 4915
+
+  25. HAMBURGUESA ESPECIAL DE RES
+     ID: 150
+     SKU: N/A
+     Categoría: comida
+     Precio: $1300.00
+     Activo: No
+     Veces vendido: 2
+     Órdenes únicas: 2
+     IDs de órdenes: 229, 354
+
+  26. HAMBURGUESA NATURAL DE CERDO
+     ID: 339
+     SKU: N/A
+     Categoría: comida
+     Precio: $1300.00
+     Activo: No
+     Veces vendido: 2
+     Órdenes únicas: 2
+     IDs de órdenes: 1371, 2676
+
+  27. HUEVO
+     ID: 418
+     SKU: N/A
+     Categoría: comida
+     Precio: $200.00
+     Activo: No
+     Veces vendido: 2
+     Órdenes únicas: 2
+     IDs de órdenes: 4390, 4500
+
+  28. PICADILLO DE RES A LA CRIOLLA
+     ID: 160
+     SKU: N/A
+     Categoría: comida
+     Precio: $1200.00
+     Activo: No
+     Veces vendido: 2
+     Órdenes únicas: 2
+     IDs de órdenes: 290, 369
+
+  29. SANGRIA 500
+     ID: 377
+     SKU: N/A
+     Categoría: cocteleria
+     Precio: $500.00
+     Activo: No
+     Veces vendido: 2
+     Órdenes únicas: 2
+     IDs de órdenes: 1996, 2222
+
+  30. TOSTON RELLENO CON QUESO NP
+     ID: 364
+     SKU: N/A
+     Categoría: comida
+     Precio: $380.00
+     Activo: No
+     Veces vendido: 2
+     Órdenes únicas: 2
+     IDs de órdenes: 1744, 2191
+
+  31. ALBONDIGAS DE CERDO
+     ID: 2
+     SKU: N/A
+     Categoría: comida
+     Precio: $1500.00
+     Activo: No
+     Veces vendido: 4
+     Órdenes únicas: 3
+     IDs de órdenes: 213, 401, 3372
+
+  32. ARROZ CON CHICHARRON
+     ID: 5
+     SKU: N/A
+     Categoría: comida
+     Precio: $500.00
+     Activo: No
+     Veces vendido: 3
+     Órdenes únicas: 3
+     IDs de órdenes: 191, 506, 3604
+
+  33. BISTEC ESPECIAL DE CERDO
+     ID: 190
+     SKU: N/A
+     Categoría: comida
+     Precio: $1650.00
+     Activo: No
+     Veces vendido: 3
+     Órdenes únicas: 3
+     IDs de órdenes: 400, 1286, 4441
+
+  34. CAMARON SALTEADO CON VEGETALES
+     ID: 329
+     SKU: N/A
+     Categoría: comida
+     Precio: $1600.00
+     Activo: No
+     Veces vendido: 3
+     Órdenes únicas: 3
+     IDs de órdenes: 933, 947, 3575
+
+  35. LANGOSTA ENCHILADA
+     ID: 214
+     SKU: N/A
+     Categoría: comida
+     Precio: $1500.00
+     Activo: No
+     Veces vendido: 3
+     Órdenes únicas: 3
+     IDs de órdenes: 545, 1239, 1256
+
+  36. POLLO A LA CORDON BLUE
+     ID: 50
+     SKU: N/A
+     Categoría: comida
+     Precio: $1500.00
+     Activo: No
+     Veces vendido: 4
+     Órdenes únicas: 4
+     IDs de órdenes: 203, 272, 383, 2875
+
+  37. POLLO ASADO
+     ID: 51
+     SKU: N/A
+     Categoría: comida
+     Precio: $1100.00
+     Activo: No
+     Veces vendido: 4
+     Órdenes únicas: 4
+     IDs de órdenes: 191, 419, 2536, 4360
+
+  38. SOPA DE PESCADO
+     ID: 210
+     SKU: N/A
+     Categoría: comida
+     Precio: $560.00
+     Activo: No
+     Veces vendido: 4
+     Órdenes únicas: 4
+     IDs de órdenes: 506, 3834, 4638, 5000
+
+  39. BISTEC DE POLLO LIONESA
+     ID: 201
+     SKU: N/A
+     Categoría: comida
+     Precio: $1200.00
+     Activo: No
+     Veces vendido: 5
+     Órdenes únicas: 5
+     IDs de órdenes: 458, 2027, 2080, 2261, 5339
+
+  40. BISTEC ESPECIAL RES
+     ID: 140
+     SKU: N/A
+     Categoría: comida
+     Precio: $1200.00
+     Activo: No
+     Veces vendido: 5
+     Órdenes únicas: 5
+     IDs de órdenes: 194, 434, 887, 958, 2532
+
+  41. VACA FRITA
+     ID: 170
+     SKU: N/A
+     Categoría: comida
+     Precio: $1100.00
+     Activo: No
+     Veces vendido: 5
+     Órdenes únicas: 5
+     IDs de órdenes: 348, 355, 359, 517, 3438
+
+  42. ARROZ CON POLLO
+     ID: 6
+     SKU: N/A
+     Categoría: comida
+     Precio: $650.00
+     Activo: No
+     Veces vendido: 7
+     Órdenes únicas: 6
+     IDs de órdenes: 202, 930, 1329, 2592, 3668, 4443
+
+  43. CAIPIROSKA
+     ID: 415
+     SKU: N/A
+     Categoría: comida
+     Precio: $550.00
+     Activo: No
+     Veces vendido: 8
+     Órdenes únicas: 6
+     IDs de órdenes: 3767, 3801, 4389, 4435, 4497, 4996
+
+  44. ENCHILADO DE LANGOSTA
+     ID: 131
+     SKU: N/A
+     Categoría: comida
+     Precio: $1500.00
+     Activo: No
+     Veces vendido: 6
+     Órdenes únicas: 6
+     IDs de órdenes: 191, 408, 570, 578, 584, 947
+
+  45. TOSTON RELLENO CON QUESO
+     ID: 149
+     SKU: N/A
+     Categoría: comida
+     Precio: $600.00
+     Activo: No
+     Veces vendido: 6
+     Órdenes únicas: 6
+     IDs de órdenes: 229, 3750, 4483, 4491, 5718, 5722
+
+  46. BATIDO DE COCO
+     ID: 374
+     SKU: N/A
+     Categoría: cocteleria
+     Precio: $400.00
+     Activo: No
+     Veces vendido: 9
+     Órdenes únicas: 7
+     IDs de órdenes: 1948, 1967, 2546, 2562, 2796, 2924, 2958
+
+  47. BISTEC ALI DE CERDO
+     ID: 390
+     SKU: N/A
+     Categoría: comida
+     Precio: $1350.00
+     Activo: No
+     Veces vendido: 7
+     Órdenes únicas: 7
+     IDs de órdenes: 2658, 3389, 3396, 4385, 4904, 4944, 5680
+
+  48. BISTEC DE RES A LA LIONESA
+     ID: 169
+     SKU: N/A
+     Categoría: comida
+     Precio: $1000.00
+     Activo: No
+     Veces vendido: 7
+     Órdenes únicas: 7
+     IDs de órdenes: 343, 348, 421, 528, 1339, 1980, 2620
+
+  49. BISTEC DE RES GRILLE
+     ID: 145
+     SKU: N/A
+     Categoría: comida
+     Precio: $900.00
+     Activo: No
+     Veces vendido: 7
+     Órdenes únicas: 7
+     IDs de órdenes: 209, 423, 428, 943, 960, 984, 2254
+
+  50. ENTREMES DE JAMON
+     ID: 330
+     SKU: N/A
+     Categoría: comida
+     Precio: $850.00
+     Activo: No
+     Veces vendido: 8
+     Órdenes únicas: 7
+     IDs de órdenes: 935, 946, 3296, 3859, 4418, 5416, 5420
+
+  51. ESPAGUETIS A LA BOLOÑESA
+     ID: 148
+     SKU: N/A
+     Categoría: comida
+     Precio: $1000.00
+     Activo: No
+     Veces vendido: 7
+     Órdenes únicas: 7
+     IDs de órdenes: 226, 373, 924, 1244, 2759, 4878, 5678
+
+  52. ACEITUNAS
+     ID: 166
+     SKU: N/A
+     Categoría: comida
+     Precio: $700.00
+     Activo: No
+     Veces vendido: 8
+     Órdenes únicas: 8
+     IDs de órdenes: 329, 333, 354, 358, 398, 520, 1914, 4926
+
+  53. BISTEC A LA DUTCH
+     ID: 143
+     SKU: N/A
+     Categoría: comida
+     Precio: $1400.00
+     Activo: No
+     Veces vendido: 8
+     Órdenes únicas: 8
+     IDs de órdenes: 205, 329, 538, 1489, 3494, 3610, 3800, 5709
+
+  54. CAMARON GRILLE
+     ID: 204
+     SKU: N/A
+     Categoría: comida
+     Precio: $1855.00
+     Activo: No
+     Veces vendido: 8
+     Órdenes únicas: 8
+     IDs de órdenes: 488, 491, 1254, 1829, 3668, 3914, 4397, 4919
+
+  55. CHULETA NATURAL
+     ID: 157
+     SKU: N/A
+     Categoría: comida
+     Precio: $1350.00
+     Activo: No
+     Veces vendido: 8
+     Órdenes únicas: 8
+     IDs de órdenes: 266, 442, 930, 1235, 1381, 2231, 2234, 3540
+
+  56. SANGRÍA
+     ID: 194
+     SKU: N/A
+     Categoría: cocteleria
+     Precio: $700.00
+     Activo: No
+     Veces vendido: 9
+     Órdenes únicas: 8
+     IDs de órdenes: 420, 1911, 3668, 3739, 3766, 3800, 5053, 5822
+
+  57. AGREGO MAYONESA
+     ID: 118
+     SKU: N/A
+     Categoría: comida
+     Precio: $120.00
+     Activo: No
+     Veces vendido: 10
+     Órdenes únicas: 9
+     IDs de órdenes: 184, 261, 298, 1817, 1869, 2111, 2824, 3800, 4414
+
+  58. DAIQUIRÍ
+     ID: 218
+     SKU: N/A
+     Categoría: cocteleria
+     Precio: $550.00
+     Activo: No
+     Veces vendido: 11
+     Órdenes únicas: 9
+     IDs de órdenes: 575, 959, 1245, 1392, 1911, 2053, 2503, 2601, 4986
+
+  59. LANGOSTA GRILLE
+     ID: 326
+     SKU: N/A
+     Categoría: comida
+     Precio: $1600.00
+     Activo: No
+     Veces vendido: 9
+     Órdenes únicas: 9
+     IDs de órdenes: 920, 1245, 1428, 1832, 1849, 2128, 4911, 5316, 5392
+
+  60. BISTEC DE POLLO GRILLE
+     ID: 203
+     SKU: N/A
+     Categoría: comida
+     Precio: $1000.00
+     Activo: No
+     Veces vendido: 10
+     Órdenes únicas: 10
+     IDs de órdenes: 464, 893, 1254, 1274, 1283, 2610, 3852, 4539, 4646, 5427
+
+  61. SOPA DE RES
+     ID: 139
+     SKU: N/A
+     Categoría: comida
+     Precio: $550.00
+     Activo: No
+     Veces vendido: 11
+     Órdenes únicas: 10
+     IDs de órdenes: 194, 256, 471, 515, 1972, 3328, 3443, 3445, 3497, 3504
+
+  62. TOSTON CON JAMON
+     ID: 331
+     SKU: N/A
+     Categoría: comida
+     Precio: $600.00
+     Activo: No
+     Veces vendido: 11
+     Órdenes únicas: 10
+     IDs de órdenes: 951, 955, 956, 3695, 5054, 5313, 5416, 5687, 5812, 5813
+
+  63. TOSTON RELLENO CON PICADILLO Y VEGETALES
+     ID: 219
+     SKU: N/A
+     Categoría: comida
+     Precio: $900.00
+     Activo: No
+     Veces vendido: 11
+     Órdenes únicas: 10
+     IDs de órdenes: 584, 887, 1244, 1440, 1724, 3847, 5726, 5748, 5750, 5762
+
+  64. TOSTON RELLENO CON PICADILLO Y VEGETALES - NP
+     ID: 372
+     SKU: N/A
+     Categoría: comida
+     Precio: $600.00
+     Activo: No
+     Veces vendido: 10
+     Órdenes únicas: 10
+     IDs de órdenes: 1882, 1915, 2047, 2080, 2216, 2670, 2699, 2726, 2766, 2853
+
+  65. LONJAS DE CARNERO EN SALSA
+     ID: 45
+     SKU: N/A
+     Categoría: comida
+     Precio: $1200.00
+     Activo: No
+     Veces vendido: 11
+     Órdenes únicas: 11
+     IDs de órdenes: 188, 189, 201, 229, 429, 901, 1299, 1916, 2206, 5707, 5859
+
+  66. HAMBURGUESA ESPECIAL DE CERDO
+     ID: 42
+     SKU: N/A
+     Categoría: comida
+     Precio: $1500.00
+     Activo: No
+     Veces vendido: 12
+     Órdenes únicas: 12
+     IDs de órdenes: 178, 187, 201, 213, 461, 1309, 2528, 2836, 3372, 5736, 5737, 5748
+
+  67. PURE DE PAPA
+     ID: 337
+     SKU: N/A
+     Categoría: comida
+     Precio: $750.00
+     Activo: No
+     Veces vendido: 14
+     Órdenes únicas: 14
+     IDs de órdenes: 1339, 1440, 1489, 1747, 1833, 1927, 1935, 1972, 2066, 2128, 2223, 2261, 2589, 2592
+
+  68. ARROZ PILAF
+     ID: 11
+     SKU: N/A
+     Categoría: comida
+     Precio: $500.00
+     Activo: No
+     Veces vendido: 15
+     Órdenes únicas: 15
+     IDs de órdenes: 205, 272, 525, 902, 1265, 1372, 1527, 1745, 1837, 1972, 3491, 3867, 4404, 4525, 4973
+
+  69. ROPA VIEJA DE CARNERO
+     ID: 171
+     SKU: N/A
+     Categoría: comida
+     Precio: $1200.00
+     Activo: No
+     Veces vendido: 15
+     Órdenes únicas: 15
+     IDs de órdenes: 351, 354, 947, 1424, 1502, 1780, 2247, 2516, 2885, 3348, 3375, 3448, 3483, 3883, 4471
+
+  70. ROPA VIEJA DE RES
+     ID: 121
+     SKU: N/A
+     Categoría: comida
+     Precio: $1300.00
+     Activo: No
+     Veces vendido: 16
+     Órdenes únicas: 15
+     IDs de órdenes: 188, 272, 445, 517, 887, 892, 1988, 2260, 2589, 2669, 2699, 2744, 2866, 3428, 3505
+
+  71. SOPA DE MARISCOS
+     ID: 200
+     SKU: N/A
+     Categoría: comida
+     Precio: $1000.00
+     Activo: No
+     Veces vendido: 15
+     Órdenes únicas: 15
+     IDs de órdenes: 432, 520, 930, 1255, 1315, 1472, 1486, 1954, 2851, 3549, 3561, 3811, 3921, 4585, 5355
+
+  72. ESTOFADO DE CARNERO
+     ID: 36
+     SKU: N/A
+     Categoría: comida
+     Precio: $1200.00
+     Activo: No
+     Veces vendido: 17
+     Órdenes únicas: 16
+     IDs de órdenes: 188, 220, 221, 263, 472, 533, 930, 1495, 1831, 2018, 3015, 3740, 3842, 4510, 4878, 5699
+
+  73. FILETE DE PESCADO REBOZADO 
+     ID: 172
+     SKU: N/A
+     Categoría: comida
+     Precio: $1455.00
+     Activo: No
+     Veces vendido: 16
+     Órdenes únicas: 16
+     IDs de órdenes: 359, 400, 506, 520, 535, 1284, 1293, 1378, 1489, 1785, 2521, 2845, 3604, 3776, 4911, 5772
+
+  74. ARROZ CON CAMARON
+     ID: 122
+     SKU: N/A
+     Categoría: comida
+     Precio: $1000.00
+     Activo: No
+     Veces vendido: 18
+     Órdenes únicas: 17
+     IDs de órdenes: 188, 191, 209, 237, 458, 2652, 2786, 3604, 3681, 3776, 4388, 4508, 4557, 4873, 4898, 5420, 5720
+
+  75. ENSALADA DE ESTACIÓN
+     ID: 191
+     SKU: N/A
+     Categoría: comida
+     Precio: $200.00
+     Activo: No
+     Veces vendido: 19
+     Órdenes únicas: 18
+     IDs de órdenes: 419, 894, 1381, 1424, 1504, 1830, 2209, 3534, 3642, 3674, 4365, 4506, 4539, 4898, 4937, 4959, 5677, 5680
+
+  76. SPERLAN DE POLLO
+     ID: 35
+     SKU: N/A
+     Categoría: comida
+     Precio: $1200.00
+     Activo: No
+     Veces vendido: 19
+     Órdenes únicas: 19
+     IDs de órdenes: 184, 239, 272, 305, 312, 479, 534, 882, 932, 984, 1482, 1489, 1833, 2010, 2032, 2112, 2772, 2903, 3867
+
+  77. FILETE DE PESCADO A LA PLANCHA
+     ID: 197
+     SKU: N/A
+     Categoría: comida
+     Precio: $1355.00
+     Activo: No
+     Veces vendido: 20
+     Órdenes únicas: 20
+     IDs de órdenes: 423, 428, 1371, 1757, 1782, 1829, 1935, 2517, 2521, 2592, 2953, 3403, 3568, 3573, 4629, 4908, 5315, 5337, 5373, 5774
+
+  78. SOPA DE POLLO
+     ID: 54
+     SKU: N/A
+     Categoría: comida
+     Precio: $500.00
+     Activo: No
+     Veces vendido: 21
+     Órdenes únicas: 20
+     IDs de órdenes: 191, 194, 290, 401, 473, 1834, 1893, 2232, 2610, 3599, 3601, 3717, 3798, 3800, 4500, 4503, 5339, 5355, 5394, 5399
+
+  79. TAMALES
+     ID: 389
+     SKU: N/A
+     Categoría: comida
+     Precio: $500.00
+     Activo: No
+     Veces vendido: 25
+     Órdenes únicas: 23
+     IDs de órdenes: 2620, 2627, 2667, 2716, 2786, 2791, 4431, 4433, 4436, 4441, 4504, 4506, 4509, 4510, 4520, 4541, 4575, 4578, 4583, 4586, 4601, 4610, 4613
+
+  80. FAJITAS DE POLLO
+     ID: 37
+     SKU: N/A
+     Categoría: comida
+     Precio: $1200.00
+     Activo: No
+     Veces vendido: 25
+     Órdenes únicas: 24
+     IDs de órdenes: 206, 231, 262, 318, 497, 892, 955, 957, 1261, 1554, 1822, 1834, 1867, 1972, 2132, 2186, 2199, 2230, 2658, 2751, 2758, 2766, 2873, 5430
+
+  81. BISTEC ESPECIAL DE CERDO - NP
+     ID: 345
+     SKU: N/A
+     Categoría: comida
+     Precio: $1600.00
+     Activo: No
+     Veces vendido: 29
+     Órdenes únicas: 29
+     IDs de órdenes: 1488, 1837, 2212, 2219, 2223, 2716, 2792, 3008, 3339, 3413, 3555, 3558, 3604, 3647, 3816, 4417, 4491, 4549, 4563, 4640, 4875, 4911, 4918, 4971, 5011, 5012, 5690, 5739, 5802
+
+  82. PIÑA COLADA
+     ID: 189
+     SKU: N/A
+     Categoría: cocteleria
+     Precio: $500.00
+     Activo: No
+     Veces vendido: 47
+     Órdenes únicas: 30
+     IDs de órdenes: 4543, 4558, 4574, 4587, 4602, 4614, 4630, 4881, 4890, 4899, 4915, 4930, 4934, 4946, 4957, 4979, 4986, 4996, 5003, 5032, 5297, 5305, 5322, 5338, 5362, 5371, 5381, 5387, 5391, 5417
+
+  83. ENCHILADO DE CAMARONES
+     ID: 426
+     SKU: N/A
+     Categoría: comida
+     Precio: $1855.00
+     Activo: No
+     Veces vendido: 33
+     Órdenes únicas: 31
+     IDs de órdenes: 4959, 4964, 4982, 4999, 5010, 5011, 5019, 5046, 5054, 5360, 5361, 5367, 5410, 5415, 5416, 5418, 5420, 5690, 5691, 5721, 5722, 5726, 5750, 5756, 5766, 5767, 5777, 5788, 5795, 5802, 5826
+
+  84. BISTEC DE CERDO EMPANADO
+     ID: 13
+     SKU: N/A
+     Categoría: comida
+     Precio: $1500.00
+     Activo: No
+     Veces vendido: 34
+     Órdenes únicas: 32
+     IDs de órdenes: 194, 205, 492, 929, 1413, 1427, 1448, 1461, 1466, 1467, 1780, 2018, 2521, 3340, 3409, 3717, 3761, 3816, 3943, 4465, 4503, 4887, 4911, 4920, 5336, 5344, 5361, 5679, 5682, 5699, 5832, 5852
+
+  85. ARROZ CON CERDO
+     ID: 4
+     SKU: N/A
+     Categoría: comida
+     Precio: $650.00
+     Activo: No
+     Veces vendido: 35
+     Órdenes únicas: 34
+     IDs de órdenes: 202, 224, 245, 335, 366, 517, 1489, 1837, 2001, 2027, 2066, 2261, 2699, 2708, 2790, 2835, 2845, 3366, 3369, 3386, 3604, 3608, 3759, 3834, 4424, 4578, 4981, 4983, 5315, 5389, 5680, 5682, 5714, 5735
+
+  86. CAMARON AL AJILLO
+     ID: 138
+     SKU: N/A
+     Categoría: comida
+     Precio: $1755.00
+     Activo: No
+     Veces vendido: 34
+     Órdenes únicas: 34
+     IDs de órdenes: 194, 203, 254, 272, 329, 461, 464, 508, 578, 1254, 1261, 1313, 1372, 1374, 1425, 1489, 1837, 2027, 2128, 2166, 2168, 2693, 2827, 2944, 3434, 3600, 3660, 3681, 3773, 3816, 4371, 4406, 4408, 4976
+
+  87. FILETE CANCILLER
+     ID: 38
+     SKU: N/A
+     Categoría: comida
+     Precio: $1655.00
+     Activo: No
+     Veces vendido: 36
+     Órdenes únicas: 34
+     IDs de órdenes: 187, 201, 203, 255, 317, 493, 495, 1274, 1286, 1297, 1359, 1412, 1413, 1426, 1489, 1780, 1831, 1837, 2092, 2784, 3420, 3527, 3546, 3576, 3830, 3833, 4506, 4640, 4646, 4976, 5009, 5015, 5694, 5784
+
+  88. LANGOSTA ENCHILADA NP
+     ID: 332
+     SKU: N/A
+     Categoría: comida
+     Precio: $2105.00
+     Activo: No
+     Veces vendido: 37
+     Órdenes únicas: 36
+     IDs de órdenes: 956, 1284, 1344, 1372, 1374, 1423, 1464, 2156, 2234, 2718, 2745, 2765, 3269, 3328, 3344, 3372, 3394, 3485, 3527, 3655, 3719, 3755, 3821, 3847, 3850, 3938, 4361, 4386, 4436, 4541, 4875, 4929, 4952, 5414, 5427, 5704
+
+  89. FILETE DE PESCADO EMPANADO
+     ID: 158
+     SKU: N/A
+     Categoría: comida
+     Precio: $1555.00
+     Activo: No
+     Veces vendido: 42
+     Órdenes únicas: 42
+     IDs de órdenes: 272, 337, 349, 455, 960, 1351, 1409, 1426, 1505, 1527, 1529, 1757, 1831, 1885, 1886, 1942, 1997, 2156, 2669, 2783, 2821, 2824, 3013, 3449, 3546, 3547, 3733, 3746, 4436, 4491, 4524, 4626, 4910, 4969, 4983, 4984, 5001, 5054, 5306, 5420, 5682, 5852
+
+  90. TOSTON RELLENO CON CAMARON - NP
+     ID: 375
+     SKU: N/A
+     Categoría: comida
+     Precio: $900.00
+     Activo: No
+     Veces vendido: 45
+     Órdenes únicas: 43
+     IDs de órdenes: 1951, 1963, 1965, 1982, 2020, 2047, 2067, 2086, 2179, 2190, 2191, 2203, 2223, 2234, 2249, 2251, 2580, 2594, 2662, 2715, 2740, 2786, 2807, 2811, 2813, 2824, 2845, 3008, 3435, 3485, 3531, 3659, 3921, 4405, 4408, 4438, 5758, 5785, 5802, 5822, 5839, 5845, 5861
+
+  91. ESPAGUETIS CON JAMON Y QUESO
+     ID: 32
+     SKU: N/A
+     Categoría: comida
+     Precio: $950.00
+     Activo: No
+     Veces vendido: 44
+     Órdenes únicas: 44
+     IDs de órdenes: 178, 191, 207, 240, 277, 295, 340, 349, 380, 430, 453, 455, 483, 510, 890, 901, 1464, 1750, 2948, 3439, 3491, 3797, 3800, 4531, 4532, 4554, 4569, 4642, 4643, 4644, 4874, 4910, 4920, 4939, 4964, 4976, 5001, 5784, 5811, 5813, 5830, 5839, 5844, 5849
+
+  92. FRICASE DE CERDO
+     ID: 41
+     SKU: N/A
+     Categoría: comida
+     Precio: $1450.00
+     Activo: No
+     Veces vendido: 48
+     Órdenes únicas: 48
+     IDs de órdenes: 205, 272, 461, 510, 525, 534, 905, 908, 930, 984, 1257, 1270, 1274, 1339, 1370, 1428, 1488, 1916, 1955, 2001, 2009, 2186, 2230, 2658, 2741, 2769, 2799, 2927, 2947, 3017, 3428, 3557, 3574, 3576, 3608, 3792, 3850, 3942, 4360, 4361, 4593, 4909, 5000, 5024, 5312, 5314, 5812, 5823
+
+  93. ENSALADA FRIA
+     ID: 206
+     SKU: N/A
+     Categoría: comida
+     Precio: $800.00
+     Activo: No
+     Veces vendido: 62
+     Órdenes únicas: 51
+     IDs de órdenes: 491, 493, 498, 525, 534, 539, 575, 892, 907, 978, 980, 1245, 1344, 1412, 1413, 1447, 1825, 1832, 1834, 1836, 1916, 1928, 1952, 1955, 1977, 2018, 2020, 2630, 2658, 2686, 2711, 2716, 2740, 2742, 2783, 2784, 2786, 2814, 2932, 2954, 3013, 3017, 3273, 3395, 3403, 3413, 3438, 3439, 3497, 3887, 3893
+
+  94. FRICASE DE CARNERO
+     ID: 40
+     SKU: N/A
+     Categoría: comida
+     Precio: $1300.00
+     Activo: No
+     Veces vendido: 54
+     Órdenes únicas: 52
+     IDs de órdenes: 203, 205, 220, 254, 290, 311, 353, 369, 382, 383, 461, 496, 535, 553, 887, 984, 1233, 1252, 1886, 1924, 1942, 2027, 2075, 2159, 2166, 2186, 2549, 2550, 2604, 2678, 2850, 2912, 2932, 3303, 3414, 3486, 3847, 3850, 3910, 4467, 4485, 4553, 4886, 4909, 4911, 4923, 4951, 5677, 5679, 5682, 5721, 5735
+
+  95. FILETE DE PESCADO FRITO
+     ID: 39
+     SKU: N/A
+     Categoría: comida
+     Precio: $1355.00
+     Activo: No
+     Veces vendido: 54
+     Órdenes únicas: 54
+     IDs de órdenes: 205, 209, 220, 228, 255, 327, 339, 354, 382, 383, 445, 528, 975, 978, 1243, 1244, 1284, 1298, 1358, 1378, 1426, 1474, 1543, 1750, 1922, 1925, 1974, 2027, 2075, 2080, 2223, 2575, 2610, 2707, 2758, 2769, 2799, 2928, 3014, 3269, 3296, 3472, 3506, 3604, 3697, 3745, 4641, 4937, 4976, 5030, 5042, 5312, 5328, 5363
+
+  96. ENSALADA DE AGUACATE
+     ID: 411
+     SKU: N/A
+     Categoría: comida
+     Precio: $300.00
+     Activo: No
+     Veces vendido: 61
+     Órdenes únicas: 57
+     IDs de órdenes: 3613, 3630, 3633, 3642, 3654, 3655, 3666, 3674, 3697, 3718, 3719, 3722, 3740, 3760, 3761, 4364, 4381, 4385, 4390, 4395, 4406, 4447, 4449, 4463, 4468, 4506, 4507, 4519, 4545, 4569, 4578, 4579, 4582, 4626, 4637, 4638, 4641, 4887, 4888, 4898, 4910, 4917, 4937, 4952, 5050, 5295, 5311, 5312, 5328, 5330, 5351, 5679, 5693, 5700, 5725, 5735, 5739
+
+  97. ENSALADA TOMATE
+     ID: 29
+     SKU: N/A
+     Categoría: comida
+     Precio: $300.00
+     Activo: No
+     Veces vendido: 62
+     Órdenes únicas: 61
+     IDs de órdenes: 221, 230, 242, 299, 339, 343, 410, 444, 478, 488, 508, 517, 943, 984, 1244, 1257, 1266, 1315, 1380, 1381, 1382, 1426, 1436, 1463, 1489, 1504, 1747, 1750, 1834, 1897, 1963, 2108, 2129, 2212, 2248, 2693, 2700, 2704, 2788, 2790, 2822, 3394, 3476, 3488, 3534, 3540, 3600, 3697, 3719, 3740, 3779, 3847, 4385, 4395, 4404, 5418, 5686, 5796, 5812, 5824, 5852
+
+  98. POLLO FRITO
+     ID: 52
+     SKU: N/A
+     Categoría: comida
+     Precio: $1100.00
+     Activo: No
+     Veces vendido: 61
+     Órdenes únicas: 61
+     IDs de órdenes: 184, 424, 460, 468, 473, 519, 545, 930, 943, 980, 984, 1240, 1279, 1284, 1358, 1381, 1505, 1532, 1781, 1785, 1833, 1835, 1946, 1951, 1957, 1972, 2066, 2075, 2230, 2518, 2610, 2784, 2786, 2866, 2912, 3610, 3624, 3648, 3650, 3654, 3661, 3666, 3669, 3674, 3696, 3698, 3730, 3826, 3867, 3922, 4404, 4426, 4443, 4553, 4584, 4646, 5339, 5354, 5361, 5427, 5430
+
+  99. CAMARON EMPANADO
+     ID: 120
+     SKU: N/A
+     Categoría: comida
+     Precio: $2155.00
+     Activo: No
+     Veces vendido: 66
+     Órdenes únicas: 64
+     IDs de órdenes: 185, 199, 205, 223, 252, 299, 309, 327, 367, 405, 584, 1355, 1360, 1377, 1415, 1450, 1753, 1755, 1825, 1831, 1832, 2003, 2027, 2048, 2092, 2223, 2512, 2549, 2557, 2786, 2814, 2846, 2953, 3298, 3372, 3464, 3590, 3600, 3608, 3631, 3698, 3828, 3846, 3847, 4364, 4404, 4436, 4492, 4542, 4557, 4898, 4952, 4966, 5054, 5361, 5364, 5738, 5750, 5756, 5788, 5832, 5842, 5844, 5852
+
+  100. CAIPIIRIÑA
+     ID: 192
+     SKU: N/A
+     Categoría: cocteleria
+     Precio: $550.00
+     Activo: No
+     Veces vendido: 107
+     Órdenes únicas: 67
+     IDs de órdenes: 420, 437, 456, 491, 527, 545, 577, 578, 584, 917, 923, 933, 981, 984, 987, 1245, 1283, 1295, 1301, 1339, 1340, 1341, 1351, 1852, 1911, 1967, 1991, 2053, 2124, 2154, 2244, 2524, 2562, 2601, 2628, 2645, 2692, 2805, 2832, 2855, 2924, 2970, 3315, 3383, 3441, 3514, 3528, 3615, 3623, 3725, 3754, 3787, 3801, 3825, 3853, 3911, 3925, 4376, 4389, 4444, 4470, 4497, 4614, 4957, 4986, 5032, 5338
+
+  101. PIÑA COLADA CON ALCOHOL
+     ID: 198
+     SKU: N/A
+     Categoría: cocteleria
+     Precio: $580.00
+     Activo: No
+     Veces vendido: 86
+     Órdenes únicas: 70
+     IDs de órdenes: 428, 470, 491, 492, 499, 503, 533, 546, 578, 583, 887, 930, 932, 960, 976, 981, 1244, 1245, 1274, 1296, 1298, 1299, 1302, 1331, 1341, 1360, 1396, 1407, 1883, 1911, 1991, 1996, 2053, 2154, 2222, 2244, 2645, 2748, 2796, 2805, 2855, 2958, 2959, 2970, 3264, 3347, 3605, 3615, 3671, 3817, 3825, 3840, 3904, 4389, 4419, 4435, 4470, 4497, 4511, 4528, 4534, 4543, 4574, 4587, 4899, 4934, 4986, 4996, 5032, 5305
+
+  102. ARROZ SALTEADO
+     ID: 12
+     SKU: N/A
+     Categoría: comida
+     Precio: $750.00
+     Activo: No
+     Veces vendido: 84
+     Órdenes únicas: 83
+     IDs de órdenes: 188, 189, 205, 209, 233, 246, 314, 325, 380, 889, 907, 930, 948, 975, 1238, 1241, 1314, 1330, 1344, 1398, 1427, 1461, 1837, 1915, 1916, 1935, 1941, 2112, 2176, 2206, 2247, 2521, 2590, 2614, 2682, 2694, 2714, 2790, 2791, 2821, 2846, 3306, 3328, 3331, 3468, 3472, 3556, 3557, 3650, 3664, 3666, 3669, 3688, 3755, 3784, 3916, 3931, 4360, 4374, 4381, 4394, 4446, 4503, 4606, 4888, 4910, 4942, 4945, 4950, 4961, 4962, 5337, 5360, 5361, 5375, 5679, 5682, 5688, 5690, 5738, 5791, 5832, 5852
+
+  103. LIMONADA FRAPÉ
+     ID: 196
+     SKU: N/A
+     Categoría: cocteleria
+     Precio: $500.00
+     Activo: No
+     Veces vendido: 131
+     Órdenes únicas: 87
+     IDs de órdenes: 422, 428, 432, 447, 462, 463, 545, 905, 1292, 1341, 1376, 1880, 1887, 1911, 1967, 2053, 2124, 2154, 2184, 2562, 2628, 2645, 2668, 2701, 2732, 2748, 2832, 2855, 2924, 2960, 2970, 3325, 3383, 3424, 3441, 3477, 3492, 3503, 3514, 3548, 3559, 3577, 3605, 3615, 3623, 3636, 3671, 3677, 3711, 3725, 3744, 3754, 3787, 3817, 3825, 3873, 3904, 3911, 3925, 4362, 4389, 4410, 4419, 4435, 4511, 4528, 4543, 4558, 4574, 4580, 4587, 4602, 4614, 4930, 4946, 4957, 4972, 4986, 5003, 5297, 5305, 5322, 5356, 5387, 5422, 5695, 5705
+
+  104. ARROZ CON TOCINETA
+     ID: 7
+     SKU: N/A
+     Categoría: comida
+     Precio: $650.00
+     Activo: No
+     Veces vendido: 117
+     Órdenes únicas: 113
+     IDs de órdenes: 194, 205, 209, 213, 252, 254, 263, 298, 311, 318, 343, 359, 400, 402, 418, 455, 507, 525, 545, 563, 894, 984, 1274, 1277, 1293, 1370, 1398, 1430, 1461, 1488, 1527, 1555, 1731, 1830, 1832, 1848, 1897, 1963, 1977, 1988, 2001, 2011, 2018, 2144, 2156, 2178, 2223, 2232, 2234, 2254, 2537, 2540, 2560, 2592, 2625, 2660, 2669, 2700, 2790, 2791, 2846, 2866, 2886, 2909, 2927, 2953, 3013, 3017, 3269, 3343, 3369, 3370, 3409, 3410, 3413, 3417, 3428, 3465, 3476, 3505, 3575, 3629, 3631, 3646, 3668, 3681, 3717, 3773, 3828, 3842, 3931, 4365, 4368, 4388, 4510, 4515, 4540, 4585, 4606, 4896, 4919, 4939, 4942, 4948, 4955, 4971, 5320, 5351, 5353, 5359, 5420, 5725, 5738
+
+  105. TOSTON RELLENO CON CAMARON
+     ID: 133
+     SKU: N/A
+     Categoría: comida
+     Precio: $900.00
+     Activo: No
+     Veces vendido: 124
+     Órdenes únicas: 114
+     IDs de órdenes: 191, 196, 203, 213, 237, 246, 249, 255, 261, 262, 272, 279, 288, 291, 295, 299, 305, 316, 318, 379, 423, 428, 434, 441, 461, 463, 513, 887, 903, 935, 976, 1243, 1245, 1254, 1341, 1344, 1360, 1427, 1467, 1530, 1728, 1779, 1832, 2953, 3007, 3015, 3316, 3341, 3372, 3399, 3496, 3601, 3606, 3631, 3668, 3673, 3678, 3689, 3707, 3722, 3734, 3766, 3780, 3785, 3830, 3833, 3847, 3868, 3869, 3891, 3897, 3921, 3923, 3937, 3944, 4523, 4524, 4526, 4554, 4555, 4567, 4571, 4626, 4629, 4639, 4640, 4643, 4902, 4907, 4909, 4959, 4971, 4977, 4989, 4992, 5010, 5017, 5026, 5027, 5041, 5042, 5053, 5339, 5340, 5352, 5360, 5365, 5420, 5421, 5678, 5681, 5720, 5725, 5773
+
+  106. PAPA FRITA
+     ID: 338
+     SKU: N/A
+     Categoría: comida
+     Precio: $650.00
+     Activo: No
+     Veces vendido: 157
+     Órdenes únicas: 136
+     IDs de órdenes: 1339, 1344, 1351, 1359, 1364, 1371, 1374, 1375, 1376, 1377, 1378, 1381, 1398, 1404, 1413, 1423, 1425, 1429, 1430, 1440, 1457, 1464, 1466, 1467, 1489, 1505, 1521, 1527, 1529, 1555, 1717, 1743, 1745, 1747, 1750, 1757, 1780, 1781, 1782, 1783, 1785, 1816, 1817, 1825, 1829, 1831, 1832, 1836, 1837, 1850, 1882, 1893, 1895, 1897, 1912, 1915, 1916, 1923, 1926, 1930, 1935, 1955, 1957, 1961, 1963, 1964, 1969, 1972, 1974, 1975, 1976, 1977, 1979, 1980, 1982, 1998, 2001, 2003, 2011, 2019, 2020, 2021, 2027, 2032, 2048, 2064, 2066, 2069, 2075, 2086, 2098, 2106, 2111, 2113, 2129, 2130, 2132, 2159, 2163, 2166, 2178, 2179, 2190, 2191, 2199, 2206, 2209, 2223, 2230, 2231, 2238, 2248, 2264, 2507, 2516, 2518, 2521, 2532, 2533, 2537, 2540, 2548, 2551, 2570, 2572, 2575, 2577, 2588, 2589, 2592, 2594, 2598, 2604, 2609, 2620, 2669
+
+  107. TOSTON CON JAMON Y QUESO NP
+     ID: 366
+     SKU: N/A
+     Categoría: comida
+     Precio: $650.00
+     Activo: No
+     Veces vendido: 157
+     Órdenes únicas: 145
+     IDs de órdenes: 1753, 1855, 1856, 1858, 1863, 1864, 1867, 1872, 1879, 1882, 1907, 1908, 1912, 1913, 1918, 1920, 1930, 1931, 1932, 1933, 1942, 1947, 1955, 1965, 1976, 1977, 1982, 1983, 1984, 1988, 1997, 1998, 2019, 2027, 2032, 2047, 2056, 2066, 2067, 2072, 2075, 2086, 2088, 2094, 2098, 2102, 2104, 2106, 2134, 2148, 2153, 2167, 2169, 2171, 2179, 2199, 2203, 2206, 2207, 2209, 2212, 2219, 2231, 2235, 2237, 2251, 2252, 2261, 2509, 2512, 2535, 2537, 2549, 2550, 2558, 2563, 2566, 2579, 2588, 2592, 2598, 2602, 2605, 2609, 2618, 2627, 2632, 2649, 2669, 2671, 2672, 2676, 2684, 2686, 2702, 2704, 2707, 2709, 2711, 2721, 2724, 2734, 2735, 2740, 2745, 2747, 2749, 2760, 2763, 2766, 2769, 2783, 2784, 2785, 2786, 2798, 2800, 2802, 2809, 2810, 2811, 2813, 2814, 2818, 2819, 2823, 2837, 2845, 2846, 2850, 2859, 2864, 2873, 2886, 2888, 2895, 2907, 2912, 2917, 2918, 2925, 2929, 2931, 2932, 2933
+
+  108. CROQUETAS
+     ID: 27
+     SKU: N/A
+     Categoría: comida
+     Precio: $750.00
+     Activo: No
+     Veces vendido: 164
+     Órdenes únicas: 151
+     IDs de órdenes: 191, 203, 209, 222, 236, 254, 262, 267, 268, 278, 287, 300, 303, 381, 474, 480, 500, 510, 514, 520, 531, 534, 538, 559, 563, 574, 579, 900, 901, 904, 906, 936, 939, 1272, 1274, 1279, 1281, 1291, 1294, 1296, 1298, 1306, 1307, 1309, 1328, 1329, 1330, 1351, 1352, 1353, 1365, 1434, 1440, 1445, 1448, 1451, 1466, 1521, 1523, 1524, 1532, 1534, 1753, 1877, 1879, 1882, 1885, 1886, 1893, 1895, 1957, 1963, 1964, 1972, 1974, 1980, 1984, 1997, 2009, 2018, 2019, 2027, 2028, 2056, 2075, 2086, 2157, 2165, 2169, 2185, 2190, 2191, 2199, 2207, 2209, 2258, 2261, 2263, 2525, 2536, 2537, 2540, 2550, 2566, 2572, 2575, 2577, 2598, 2750, 2760, 2763, 2769, 2836, 2846, 2873, 2875, 2886, 2899, 2909, 3271, 3300, 3308, 3328, 3340, 3341, 3348, 3351, 3394, 3395, 3396, 3398, 3434, 3438, 3444, 3457, 3491, 3519, 3525, 4448, 4453, 4454, 4464, 4466, 5366, 5369, 5373, 5784, 5795, 5796, 5857, 5858
+
+  109. ENTREMES DE JAMON Y QUESO
+     ID: 30
+     SKU: N/A
+     Categoría: comida
+     Precio: $900.00
+     Activo: No
+     Veces vendido: 161
+     Órdenes únicas: 155
+     IDs de órdenes: 191, 209, 266, 333, 398, 417, 443, 464, 498, 887, 892, 900, 961, 981, 1244, 1253, 1254, 1257, 1261, 1262, 1291, 1295, 1302, 1328, 1330, 1333, 1358, 1375, 1380, 1397, 1413, 1425, 1473, 1555, 1747, 1755, 1757, 1807, 1828, 1832, 1844, 1848, 1851, 1923, 1955, 1976, 2018, 2157, 2167, 2191, 2231, 2234, 2506, 2509, 2536, 2592, 2603, 2658, 2671, 2682, 2686, 2700, 2779, 2784, 2826, 2827, 2866, 2871, 2873, 2875, 2900, 2904, 2905, 2912, 2921, 2928, 2931, 2957, 3007, 3273, 3296, 3318, 3321, 3341, 3467, 3505, 3536, 3572, 3574, 3576, 3596, 3611, 3620, 3662, 3698, 3713, 3718, 3721, 3766, 3770, 3780, 3789, 3791, 3819, 3829, 3833, 3838, 3870, 3914, 3915, 3917, 4361, 4420, 4431, 4453, 4457, 4461, 4468, 4478, 4530, 4532, 4550, 4564, 4565, 4583, 4584, 4586, 4643, 4909, 4927, 4928, 4936, 4974, 4978, 4983, 4992, 4998, 5009, 5019, 5035, 5054, 5315, 5390, 5403, 5415, 5421, 5676, 5681, 5714, 5743, 5798, 5812, 5819, 5825, 5853
+
+  110. MASA DE CERDO FRITA
+     ID: 48
+     SKU: N/A
+     Categoría: comida
+     Precio: $1450.00
+     Activo: No
+     Veces vendido: 160
+     Órdenes únicas: 155
+     IDs de órdenes: 197, 201, 202, 213, 263, 311, 318, 343, 371, 382, 398, 418, 420, 428, 442, 472, 478, 491, 518, 525, 534, 547, 887, 894, 919, 920, 930, 1266, 1270, 1274, 1294, 1296, 1396, 1448, 1463, 1464, 1466, 1495, 1502, 1505, 1511, 1555, 1747, 1750, 1758, 1759, 1779, 1783, 1784, 1785, 1825, 1829, 1830, 1834, 1837, 1840, 1850, 1882, 1895, 1900, 1922, 1926, 1955, 1972, 1974, 1977, 1988, 1997, 2001, 2009, 2106, 2113, 2131, 2134, 2167, 2176, 2534, 2537, 2540, 2550, 2592, 2609, 2618, 2653, 2660, 2678, 2682, 2702, 2707, 2715, 2724, 2790, 3004, 3012, 3014, 3016, 3328, 3343, 3395, 3428, 3444, 3464, 3468, 3556, 3557, 3558, 3574, 3697, 3704, 3721, 3740, 3761, 3826, 3830, 3845, 3850, 3865, 3900, 3909, 3916, 3918, 3924, 4360, 4489, 4495, 4500, 4515, 4519, 4524, 4526, 4532, 4884, 4907, 4973, 4988, 4990, 4998, 4999, 5001, 5050, 5312, 5327, 5337, 5379, 5392, 5394, 5404, 5682, 5693, 5704, 5774, 5802, 5823, 5837, 5838
+
+  111. JUGO DE TOMATE
+     ID: 193
+     SKU: N/A
+     Categoría: cocteleria
+     Precio: $500.00
+     Activo: No
+     Veces vendido: 316
+     Órdenes únicas: 167
+     IDs de órdenes: 420, 442, 455, 457, 461, 464, 471, 474, 496, 497, 498, 500, 518, 520, 528, 531, 534, 535, 544, 545, 548, 554, 563, 570, 578, 579, 580, 584, 887, 892, 906, 926, 933, 936, 937, 940, 942, 943, 946, 947, 955, 958, 960, 973, 979, 981, 1244, 1254, 1257, 1299, 1309, 1313, 1315, 1339, 1351, 1365, 1374, 1375, 1376, 1387, 1390, 1408, 1412, 1444, 1852, 1883, 1887, 1892, 1894, 1896, 1909, 1911, 1967, 1991, 1996, 2053, 2124, 2154, 2184, 2222, 2243, 2503, 2524, 2546, 2562, 2601, 2628, 2645, 2668, 2701, 2732, 2748, 2778, 2796, 2805, 2820, 2855, 2924, 2958, 2960, 2970, 3264, 3325, 3335, 3347, 3359, 3383, 3418, 3421, 3441, 3461, 3477, 3503, 3514, 3537, 3548, 3559, 3577, 3615, 3623, 3636, 3711, 3725, 3744, 3754, 3767, 3787, 3801, 3817, 3825, 3840, 3848, 3853, 3873, 3911, 3925, 4359, 4362, 4376, 4389, 4425, 4444, 4470, 4497, 4511, 4528, 4534, 4543, 4558, 4587, 4602, 4614, 4630, 4880, 4881, 4899, 4915, 4930, 4946, 4996, 5032, 5305, 5322, 5675, 5695, 5705, 5829
+
+  112. ESPAGUETIS CON JAMON
+     ID: 31
+     SKU: N/A
+     Categoría: comida
+     Precio: $950.00
+     Activo: No
+     Veces vendido: 177
+     Órdenes únicas: 170
+     IDs de órdenes: 201, 266, 314, 413, 474, 547, 548, 882, 939, 978, 987, 1237, 1244, 1268, 1274, 1284, 1296, 1297, 1320, 1329, 1353, 1377, 1379, 1384, 1448, 1449, 1463, 1475, 1493, 1532, 1547, 1731, 1746, 1747, 1775, 1828, 1830, 1863, 1932, 1945, 1946, 1950, 1951, 1963, 1965, 1977, 1979, 1980, 1984, 2019, 2020, 2021, 2047, 2075, 2098, 2104, 2125, 2144, 2145, 2169, 2176, 2186, 2191, 2207, 2212, 2234, 2245, 2246, 2252, 2509, 2537, 2551, 2568, 2631, 2639, 2640, 2647, 2656, 2699, 2735, 2742, 2758, 2759, 2760, 2766, 2823, 2845, 2846, 2872, 2896, 2899, 2953, 3004, 3012, 3269, 3282, 3298, 3328, 3331, 3348, 3351, 3371, 3374, 3390, 3396, 3403, 3414, 3428, 3434, 3435, 3438, 3450, 3497, 3505, 3507, 3525, 3552, 3563, 3569, 3594, 3602, 3633, 3664, 3681, 3697, 3698, 3712, 3714, 3741, 3757, 3815, 3826, 3833, 3847, 3884, 3887, 3888, 3893, 3900, 3915, 3937, 4367, 4379, 4386, 4396, 4402, 4403, 4408, 4430, 4431, 4436, 4440, 4447, 4461, 4503, 4510, 4523, 4627, 4875, 4898, 5016, 5038, 5048, 5329, 5330, 5333, 5366, 5382, 5693, 5717
+
+  113. CAMARON REBOSADO
+     ID: 146
+     SKU: N/A
+     Categoría: comida
+     Precio: $2105.00
+     Activo: No
+     Veces vendido: 177
+     Órdenes únicas: 171
+     IDs de órdenes: 209, 222, 226, 229, 230, 246, 265, 272, 277, 299, 317, 318, 337, 346, 401, 438, 445, 458, 478, 495, 508, 527, 545, 575, 576, 578, 894, 925, 926, 930, 937, 947, 980, 983, 1241, 1243, 1269, 1284, 1286, 1296, 1297, 1301, 1329, 1341, 1351, 1355, 1371, 1377, 1382, 1461, 1505, 1534, 1778, 1784, 1827, 1837, 1923, 1931, 1935, 1959, 1961, 1976, 2020, 2021, 2066, 2074, 2075, 2088, 2100, 2132, 2156, 2166, 2234, 2248, 2261, 2521, 2566, 2575, 2578, 2592, 2609, 2669, 2682, 2747, 2783, 2786, 2790, 2791, 2813, 2851, 2866, 2903, 2910, 2911, 2932, 2953, 2968, 2989, 3008, 3296, 3366, 3388, 3394, 3395, 3446, 3472, 3535, 3563, 3573, 3599, 3604, 3610, 3629, 3647, 3654, 3661, 3663, 3673, 3681, 3713, 3717, 3719, 3721, 3747, 3755, 3761, 3772, 3815, 3816, 3831, 3865, 3942, 4383, 4402, 4403, 4407, 4422, 4439, 4440, 4455, 4507, 4510, 4525, 4526, 4527, 4557, 4577, 4586, 4607, 4609, 4612, 4902, 4910, 4911, 4932, 4976, 4998, 5051, 5421, 5424, 5425, 5682, 5700, 5728, 5739, 5777, 5780, 5803, 5812, 5818, 5824
+
+  114. PIÑA COLADA
+     ID: 188
+     SKU: N/A
+     Categoría: cocteleria
+     Precio: $400.00
+     Activo: No
+     Veces vendido: 391
+     Órdenes únicas: 176
+     IDs de órdenes: 396, 412, 414, 416, 418, 447, 456, 457, 459, 461, 462, 463, 464, 470, 474, 490, 492, 497, 505, 532, 535, 544, 545, 546, 559, 578, 579, 580, 883, 887, 893, 906, 907, 908, 919, 932, 933, 935, 939, 940, 942, 944, 955, 957, 958, 959, 960, 978, 979, 981, 982, 983, 993, 1235, 1237, 1238, 1239, 1241, 1243, 1244, 1245, 1254, 1262, 1265, 1268, 1270, 1274, 1283, 1292, 1293, 1300, 1329, 1331, 1339, 1340, 1347, 1351, 1352, 1355, 1358, 1364, 1371, 1373, 1377, 1379, 1381, 1384, 1391, 1397, 1398, 1413, 1852, 1862, 1866, 1875, 1883, 1890, 1892, 1911, 1948, 1967, 1991, 1996, 2053, 2141, 2154, 2184, 2222, 2256, 2503, 2524, 2546, 2562, 2586, 2601, 2617, 2628, 2645, 2668, 2701, 2732, 2748, 2796, 2805, 2820, 2855, 2924, 2958, 2959, 2960, 2970, 3325, 3335, 3347, 3383, 3424, 3441, 3461, 3477, 3492, 3503, 3514, 3537, 3548, 3559, 3605, 3615, 3657, 3671, 3677, 3725, 3744, 3754, 3767, 3787, 3801, 3817, 3825, 3840, 3853, 3873, 3904, 3911, 4359, 4362, 4376, 4389, 4410, 4419, 4425, 4435, 4444, 4470, 4497, 4511, 5020
+
+  115. BISTEC URUGUAYO
+     ID: 16
+     SKU: N/A
+     Categoría: comida
+     Precio: $1700.00
+     Activo: No
+     Veces vendido: 185
+     Órdenes únicas: 181
+     IDs de órdenes: 191, 194, 199, 200, 202, 209, 215, 230, 237, 245, 246, 254, 290, 295, 297, 302, 348, 351, 369, 382, 383, 401, 455, 491, 493, 516, 532, 535, 550, 887, 893, 902, 958, 962, 978, 984, 1238, 1240, 1254, 1265, 1285, 1294, 1300, 1314, 1315, 1329, 1330, 1364, 1425, 1430, 1448, 1467, 1474, 1488, 1527, 1532, 1745, 1783, 1830, 1834, 1837, 1849, 1900, 1961, 1964, 1975, 1976, 1977, 1979, 2009, 2112, 2176, 2178, 2219, 2248, 2261, 2507, 2516, 2548, 2553, 2618, 2640, 2679, 2706, 2744, 2783, 2790, 2791, 2821, 2895, 2927, 2932, 2934, 2944, 2953, 3017, 3298, 3303, 3328, 3338, 3340, 3341, 3372, 3420, 3428, 3431, 3489, 3497, 3525, 3534, 3535, 3573, 3575, 3576, 3604, 3631, 3664, 3674, 3703, 3757, 3828, 3867, 3876, 3879, 3884, 3918, 3923, 3931, 4361, 4373, 4386, 4395, 4447, 4467, 4492, 4507, 4524, 4540, 4542, 4548, 4572, 4573, 4575, 4576, 4579, 4582, 4606, 4887, 4904, 4910, 4935, 4938, 4956, 4960, 4964, 4976, 4983, 4990, 5025, 5040, 5054, 5311, 5365, 5385, 5680, 5682, 5691, 5693, 5699, 5703, 5704, 5709, 5722, 5725, 5738, 5747, 5756, 5767, 5774, 5813, 5837
+
+  116. ENCHILADO DE CAMARONES
+     ID: 134
+     SKU: N/A
+     Categoría: comida
+     Precio: $1500.00
+     Activo: No
+     Veces vendido: 206
+     Órdenes únicas: 197
+     IDs de órdenes: 191, 194, 202, 203, 205, 209, 220, 246, 255, 272, 291, 295, 298, 299, 302, 308, 339, 340, 343, 348, 351, 355, 359, 381, 383, 399, 402, 408, 427, 429, 430, 434, 461, 482, 488, 496, 527, 532, 533, 537, 548, 887, 910, 930, 937, 939, 947, 962, 975, 1269, 1274, 1284, 1286, 1293, 1314, 1318, 1329, 1378, 1381, 1397, 1425, 1430, 1436, 1450, 1475, 1529, 1552, 1555, 1757, 1758, 1829, 1833, 1834, 1837, 1884, 1893, 1899, 1940, 1964, 1972, 1976, 1988, 2001, 2006, 2048, 2069, 2095, 2108, 2134, 2144, 2156, 2159, 2206, 2248, 2512, 2521, 2563, 2620, 2652, 2658, 2671, 2673, 2715, 2718, 2724, 2735, 2743, 2745, 2765, 2776, 2789, 2792, 2866, 2895, 2912, 2913, 2932, 3008, 3010, 3269, 3303, 3343, 3392, 3409, 3420, 3428, 3432, 3451, 3457, 3485, 3486, 3495, 3505, 3527, 3533, 3552, 3568, 3576, 3602, 3604, 3638, 3655, 3664, 3666, 3673, 3685, 3698, 3719, 3740, 3745, 3746, 3755, 3757, 3758, 3773, 3797, 3812, 3816, 3820, 3821, 3828, 3842, 3844, 3845, 3847, 3859, 3867, 3876, 3893, 3910, 3943, 4375, 4383, 4385, 4394, 4399, 4404, 4408, 4433, 4467, 4489, 4506, 4507, 4542, 4555, 4556, 4570, 4578, 4579, 4601, 4613, 4625, 4638, 4875, 4910, 4919, 4924
+
+  117. ARROZ BLANCO
+     ID: 3
+     SKU: N/A
+     Categoría: comida
+     Precio: $300.00
+     Activo: No
+     Veces vendido: 215
+     Órdenes únicas: 201
+     IDs de órdenes: 187, 188, 191, 194, 205, 209, 229, 272, 286, 290, 349, 354, 355, 369, 401, 419, 424, 426, 445, 455, 458, 461, 462, 466, 473, 519, 533, 535, 553, 887, 892, 902, 911, 919, 937, 943, 947, 962, 984, 1232, 1233, 1239, 1244, 1252, 1259, 1274, 1279, 1284, 1296, 1299, 1310, 1355, 1358, 1424, 1466, 1467, 1495, 1757, 1784, 1837, 1912, 1924, 1925, 1931, 1942, 1974, 1979, 1988, 2022, 2064, 2075, 2104, 2169, 2223, 2260, 2516, 2534, 2535, 2537, 2558, 2604, 2632, 2638, 2639, 2678, 2693, 2741, 2744, 2745, 2769, 2784, 2801, 2866, 2875, 2937, 2944, 2953, 3269, 3287, 3296, 3348, 3414, 3420, 3472, 3485, 3488, 3489, 3527, 3546, 3568, 3573, 3604, 3613, 3624, 3629, 3630, 3650, 3655, 3660, 3661, 3666, 3674, 3697, 3698, 3745, 3746, 3755, 3757, 3784, 3808, 3820, 3826, 3842, 3850, 3876, 3883, 3888, 3914, 3916, 3918, 3923, 3938, 4366, 4385, 4386, 4391, 4398, 4423, 4432, 4436, 4440, 4447, 4466, 4467, 4484, 4495, 4506, 4510, 4523, 4524, 4542, 4555, 4584, 4593, 4599, 4613, 4641, 4646, 4875, 4879, 4898, 4910, 4911, 4920, 4929, 4937, 4938, 4942, 4945, 4951, 4959, 4966, 4984, 5030, 5042, 5337, 5339, 5354, 5361, 5414, 5694, 5726, 5739, 5761, 5767, 5782, 5784, 5788, 5813, 5837, 5853
+
+  118. TOSTON NATURAL
+     ID: 55
+     SKU: N/A
+     Categoría: comida
+     Precio: $550.00
+     Activo: No
+     Veces vendido: 210
+     Órdenes únicas: 203
+     IDs de órdenes: 178, 188, 191, 200, 201, 202, 203, 220, 221, 229, 233, 245, 265, 299, 339, 348, 368, 383, 399, 400, 402, 408, 445, 458, 473, 482, 488, 496, 499, 507, 510, 516, 517, 518, 532, 534, 545, 570, 578, 910, 925, 927, 928, 937, 973, 980, 984, 993, 1243, 1254, 1274, 1282, 1285, 1293, 1314, 1315, 1344, 1371, 1440, 1447, 1448, 1450, 1495, 1505, 1555, 1753, 1772, 1849, 1914, 1974, 1975, 1980, 2003, 2006, 2018, 2027, 2080, 2186, 2190, 2195, 2203, 2204, 2205, 2512, 2566, 2578, 2625, 2682, 2704, 2716, 2724, 2776, 2789, 2801, 2845, 2851, 2866, 2875, 2928, 2935, 2947, 3010, 3269, 3298, 3372, 3375, 3395, 3400, 3414, 3432, 3439, 3451, 3455, 3464, 3476, 3518, 3522, 3541, 3543, 3546, 3568, 3574, 3590, 3602, 3608, 3629, 3630, 3650, 3663, 3688, 3713, 3718, 3722, 3735, 3738, 3746, 3755, 3757, 3759, 3762, 3792, 3816, 3830, 3831, 3842, 3850, 3852, 3860, 3865, 3867, 3923, 3938, 3940, 4360, 4361, 4385, 4386, 4422, 4423, 4432, 4447, 4467, 4486, 4490, 4506, 4523, 4555, 4578, 4600, 4613, 4876, 4879, 4902, 4903, 4910, 4916, 4919, 4923, 4938, 4955, 4973, 4976, 4978, 4983, 5024, 5042, 5312, 5336, 5361, 5392, 5418, 5421, 5425, 5679, 5680, 5756, 5758, 5787, 5803, 5837, 5842, 5850, 5852
+
+  119. BISTEC DE CERDO GRILLE
+     ID: 14
+     SKU: N/A
+     Categoría: comida
+     Precio: $1300.00
+     Activo: No
+     Veces vendido: 221
+     Órdenes únicas: 208
+     IDs de órdenes: 197, 203, 209, 233, 251, 266, 282, 285, 348, 418, 462, 464, 474, 491, 507, 517, 518, 525, 527, 578, 935, 939, 947, 962, 991, 1232, 1239, 1243, 1254, 1265, 1274, 1310, 1311, 1327, 1329, 1355, 1369, 1378, 1398, 1426, 1430, 1466, 1750, 1753, 1779, 1783, 1850, 1897, 1933, 1935, 1937, 1941, 1955, 1957, 1963, 1975, 1977, 2001, 2006, 2011, 2041, 2206, 2246, 2577, 2627, 2638, 2652, 2658, 2666, 2670, 2671, 2693, 2699, 2700, 2704, 2713, 2721, 2735, 2741, 2743, 2744, 2745, 2769, 2784, 2786, 2788, 2790, 2791, 2937, 2944, 2954, 3008, 3016, 3287, 3328, 3340, 3341, 3343, 3386, 3390, 3394, 3439, 3446, 3448, 3457, 3472, 3488, 3489, 3526, 3533, 3540, 3545, 3546, 3557, 3558, 3576, 3604, 3626, 3630, 3643, 3647, 3650, 3654, 3661, 3664, 3681, 3685, 3698, 3717, 3718, 3719, 3723, 3736, 3759, 3761, 3762, 3779, 3808, 3819, 3820, 3821, 3900, 3914, 3915, 3918, 3930, 3938, 3942, 4360, 4361, 4367, 4380, 4395, 4397, 4398, 4407, 4424, 4432, 4433, 4440, 4449, 4463, 4484, 4491, 4495, 4507, 4508, 4524, 4579, 4598, 4599, 4613, 4886, 4887, 4901, 4903, 4910, 4917, 4919, 4924, 4941, 4945, 4950, 4959, 4966, 4969, 4976, 4981, 4982, 4983, 5016, 5019, 5311, 5314, 5354, 5358, 5409, 5677, 5686, 5703, 5713, 5721, 5725, 5739, 5774, 5787, 5796, 5853
+
+  120. CHULETA AHUMADA
+     ID: 24
+     SKU: N/A
+     Categoría: comida
+     Precio: $1450.00
+     Activo: No
+     Veces vendido: 243
+     Órdenes únicas: 229
+     IDs de órdenes: 200, 205, 206, 209, 233, 236, 254, 255, 257, 282, 286, 288, 298, 335, 339, 343, 346, 351, 383, 392, 402, 417, 445, 458, 461, 462, 464, 465, 466, 471, 505, 507, 519, 526, 527, 535, 563, 579, 892, 894, 907, 911, 1285, 1286, 1295, 1309, 1315, 1330, 1344, 1374, 1380, 1381, 1398, 1404, 1427, 1430, 1447, 1450, 1528, 1731, 1781, 1801, 1828, 1833, 1834, 1837, 1884, 1885, 1893, 1915, 1916, 1941, 1942, 1961, 1963, 1964, 1974, 1979, 1980, 2011, 2048, 2064, 2066, 2069, 2075, 2080, 2086, 2131, 2134, 2169, 2176, 2178, 2209, 2223, 2260, 2261, 2518, 2535, 2537, 2540, 2558, 2570, 2580, 2588, 2592, 2625, 2632, 2639, 2708, 2716, 2718, 2733, 2765, 2790, 2801, 2812, 2813, 2822, 2827, 2846, 2852, 2866, 2913, 2953, 2954, 2968, 3004, 3016, 3428, 3433, 3491, 3496, 3501, 3505, 3526, 3552, 3556, 3575, 3601, 3604, 3633, 3668, 3673, 3675, 3681, 3685, 3692, 3697, 3703, 3717, 3777, 3784, 3785, 3798, 3826, 3828, 3850, 3867, 3876, 3907, 3909, 3923, 4361, 4366, 4368, 4371, 4373, 4381, 4384, 4385, 4388, 4392, 4398, 4403, 4406, 4423, 4486, 4487, 4525, 4532, 4533, 4539, 4540, 4541, 4553, 4555, 4593, 4606, 4610, 4611, 4612, 4613, 4627, 4629, 4637, 4639, 4641, 4645, 4879, 4896, 4904, 4907, 4908, 4909, 4911, 4926, 4939, 4942, 4987, 4999, 5031, 5295, 5330, 5332, 5361, 5389, 5405, 5414, 5425, 5708, 5712, 5721, 5725, 5736, 5739, 5803, 5826, 5853, 5861
+
+  121. BISTEC DE CERDO LIONESA
+     ID: 15
+     SKU: N/A
+     Categoría: comida
+     Precio: $1400.00
+     Activo: No
+     Veces vendido: 250
+     Órdenes únicas: 233
+     IDs de órdenes: 187, 200, 201, 209, 213, 229, 245, 252, 254, 256, 263, 368, 369, 396, 402, 412, 417, 429, 445, 458, 461, 462, 463, 471, 473, 505, 553, 559, 905, 908, 911, 927, 947, 955, 963, 980, 984, 1233, 1235, 1237, 1241, 1259, 1270, 1277, 1279, 1282, 1283, 1294, 1299, 1302, 1310, 1318, 1330, 1339, 1343, 1344, 1347, 1351, 1409, 1432, 1475, 1478, 1495, 1501, 1527, 1529, 1541, 1722, 1758, 1777, 1828, 1885, 1912, 1924, 1972, 1977, 1980, 1981, 1988, 2069, 2080, 2104, 2111, 2113, 2129, 2134, 2163, 2169, 2189, 2195, 2199, 2206, 2209, 2212, 2214, 2231, 2264, 2535, 2558, 2575, 2588, 2589, 2604, 2610, 2638, 2666, 2678, 2684, 2721, 2730, 2769, 2801, 2818, 2845, 2875, 2912, 2913, 2928, 2932, 2934, 2944, 3013, 3014, 3269, 3285, 3296, 3328, 3331, 3339, 3340, 3372, 3392, 3394, 3400, 3408, 3413, 3435, 3449, 3464, 3543, 3604, 3607, 3613, 3614, 3629, 3655, 3668, 3673, 3674, 3681, 3688, 3698, 3712, 3719, 3720, 3722, 3746, 3755, 3760, 3761, 3780, 3800, 3826, 3844, 3847, 3867, 3883, 3888, 3916, 3923, 3932, 4368, 4374, 4381, 4385, 4386, 4390, 4391, 4403, 4408, 4422, 4432, 4485, 4513, 4537, 4539, 4545, 4552, 4569, 4570, 4598, 4599, 4613, 4636, 4874, 4878, 4879, 4887, 4895, 4910, 4916, 4920, 4923, 4944, 4951, 4955, 4967, 5042, 5049, 5050, 5316, 5330, 5331, 5337, 5360, 5367, 5373, 5379, 5398, 5414, 5703, 5720, 5748, 5758, 5761, 5767, 5785, 5791, 5795, 5802, 5803, 5826, 5859
+
+  122. COCTEL DE CAMARON
+     ID: 117
+     SKU: N/A
+     Categoría: comida
+     Precio: $1355.00
+     Activo: No
+     Veces vendido: 249
+     Órdenes únicas: 234
+     IDs de órdenes: 184, 195, 197, 203, 206, 209, 220, 230, 232, 237, 255, 257, 278, 285, 291, 299, 309, 329, 338, 357, 359, 368, 369, 396, 400, 416, 424, 427, 438, 461, 463, 464, 465, 468, 470, 508, 531, 532, 534, 548, 575, 577, 579, 583, 584, 887, 904, 905, 917, 918, 923, 935, 946, 957, 1240, 1245, 1254, 1272, 1284, 1294, 1298, 1302, 1314, 1315, 1341, 1360, 1376, 1408, 1416, 1428, 1449, 1461, 1464, 1490, 1512, 1513, 1515, 1531, 1542, 1546, 1727, 1769, 1777, 1785, 1786, 1831, 1832, 1834, 1851, 1889, 1910, 1947, 1954, 1957, 1978, 2102, 2127, 2157, 2176, 2179, 2191, 2251, 2258, 2504, 2517, 2518, 2696, 2743, 2744, 2786, 2806, 2814, 2826, 2896, 2932, 2953, 2964, 2968, 2969, 3014, 3017, 3273, 3295, 3304, 3372, 3409, 3425, 3434, 3435, 3450, 3451, 3484, 3487, 3497, 3498, 3508, 3542, 3597, 3633, 3666, 3689, 3692, 3706, 3715, 3716, 3717, 3721, 3750, 3760, 3761, 3766, 3771, 3778, 3779, 3785, 3800, 3807, 3821, 3833, 3865, 3887, 3909, 3915, 3939, 3941, 4370, 4375, 4399, 4400, 4401, 4408, 4411, 4415, 4420, 4454, 4464, 4480, 4486, 4492, 4494, 4495, 4525, 4611, 4613, 4642, 4644, 4645, 4646, 4885, 4898, 4909, 4910, 4911, 4918, 4920, 4921, 4922, 4924, 4940, 4949, 4964, 4969, 4970, 4974, 4989, 4991, 4992, 4999, 5014, 5016, 5019, 5331, 5343, 5361, 5365, 5380, 5390, 5425, 5426, 5429, 5700, 5714, 5720, 5725, 5734, 5737, 5739, 5784, 5787, 5803, 5826, 5833, 5839, 5844
+
+  123. SPERLAN DE CERDO
+     ID: 151
+     SKU: N/A
+     Categoría: comida
+     Precio: $1450.00
+     Activo: No
+     Veces vendido: 257
+     Órdenes únicas: 241
+     IDs de órdenes: 232, 239, 249, 254, 255, 265, 272, 282, 283, 347, 362, 369, 395, 396, 397, 441, 442, 443, 444, 463, 487, 897, 904, 936, 959, 1245, 1253, 1260, 1279, 1375, 1449, 1457, 1467, 1533, 1534, 1545, 1553, 1718, 1728, 1743, 1803, 1804, 1805, 1819, 1827, 1836, 1850, 1864, 1882, 1893, 1912, 1947, 1951, 1952, 1954, 1963, 1965, 2010, 2098, 2106, 2113, 2125, 2130, 2166, 2176, 2202, 2203, 2251, 2537, 2572, 2580, 2581, 2594, 2610, 2611, 2715, 2724, 2737, 2759, 2789, 2791, 2798, 2802, 2866, 2917, 2926, 2935, 2938, 2948, 2969, 3013, 3017, 3266, 3267, 3273, 3295, 3304, 3307, 3308, 3329, 3345, 3397, 3420, 3423, 3434, 3443, 3444, 3449, 3455, 3490, 3496, 3513, 3519, 3547, 3572, 3574, 3575, 3594, 3600, 3621, 3624, 3626, 3632, 3648, 3649, 3653, 3659, 3660, 3661, 3663, 3668, 3674, 3685, 3691, 3695, 3701, 3726, 3740, 3746, 3752, 3756, 3766, 3775, 3782, 3800, 3806, 3815, 3820, 3821, 3828, 3833, 3847, 3852, 3868, 3869, 3870, 3897, 3917, 3923, 3934, 3940, 4375, 4384, 4390, 4395, 4400, 4401, 4404, 4407, 4408, 4489, 4492, 4493, 4494, 4510, 4529, 4531, 4533, 4541, 4547, 4579, 4584, 4585, 4586, 4590, 4597, 4598, 4599, 4605, 4606, 4611, 4615, 4618, 4622, 4628, 4872, 4886, 4904, 4908, 4922, 4928, 4956, 4977, 4991, 5002, 5008, 5012, 5054, 5340, 5352, 5354, 5359, 5382, 5386, 5395, 5399, 5402, 5403, 5421, 5680, 5689, 5699, 5700, 5713, 5726, 5732, 5733, 5737, 5738, 5746, 5773, 5811, 5812, 5816, 5830, 5838, 5839, 5845, 5853, 5857, 5863
+
+  124. ESPAGUETIS NAPOLITANO
+     ID: 33
+     SKU: N/A
+     Categoría: comida
+     Precio: $800.00
+     Activo: No
+     Veces vendido: 261
+     Órdenes únicas: 250
+     IDs de órdenes: 178, 191, 229, 240, 246, 255, 285, 314, 360, 380, 397, 398, 399, 416, 417, 420, 428, 445, 469, 492, 499, 500, 504, 510, 563, 583, 889, 890, 892, 907, 920, 922, 923, 956, 969, 973, 980, 982, 984, 992, 1241, 1256, 1278, 1292, 1300, 1315, 1320, 1330, 1355, 1358, 1376, 1379, 1397, 1430, 1463, 1466, 1472, 1505, 1541, 1751, 1760, 1775, 1781, 1826, 1837, 1851, 1886, 1898, 1927, 1932, 1940, 1954, 1957, 1959, 1961, 1963, 1974, 1980, 1997, 1999, 2003, 2006, 2021, 2028, 2047, 2064, 2086, 2091, 2098, 2145, 2186, 2207, 2209, 2260, 2532, 2571, 2590, 2619, 2621, 2632, 2660, 2686, 2707, 2711, 2721, 2724, 2735, 2753, 2765, 2812, 2845, 2865, 2866, 2872, 2886, 2888, 2906, 2926, 2932, 2973, 3005, 3011, 3012, 3304, 3308, 3339, 3343, 3344, 3387, 3388, 3393, 3396, 3451, 3507, 3564, 3617, 3618, 3631, 3643, 3649, 3661, 3663, 3666, 3679, 3681, 3683, 3699, 3713, 3718, 3723, 3727, 3734, 3735, 3752, 3757, 3775, 3786, 3808, 3809, 3810, 3833, 3842, 3843, 3847, 3864, 3869, 3880, 3881, 3888, 3900, 3931, 3938, 3941, 4363, 4368, 4380, 4384, 4392, 4393, 4402, 4418, 4424, 4431, 4436, 4441, 4448, 4449, 4454, 4456, 4457, 4459, 4460, 4464, 4466, 4468, 4486, 4490, 4494, 4495, 4505, 4523, 4542, 4545, 4549, 4550, 4563, 4564, 4567, 4579, 4604, 4606, 4611, 4617, 4621, 4639, 4876, 4878, 4898, 4911, 4920, 4932, 4939, 4999, 5006, 5009, 5011, 5028, 5033, 5034, 5039, 5053, 5309, 5313, 5314, 5318, 5331, 5332, 5346, 5360, 5369, 5420, 5678, 5680, 5693, 5712, 5783, 5796, 5802, 5807, 5850
+
+  125. SPERLAN DE PESCADO
+     ID: 34
+     SKU: N/A
+     Categoría: comida
+     Precio: $1455.00
+     Activo: No
+     Veces vendido: 385
+     Órdenes únicas: 348
+     IDs de órdenes: 176, 178, 191, 197, 203, 209, 210, 211, 219, 228, 229, 232, 233, 241, 250, 254, 255, 259, 260, 261, 288, 298, 321, 338, 353, 381, 400, 404, 440, 443, 444, 454, 479, 486, 493, 498, 500, 505, 518, 554, 558, 577, 580, 887, 892, 893, 901, 906, 907, 917, 920, 921, 922, 923, 932, 933, 935, 936, 947, 956, 960, 976, 982, 983, 984, 1234, 1245, 1259, 1283, 1284, 1294, 1296, 1312, 1369, 1374, 1376, 1384, 1385, 1407, 1409, 1425, 1428, 1449, 1450, 1453, 1467, 1487, 1489, 1494, 1504, 1520, 1523, 1528, 1531, 1532, 1533, 1534, 1547, 1551, 1743, 1747, 1755, 1757, 1758, 1762, 1782, 1817, 1826, 1830, 1836, 1855, 1861, 1863, 1864, 1886, 1891, 1900, 1910, 1912, 1926, 1928, 1954, 1963, 1965, 1972, 1980, 1984, 2066, 2067, 2075, 2080, 2088, 2098, 2100, 2104, 2113, 2130, 2156, 2166, 2171, 2176, 2191, 2203, 2212, 2219, 2232, 2238, 2507, 2508, 2518, 2537, 2548, 2558, 2566, 2575, 2579, 2594, 2647, 2659, 2660, 2696, 2699, 2700, 2705, 2710, 2711, 2734, 2736, 2747, 2759, 2768, 2770, 2806, 2814, 2826, 2866, 2907, 2917, 2929, 2932, 2933, 2938, 2941, 2950, 2954, 2964, 2969, 3014, 3266, 3267, 3282, 3284, 3295, 3303, 3304, 3307, 3308, 3324, 3329, 3334, 3345, 3390, 3413, 3420, 3425, 3432, 3434, 3438, 3439, 3444, 3458, 3464, 3466, 3469, 3470, 3484, 3488, 3496, 3505, 3508, 3513, 3515, 3522, 3527, 3530, 3536, 3547, 3562, 3567, 3573, 3575, 3576, 3679, 3692, 3695, 3696, 3699, 3700, 3706, 3710, 3715, 3717, 3718, 3737, 3739, 3750, 3751, 3766, 3774, 3776, 3777, 3778, 3783, 3786, 3799, 3800, 3806, 3807, 3811, 3813, 3816, 3822, 3823, 3827, 3830, 3877, 3891, 3905, 3908, 3915, 3917, 3923, 3940, 3941, 4415, 4420, 4433, 4445, 4461, 4468, 4480, 4487, 4494, 4507, 4509, 4526, 4624, 4644, 4646, 4872, 4874, 4878, 4879, 4908, 4909, 4910, 4911, 4924, 4949, 4955, 4963, 4977, 4998, 4999, 5017, 5027, 5031, 5041, 5043, 5046, 5052, 5310, 5315, 5317, 5319, 5331, 5337, 5346, 5349, 5351, 5359, 5408, 5411, 5419, 5424, 5426, 5678, 5681, 5691, 5693, 5694, 5758, 5763, 5766, 5776, 5782, 5793, 5802, 5803, 5813, 5824, 5825, 5832, 5838, 5839, 5845, 5850, 5861
+
+  126. ARROZ FRITO
+     ID: 10
+     SKU: N/A
+     Categoría: comida
+     Precio: $1000.00
+     Activo: No
+     Veces vendido: 392
+     Órdenes únicas: 364
+     IDs de órdenes: 186, 191, 194, 197, 200, 201, 203, 206, 209, 213, 220, 229, 233, 236, 237, 242, 246, 254, 255, 256, 257, 259, 261, 263, 268, 272, 277, 288, 295, 297, 298, 299, 302, 311, 318, 329, 337, 339, 346, 348, 351, 355, 359, 362, 371, 383, 400, 401, 402, 408, 410, 418, 421, 428, 429, 431, 442, 445, 447, 455, 458, 461, 462, 464, 471, 478, 488, 491, 493, 505, 507, 520, 526, 532, 535, 538, 545, 548, 559, 563, 578, 887, 907, 920, 925, 930, 947, 958, 960, 962, 963, 975, 984, 1240, 1241, 1254, 1270, 1282, 1284, 1286, 1293, 1296, 1310, 1314, 1315, 1318, 1329, 1330, 1339, 1355, 1377, 1380, 1381, 1382, 1398, 1404, 1409, 1412, 1415, 1426, 1428, 1430, 1466, 1488, 1489, 1493, 1529, 1745, 1753, 1758, 1777, 1826, 1831, 1832, 1837, 1849, 1851, 1853, 1884, 1895, 1900, 1916, 1922, 1926, 1931, 1955, 1964, 1974, 2001, 2003, 2006, 2041, 2070, 2075, 2086, 2092, 2112, 2113, 2128, 2156, 2166, 2169, 2176, 2178, 2206, 2209, 2223, 2230, 2232, 2260, 2261, 2507, 2518, 2521, 2535, 2537, 2548, 2549, 2550, 2558, 2566, 2592, 2610, 2618, 2620, 2652, 2667, 2669, 2671, 2676, 2679, 2699, 2700, 2715, 2735, 2783, 2784, 2788, 2789, 2790, 2799, 2913, 2928, 2932, 2935, 2953, 3008, 3014, 3017, 3269, 3287, 3328, 3386, 3392, 3394, 3395, 3396, 3414, 3428, 3435, 3446, 3449, 3457, 3464, 3472, 3486, 3488, 3496, 3526, 3540, 3545, 3547, 3555, 3557, 3558, 3561, 3574, 3602, 3608, 3610, 3613, 3631, 3633, 3638, 3647, 3650, 3654, 3661, 3668, 3673, 3688, 3697, 3698, 3712, 3719, 3740, 3755, 3773, 3779, 3780, 3785, 3800, 3808, 3811, 3815, 3816, 3867, 3931, 4378, 4382, 4385, 4391, 4399, 4404, 4406, 4431, 4438, 4441, 4447, 4483, 4487, 4491, 4492, 4500, 4507, 4508, 4510, 4539, 4540, 4553, 4556, 4568, 4569, 4570, 4578, 4579, 4585, 4600, 4610, 4612, 4613, 4622, 4628, 4637, 4640, 4646, 4886, 4895, 4904, 4907, 4908, 4909, 4910, 4911, 4917, 4918, 4920, 4924, 4939, 4942, 4956, 4969, 4973, 4976, 4984, 5009, 5015, 5031, 5049, 5050, 5054, 5302, 5331, 5337, 5344, 5354, 5358, 5360, 5361, 5365, 5373, 5389, 5410, 5423, 5425, 5427, 5679, 5682, 5690, 5694, 5700, 5704, 5714, 5722, 5728, 5750, 5756, 5803, 5806, 5812, 5813, 5826, 5842, 5861
+
+  127. PLATANO MADURO FRITO
+     ID: 49
+     SKU: N/A
+     Categoría: comida
+     Precio: $500.00
+     Activo: No
+     Veces vendido: 379
+     Órdenes únicas: 364
+     IDs de órdenes: 213, 215, 221, 229, 233, 245, 246, 254, 256, 263, 272, 282, 285, 298, 302, 305, 318, 329, 340, 343, 346, 354, 355, 359, 362, 400, 401, 402, 408, 417, 429, 442, 445, 461, 462, 464, 473, 474, 478, 491, 495, 505, 508, 517, 519, 526, 527, 528, 534, 535, 545, 553, 559, 578, 887, 908, 947, 956, 960, 962, 975, 980, 984, 1235, 1240, 1241, 1254, 1257, 1270, 1274, 1277, 1279, 1284, 1285, 1286, 1297, 1298, 1299, 1310, 1315, 1327, 1329, 1330, 1343, 1344, 1355, 1370, 1372, 1374, 1376, 1377, 1378, 1381, 1396, 1397, 1409, 1412, 1420, 1424, 1426, 1488, 1731, 1750, 1784, 1785, 1828, 1831, 1834, 1837, 1848, 1885, 1886, 1893, 1900, 1916, 1922, 1924, 1926, 1935, 1947, 1963, 1976, 1979, 1980, 1981, 1988, 2001, 2006, 2018, 2019, 2027, 2047, 2048, 2064, 2069, 2075, 2086, 2105, 2112, 2156, 2166, 2169, 2176, 2189, 2191, 2206, 2209, 2212, 2221, 2223, 2230, 2232, 2234, 2242, 2247, 2254, 2260, 2516, 2517, 2518, 2521, 2535, 2540, 2558, 2570, 2575, 2590, 2596, 2604, 2614, 2618, 2619, 2620, 2627, 2638, 2639, 2658, 2660, 2666, 2669, 2678, 2682, 2684, 2693, 2700, 2708, 2714, 2718, 2721, 2741, 2743, 2744, 2769, 2784, 2789, 2790, 2791, 2799, 2801, 2818, 2823, 2846, 2850, 2866, 2875, 2912, 2913, 2932, 2935, 2937, 2953, 3004, 3008, 3013, 3014, 3016, 3017, 3269, 3296, 3298, 3339, 3340, 3348, 3394, 3409, 3414, 3428, 3435, 3446, 3449, 3464, 3491, 3505, 3526, 3545, 3568, 3573, 3576, 3600, 3601, 3604, 3607, 3610, 3613, 3626, 3631, 3633, 3648, 3654, 3661, 3666, 3681, 3685, 3698, 3717, 3718, 3719, 3720, 3736, 3755, 3757, 3760, 3761, 3776, 3800, 3811, 3816, 3819, 3820, 3828, 3844, 3847, 3850, 3876, 3879, 3883, 3909, 3910, 3916, 3918, 3922, 3923, 3938, 3942, 4361, 4364, 4368, 4385, 4390, 4395, 4404, 4407, 4408, 4469, 4481, 4483, 4484, 4485, 4495, 4506, 4540, 4545, 4556, 4570, 4585, 4610, 4613, 4646, 4878, 4886, 4887, 4888, 4895, 4896, 4898, 4903, 4904, 4907, 4909, 4910, 4911, 4923, 4924, 4937, 4939, 4944, 4947, 4951, 4959, 4967, 4969, 4971, 5015, 5043, 5046, 5049, 5054, 5312, 5316, 5337, 5354, 5367, 5375, 5379, 5394, 5398, 5414, 5415, 5682, 5689, 5691, 5694, 5704, 5709, 5722, 5725, 5726, 5728, 5767, 5774, 5788, 5813, 5853, 5859
+
+  128. CHICHARRITA
+     ID: 23
+     SKU: N/A
+     Categoría: comida
+     Precio: $500.00
+     Activo: No
+     Veces vendido: 458
+     Órdenes únicas: 417
+     IDs de órdenes: 181, 184, 191, 194, 197, 203, 205, 209, 210, 228, 230, 232, 252, 254, 257, 266, 303, 318, 327, 337, 348, 349, 354, 355, 359, 360, 367, 368, 371, 372, 382, 417, 418, 419, 421, 428, 429, 441, 448, 455, 461, 463, 472, 492, 493, 499, 517, 518, 519, 527, 532, 533, 538, 545, 550, 578, 584, 887, 894, 901, 905, 907, 911, 960, 968, 977, 980, 984, 991, 1234, 1239, 1241, 1244, 1252, 1254, 1259, 1265, 1267, 1271, 1274, 1279, 1283, 1284, 1292, 1294, 1315, 1330, 1339, 1355, 1358, 1367, 1369, 1370, 1373, 1378, 1397, 1409, 1426, 1427, 1474, 1493, 1495, 1530, 1745, 1757, 1758, 1761, 1781, 1784, 1830, 1831, 1915, 1925, 1928, 1942, 1947, 1980, 1982, 1983, 1988, 2002, 2056, 2092, 2104, 2134, 2140, 2143, 2144, 2169, 2191, 2209, 2212, 2216, 2234, 2235, 2237, 2252, 2260, 2535, 2549, 2554, 2558, 2575, 2582, 2619, 2638, 2652, 2653, 2660, 2666, 2676, 2679, 2693, 2699, 2705, 2707, 2713, 2715, 2716, 2724, 2730, 2733, 2735, 2744, 2745, 2758, 2772, 2784, 2790, 2812, 2826, 2845, 2866, 2875, 2903, 2912, 2926, 2927, 2934, 2935, 2944, 2953, 3008, 3013, 3016, 3017, 3296, 3303, 3307, 3311, 3343, 3372, 3386, 3389, 3394, 3396, 3403, 3408, 3409, 3410, 3423, 3428, 3432, 3433, 3435, 3485, 3495, 3505, 3527, 3533, 3534, 3546, 3552, 3558, 3563, 3576, 3586, 3599, 3604, 3618, 3620, 3627, 3629, 3637, 3646, 3649, 3650, 3655, 3660, 3664, 3673, 3674, 3681, 3685, 3692, 3697, 3699, 3703, 3704, 3712, 3723, 3735, 3739, 3740, 3747, 3755, 3756, 3757, 3759, 3774, 3776, 3790, 3798, 3799, 3800, 3808, 3810, 3818, 3819, 3833, 3844, 3845, 3850, 3852, 3859, 3870, 3882, 3887, 3893, 3900, 3909, 3914, 3915, 3916, 3918, 3922, 3932, 3938, 4361, 4365, 4368, 4370, 4371, 4372, 4374, 4375, 4378, 4379, 4380, 4381, 4384, 4385, 4392, 4404, 4405, 4417, 4423, 4424, 4431, 4433, 4449, 4453, 4463, 4466, 4467, 4468, 4469, 4481, 4487, 4489, 4492, 4498, 4500, 4521, 4536, 4537, 4539, 4541, 4548, 4550, 4553, 4555, 4556, 4569, 4573, 4579, 4584, 4593, 4595, 4598, 4599, 4601, 4606, 4612, 4626, 4627, 4629, 4642, 4643, 4644, 4646, 4875, 4910, 4911, 4916, 4919, 4926, 4929, 4941, 4942, 4944, 4948, 4952, 4956, 4966, 4969, 4976, 4983, 4984, 4988, 4999, 5002, 5008, 5012, 5016, 5021, 5030, 5042, 5048, 5050, 5295, 5311, 5315, 5327, 5336, 5341, 5354, 5358, 5360, 5366, 5367, 5382, 5389, 5394, 5415, 5420, 5421, 5423, 5425, 5678, 5697, 5701, 5707, 5708, 5714, 5718, 5720, 5721, 5722, 5725, 5737, 5748, 5754, 5763, 5767, 5772, 5774, 5783, 5791, 5802, 5806, 5813, 5826, 5832, 5838, 5844, 5845
+
+  129. ENSALADA MIXTA
+     ID: 28
+     SKU: N/A
+     Categoría: comida
+     Precio: $250.00
+     Activo: No
+     Veces vendido: 564
+     Órdenes únicas: 540
+     IDs de órdenes: 178, 189, 191, 194, 200, 201, 202, 203, 205, 206, 209, 215, 220, 221, 228, 229, 230, 233, 236, 237, 245, 246, 251, 254, 256, 257, 263, 266, 272, 288, 290, 298, 302, 308, 311, 318, 335, 337, 339, 340, 346, 348, 349, 351, 353, 354, 355, 367, 368, 371, 381, 382, 383, 400, 402, 408, 418, 423, 429, 431, 434, 442, 445, 458, 461, 463, 464, 468, 472, 473, 474, 491, 493, 495, 496, 507, 510, 517, 519, 520, 527, 528, 533, 534, 535, 537, 545, 553, 559, 570, 578, 887, 893, 902, 905, 908, 911, 919, 925, 927, 929, 930, 935, 937, 939, 947, 955, 958, 960, 962, 975, 978, 980, 984, 1233, 1235, 1237, 1239, 1241, 1243, 1244, 1252, 1254, 1259, 1270, 1279, 1282, 1283, 1284, 1285, 1293, 1294, 1295, 1296, 1298, 1299, 1314, 1318, 1327, 1330, 1339, 1343, 1351, 1355, 1358, 1359, 1371, 1374, 1378, 1381, 1396, 1397, 1398, 1413, 1423, 1425, 1426, 1427, 1428, 1430, 1447, 1448, 1463, 1475, 1489, 1505, 1528, 1532, 1543, 1552, 1555, 1747, 1753, 1757, 1777, 1780, 1781, 1782, 1783, 1784, 1785, 1831, 1833, 1837, 1850, 1882, 1886, 1893, 1916, 1922, 1924, 1933, 1935, 1940, 1941, 1942, 1961, 1972, 1974, 1976, 1977, 1979, 1980, 1997, 2001, 2003, 2006, 2018, 2027, 2048, 2064, 2069, 2075, 2080, 2084, 2092, 2098, 2113, 2128, 2134, 2159, 2166, 2169, 2178, 2189, 2206, 2209, 2219, 2223, 2232, 2234, 2254, 2260, 2261, 2264, 2507, 2518, 2532, 2535, 2537, 2549, 2558, 2566, 2570, 2575, 2577, 2578, 2588, 2592, 2604, 2610, 2620, 2627, 2658, 2660, 2667, 2669, 2670, 2671, 2678, 2679, 2682, 2708, 2713, 2716, 2718, 2731, 2743, 2744, 2745, 2758, 2769, 2783, 2784, 2789, 2790, 2792, 2801, 2813, 2822, 2824, 2850, 2875, 2909, 2912, 2928, 2932, 2934, 2953, 3008, 3014, 3017, 3303, 3328, 3329, 3339, 3340, 3341, 3343, 3344, 3348, 3372, 3390, 3395, 3396, 3403, 3408, 3409, 3413, 3414, 3428, 3431, 3433, 3435, 3439, 3446, 3449, 3455, 3457, 3464, 3465, 3472, 3485, 3486, 3491, 3496, 3505, 3506, 3522, 3526, 3527, 3535, 3545, 3546, 3547, 3555, 3557, 3558, 3568, 3574, 3576, 3601, 3602, 3604, 3608, 3629, 3661, 3664, 3673, 3681, 3688, 3698, 3717, 3720, 3722, 3733, 3745, 3746, 3755, 3762, 3773, 3777, 3780, 3784, 3810, 3820, 3826, 3828, 3834, 3842, 3844, 3847, 3850, 3865, 3867, 3876, 3883, 3884, 3893, 3909, 3910, 3918, 3938, 3942, 4360, 4361, 4373, 4382, 4383, 4384, 4385, 4386, 4388, 4390, 4391, 4404, 4407, 4408, 4417, 4422, 4423, 4424, 4436, 4441, 4446, 4484, 4485, 4489, 4491, 4500, 4510, 4532, 4537, 4539, 4541, 4542, 4548, 4552, 4553, 4555, 4556, 4557, 4563, 4568, 4570, 4572, 4573, 4576, 4582, 4583, 4606, 4610, 4612, 4613, 4625, 4627, 4629, 4640, 4874, 4879, 4884, 4895, 4903, 4904, 4907, 4909, 4910, 4911, 4918, 4919, 4923, 4926, 4929, 4939, 4941, 4942, 4944, 4948, 4951, 4952, 4955, 4967, 4969, 4973, 4976, 4982, 4984, 4990, 5001, 5009, 5011, 5015, 5016, 5019, 5024, 5049, 5054, 5314, 5315, 5316, 5336, 5339, 5345, 5354, 5358, 5360, 5361, 5379, 5389, 5392, 5394, 5398, 5404, 5405, 5409, 5411, 5414, 5415, 5419, 5420, 5421, 5423, 5425, 5427, 5682, 5688, 5690, 5691, 5699, 5703, 5704, 5708, 5709, 5713, 5721, 5725, 5728, 5736, 5737, 5738, 5748, 5750, 5756, 5758, 5766, 5767, 5774, 5782, 5787, 5788, 5791, 5795, 5802, 5803, 5826, 5837, 5842, 5853, 5859, 5861
+
+  130. TOSTON RELLENO CON JAMON Y QUESO
+     ID: 56
+     SKU: N/A
+     Categoría: comida
+     Precio: $800.00
+     Activo: No
+     Veces vendido: 597
+     Órdenes únicas: 544
+     IDs de órdenes: 176, 185, 186, 188, 191, 202, 203, 209, 213, 214, 220, 229, 237, 239, 255, 262, 264, 272, 281, 284, 287, 290, 298, 305, 311, 318, 319, 324, 327, 331, 343, 346, 350, 351, 357, 362, 366, 369, 383, 397, 398, 399, 402, 416, 418, 420, 421, 428, 439, 450, 457, 469, 470, 479, 488, 491, 492, 500, 510, 519, 524, 525, 528, 535, 538, 540, 544, 570, 572, 577, 887, 893, 894, 896, 900, 901, 906, 919, 921, 922, 928, 930, 932, 933, 939, 941, 942, 953, 956, 958, 959, 962, 977, 979, 981, 982, 983, 984, 1236, 1240, 1245, 1254, 1259, 1260, 1262, 1267, 1283, 1286, 1290, 1292, 1300, 1301, 1302, 1307, 1320, 1341, 1348, 1352, 1353, 1355, 1358, 1368, 1377, 1378, 1385, 1390, 1398, 1450, 1451, 1454, 1456, 1461, 1464, 1467, 1475, 1487, 1488, 1490, 1493, 1495, 1496, 1512, 1514, 1515, 1522, 1526, 1531, 1532, 1541, 1542, 1545, 1547, 1551, 1554, 1555, 1734, 1765, 1775, 1778, 1779, 1781, 1782, 1783, 1784, 1785, 1787, 1792, 1814, 1819, 1821, 1823, 1825, 1832, 1833, 1834, 1841, 1846, 1848, 1850, 2950, 2953, 2957, 2969, 2975, 3005, 3007, 3013, 3016, 3266, 3279, 3283, 3291, 3303, 3308, 3318, 3321, 3328, 3343, 3345, 3348, 3350, 3372, 3375, 3390, 3398, 3399, 3403, 3420, 3425, 3435, 3436, 3438, 3439, 3449, 3454, 3456, 3457, 3458, 3470, 3471, 3472, 3484, 3489, 3496, 3497, 3500, 3501, 3506, 3511, 3512, 3519, 3522, 3525, 3529, 3533, 3534, 3535, 3547, 3552, 3554, 3555, 3556, 3557, 3566, 3568, 3569, 3573, 3575, 3576, 3578, 3585, 3594, 3596, 3599, 3602, 3611, 3613, 3617, 3618, 3619, 3620, 3621, 3624, 3625, 3626, 3628, 3630, 3631, 3633, 3634, 3637, 3639, 3640, 3646, 3654, 3659, 3660, 3661, 3666, 3668, 3669, 3672, 3673, 3678, 3696, 3700, 3707, 3709, 3712, 3713, 3716, 3717, 3718, 3721, 3729, 3730, 3734, 3735, 3736, 3739, 3740, 3745, 3748, 3751, 3755, 3758, 3761, 3765, 3766, 3770, 3774, 3777, 3778, 3782, 3784, 3797, 3798, 3800, 3803, 3809, 3812, 3813, 3815, 3818, 3827, 3828, 3829, 3830, 3832, 3833, 3835, 3845, 3847, 3850, 3852, 3865, 3867, 3868, 3870, 3871, 3874, 3879, 3881, 3887, 3888, 3891, 3906, 3914, 3915, 3921, 3923, 3934, 3942, 4360, 4363, 4364, 4366, 4367, 4372, 4373, 4375, 4377, 4380, 4381, 4383, 4384, 4385, 4388, 4395, 4399, 4401, 4402, 4403, 4405, 4406, 4416, 4417, 4418, 4428, 4433, 4434, 4436, 4440, 4441, 4448, 4452, 4460, 4464, 4465, 4466, 4468, 4476, 4477, 4479, 4481, 4487, 4491, 4493, 4495, 4498, 4499, 4503, 4504, 4505, 4507, 4508, 4509, 4513, 4519, 4521, 4524, 4526, 4527, 4531, 4532, 4540, 4545, 4547, 4548, 4549, 4553, 4554, 4557, 4563, 4564, 4569, 4570, 4571, 4572, 4573, 4576, 4579, 4583, 4584, 4586, 4591, 4593, 4595, 4597, 4598, 4599, 4600, 4603, 4604, 4605, 4606, 4610, 4612, 4616, 4618, 4620, 4622, 4623, 4628, 4631, 4639, 4873, 4874, 4878, 4879, 4904, 4909, 4910, 4911, 4917, 4920, 4921, 4925, 4936, 4941, 4945, 4947, 4952, 4953, 4966, 4969, 4971, 4974, 4977, 4990, 4999, 5001, 5002, 5015, 5017, 5019, 5028, 5031, 5045, 5048, 5301, 5308, 5309, 5314, 5317, 5318, 5320, 5324, 5331, 5332, 5335, 5337, 5341, 5344, 5345, 5352, 5354, 5357, 5370, 5385, 5405, 5408, 5410, 5421, 5426, 5427, 5430, 5676, 5681, 5690, 5691, 5693, 5697, 5699, 5701, 5708, 5709, 5712, 5719, 5725, 5732, 5733, 5743, 5746, 5762, 5773, 5795, 5803, 5816, 5823, 5828, 5839, 5844, 5845
+
+  131. ARROZ CONGRIS
+     ID: 9
+     SKU: N/A
+     Categoría: comida
+     Precio: $550.00
+     Activo: No
+     Veces vendido: 602
+     Órdenes únicas: 545
+     IDs de órdenes: 178, 187, 188, 194, 199, 200, 201, 202, 203, 205, 209, 213, 215, 220, 221, 228, 230, 272, 282, 285, 290, 298, 308, 317, 318, 327, 337, 339, 340, 346, 348, 349, 351, 353, 369, 381, 382, 383, 398, 400, 401, 402, 418, 423, 426, 434, 445, 458, 459, 461, 462, 463, 464, 468, 472, 474, 482, 492, 496, 508, 510, 518, 525, 526, 527, 528, 535, 537, 559, 570, 578, 579, 584, 893, 905, 910, 927, 929, 930, 935, 939, 955, 956, 958, 962, 978, 980, 984, 991, 1235, 1237, 1239, 1243, 1254, 1257, 1265, 1266, 1270, 1274, 1279, 1283, 1284, 1285, 1286, 1294, 1295, 1297, 1298, 1300, 1315, 1327, 1329, 1330, 1339, 1343, 1344, 1347, 1351, 1358, 1359, 1369, 1377, 1378, 1380, 1381, 1396, 1397, 1409, 1425, 1426, 1430, 1432, 1436, 1447, 1463, 1464, 1467, 1474, 1475, 1488, 1495, 1500, 1501, 1502, 1511, 1528, 1529, 1532, 1552, 1555, 1722, 1747, 1750, 1757, 1779, 1781, 1783, 1784, 1785, 1825, 1828, 1829, 1833, 1834, 1837, 1840, 1850, 1882, 1884, 1885, 1886, 1893, 1898, 1899, 1922, 1933, 1937, 1942, 1946, 1951, 1955, 1957, 1961, 1963, 1972, 1974, 1976, 1979, 1980, 1981, 1988, 1997, 2018, 2027, 2048, 2066, 2069, 2075, 2080, 2104, 2108, 2113, 2129, 2134, 2156, 2159, 2163, 2169, 2186, 2189, 2195, 2199, 2206, 2209, 2212, 2214, 2230, 2231, 2234, 2248, 2254, 2260, 2264, 2517, 2518, 2535, 2537, 2540, 2558, 2563, 2570, 2575, 2577, 2578, 2588, 2589, 2604, 2610, 2620, 2627, 2638, 2652, 2658, 2666, 2670, 2671, 2678, 2682, 2700, 2704, 2707, 2708, 2713, 2716, 2718, 2721, 2730, 2743, 2745, 2758, 2765, 2769, 2776, 2783, 2784, 2786, 2788, 2792, 2812, 2813, 2818, 2822, 2827, 2850, 2851, 2866, 2895, 2912, 2913, 2927, 2928, 2932, 2934, 2944, 2947, 2953, 3004, 3008, 3010, 3014, 3016, 3269, 3285, 3296, 3303, 3339, 3340, 3344, 3372, 3375, 3389, 3390, 3392, 3394, 3396, 3403, 3408, 3428, 3431, 3432, 3433, 3434, 3439, 3446, 3448, 3457, 3464, 3468, 3476, 3497, 3505, 3527, 3534, 3535, 3543, 3545, 3546, 3552, 3555, 3575, 3576, 3590, 3600, 3601, 3604, 3607, 3610, 3626, 3629, 3633, 3638, 3647, 3648, 3654, 3655, 3661, 3674, 3681, 3685, 3697, 3698, 3703, 3717, 3718, 3719, 3720, 3722, 3723, 3740, 3745, 3746, 3755, 3760, 3761, 3762, 3777, 3784, 3792, 3798, 3800, 3816, 3819, 3820, 3821, 3826, 3828, 3830, 3833, 3844, 3847, 3850, 3859, 3865, 3867, 3876, 3879, 3893, 3900, 3910, 3918, 3923, 3930, 3932, 3938, 3942, 4360, 4361, 4367, 4373, 4374, 4383, 4384, 4385, 4386, 4390, 4395, 4398, 4404, 4406, 4407, 4408, 4417, 4422, 4432, 4433, 4436, 4449, 4463, 4468, 4484, 4485, 4489, 4491, 4495, 4506, 4507, 4524, 4525, 4532, 4533, 4537, 4541, 4545, 4548, 4552, 4556, 4563, 4572, 4573, 4576, 4579, 4598, 4599, 4601, 4606, 4610, 4613, 4625, 4626, 4627, 4629, 4638, 4640, 4646, 4874, 4875, 4878, 4884, 4886, 4887, 4901, 4903, 4904, 4909, 4910, 4911, 4916, 4918, 4920, 4923, 4926, 4935, 4941, 4942, 4944, 4952, 4967, 4968, 4969, 4976, 4981, 4982, 4987, 4988, 4990, 4999, 5000, 5001, 5011, 5016, 5019, 5024, 5046, 5054, 5295, 5306, 5311, 5312, 5314, 5316, 5327, 5328, 5330, 5332, 5336, 5339, 5354, 5360, 5367, 5379, 5385, 5392, 5394, 5398, 5415, 5418, 5430, 5677, 5679, 5680, 5686, 5691, 5693, 5694, 5699, 5703, 5708, 5712, 5721, 5722, 5725, 5748, 5758, 5766, 5767, 5774, 5788, 5791, 5795, 5796, 5802, 5826, 5837, 5853, 5859
+
+
+================================================================================
+RESUMEN TOTAL
+Total de negocios: 6
+Negocios con productos sin materias primas: 2
+Total de productos sin materias primas: 172
+================================================================================
