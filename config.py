@@ -1,8 +1,17 @@
 import os
+import logging
 from pathlib import Path
+
+# Configurar logging básico
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Directorio raíz del proyecto
 BASE_DIR = Path(__file__).parent
+
+# Constantes para configuración de Turso
+SYNC_INTERVAL = 60  # Sincronización automática cada 60 segundos
+LOCAL_DB_FILENAME = "bookkeeply.db"
 
 
 class Config:
@@ -27,14 +36,54 @@ class Config:
 
 
 class DevelopmentConfig(Config):
-    """Configuración para desarrollo local"""
+    """Configuración para desarrollo local con Embedded Replica de Turso"""
 
     ENV = "development"
     DEBUG = True
     SECRET_KEY = os.environ.get("SECRET_KEY") or "dev-secret-key-change-in-production"
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "DATABASE_URL", f"sqlite:///{BASE_DIR}/instance/dev.db"
-    )
+
+    def __init__(self):
+        super().__init__()
+        self._configure_database()
+
+    def _configure_database(self):
+        """Configura la base de datos usando Embedded Replica de Turso"""
+        turso_url = os.environ.get("TURSO_DATABASE_URL")
+        turso_token = os.environ.get("TURSO_AUTH_TOKEN")
+
+        if not (turso_url and turso_token):
+            raise ValueError(
+                "Variables de entorno requeridas no configuradas:\n"
+                "  - TURSO_DATABASE_URL: URL de la base de datos Turso\n"
+                "  - TURSO_AUTH_TOKEN: Token de autenticación de Turso\n"
+                "Configura estas variables para usar Embedded Replica en desarrollo."
+            )
+
+        # Validar formato de URL
+        if not turso_url.startswith("libsql://"):
+            raise ValueError(
+                f"TURSO_DATABASE_URL debe comenzar con 'libsql://'. "
+                f"Valor actual: {turso_url}"
+            )
+
+        # Configurar Embedded Replica
+        local_db_path = (BASE_DIR / "instance" / LOCAL_DB_FILENAME).resolve()
+        self.SQLALCHEMY_DATABASE_URI = f"sqlite+libsql:///{local_db_path}"
+
+        # Configurar Embedded Replica para funcionamiento offline-first
+        # Sin sincronización automática para evitar errores cuando no hay conexión
+        self.SQLALCHEMY_ENGINE_OPTIONS = {
+            "connect_args": {
+                "auth_token": turso_token,
+                # sync_url removido para funcionamiento offline puro
+                # sync_interval removido para funcionamiento offline puro
+            },
+        }
+
+        logger.info(
+            f"🔄 Development using Turso Embedded Replica: {local_db_path} "
+            f"(pure offline-first - no sync_url configured)"
+        )
 
     # Caché deshabilitado en desarrollo
     CACHE_TYPE = "simple"
