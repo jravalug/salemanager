@@ -24,6 +24,64 @@ business_service = BusinessService()
 sale_service = SalesService()
 
 
+def _normalize_optional_text(value):
+    if value is None:
+        return None
+    cleaned_value = value.strip()
+    return cleaned_value or None
+
+
+def _is_blank(value):
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return value.strip() == ""
+    return False
+
+
+def _sync_children_inherited_fields(parent_business, previous_parent_state):
+    if not parent_business.is_general:
+        return
+
+    child_businesses = parent_business.sub_businesses.all()
+    if not child_businesses:
+        return
+
+    inherited_fields = [
+        "fiscal_street",
+        "fiscal_number",
+        "fiscal_between_streets",
+        "fiscal_apartment",
+        "fiscal_district",
+        "fiscal_municipality",
+        "fiscal_province",
+        "fiscal_postal_code",
+    ]
+
+    updated_any_child = False
+
+    for child in child_businesses:
+        for field_name in inherited_fields:
+            child_value = getattr(child, field_name)
+            old_parent_value = previous_parent_state.get(field_name)
+            new_parent_value = getattr(parent_business, field_name)
+
+            should_inherit = _is_blank(child_value) or child_value == old_parent_value
+            if should_inherit and child_value != new_parent_value:
+                setattr(child, field_name, new_parent_value)
+                updated_any_child = True
+
+        old_parent_logo = previous_parent_state.get("logo")
+        new_parent_logo = parent_business.logo
+        should_inherit_logo = _is_blank(child.logo) or child.logo == old_parent_logo
+        if should_inherit_logo and child.logo != new_parent_logo:
+            child.logo = new_parent_logo
+            updated_any_child = True
+
+    if updated_any_child:
+        db.session.commit()
+
+
 @bp.route("/list", methods=["GET", "POST"])
 def business_list():
     flash("El acceso principal ahora es por clientes.", "info")
@@ -40,6 +98,49 @@ def detail_or_edit(business_id):
     form = BusinessForm(obj=business)
 
     if edit and form.validate_on_submit():
+        previous_parent_state = None
+        if business.is_general:
+            previous_parent_state = {
+                "fiscal_street": business.fiscal_street,
+                "fiscal_number": business.fiscal_number,
+                "fiscal_between_streets": business.fiscal_between_streets,
+                "fiscal_apartment": business.fiscal_apartment,
+                "fiscal_district": business.fiscal_district,
+                "fiscal_municipality": business.fiscal_municipality,
+                "fiscal_province": business.fiscal_province,
+                "fiscal_postal_code": business.fiscal_postal_code,
+                "logo": business.logo,
+            }
+
+        parent_business = business.parent_business if not business.is_general else None
+
+        fiscal_street = _normalize_optional_text(form.fiscal_street.data)
+        fiscal_number = _normalize_optional_text(form.fiscal_number.data)
+        fiscal_between_streets = _normalize_optional_text(
+            form.fiscal_between_streets.data
+        )
+        fiscal_apartment = _normalize_optional_text(form.fiscal_apartment.data)
+        fiscal_district = _normalize_optional_text(form.fiscal_district.data)
+        fiscal_municipality = _normalize_optional_text(form.fiscal_municipality.data)
+        fiscal_province = _normalize_optional_text(form.fiscal_province.data)
+        fiscal_postal_code = _normalize_optional_text(form.fiscal_postal_code.data)
+
+        if parent_business:
+            fiscal_street = fiscal_street or parent_business.fiscal_street
+            fiscal_number = fiscal_number or parent_business.fiscal_number
+            fiscal_between_streets = (
+                fiscal_between_streets or parent_business.fiscal_between_streets
+            )
+            fiscal_apartment = fiscal_apartment or parent_business.fiscal_apartment
+            fiscal_district = fiscal_district or parent_business.fiscal_district
+            fiscal_municipality = (
+                fiscal_municipality or parent_business.fiscal_municipality
+            )
+            fiscal_province = fiscal_province or parent_business.fiscal_province
+            fiscal_postal_code = (
+                fiscal_postal_code or parent_business.fiscal_postal_code
+            )
+
         logo_path = handle_logo_upload(form.logo.data)
         if logo_path is not None:
             try:
@@ -47,6 +148,14 @@ def detail_or_edit(business_id):
                     business=business,
                     name=form.name.data,
                     description=form.description.data,
+                    fiscal_street=fiscal_street,
+                    fiscal_number=fiscal_number,
+                    fiscal_between_streets=fiscal_between_streets,
+                    fiscal_apartment=fiscal_apartment,
+                    fiscal_district=fiscal_district,
+                    fiscal_municipality=fiscal_municipality,
+                    fiscal_province=fiscal_province,
+                    fiscal_postal_code=fiscal_postal_code,
                     is_general=form.is_general.data,
                     logo=logo_path,
                 )
@@ -61,9 +170,20 @@ def detail_or_edit(business_id):
                 business=business,
                 name=form.name.data,
                 description=form.description.data,
+                fiscal_street=fiscal_street,
+                fiscal_number=fiscal_number,
+                fiscal_between_streets=fiscal_between_streets,
+                fiscal_apartment=fiscal_apartment,
+                fiscal_district=fiscal_district,
+                fiscal_municipality=fiscal_municipality,
+                fiscal_province=fiscal_province,
+                fiscal_postal_code=fiscal_postal_code,
                 is_general=form.is_general.data,
             )
             flash("Negocio actualizado correctamente", "success")
+
+        if previous_parent_state is not None:
+            _sync_children_inherited_fields(business, previous_parent_state)
 
         return redirect(url_for("business.detail_or_edit", business_id=business.id))
 
@@ -214,12 +334,52 @@ def add_sub_business(business_id):
     form = BusinessForm()
 
     if form.validate_on_submit():
+        fiscal_street = (
+            _normalize_optional_text(form.fiscal_street.data) or business.fiscal_street
+        )
+        fiscal_number = (
+            _normalize_optional_text(form.fiscal_number.data) or business.fiscal_number
+        )
+        fiscal_between_streets = (
+            _normalize_optional_text(form.fiscal_between_streets.data)
+            or business.fiscal_between_streets
+        )
+        fiscal_apartment = (
+            _normalize_optional_text(form.fiscal_apartment.data)
+            or business.fiscal_apartment
+        )
+        fiscal_district = (
+            _normalize_optional_text(form.fiscal_district.data)
+            or business.fiscal_district
+        )
+        fiscal_municipality = (
+            _normalize_optional_text(form.fiscal_municipality.data)
+            or business.fiscal_municipality
+        )
+        fiscal_province = (
+            _normalize_optional_text(form.fiscal_province.data)
+            or business.fiscal_province
+        )
+        fiscal_postal_code = (
+            _normalize_optional_text(form.fiscal_postal_code.data)
+            or business.fiscal_postal_code
+        )
+
         # Crear un nuevo negocio específico
         new_sub_business = Business(
             name=form.name.data,
             description=business.description,
             is_general=False,  # Es un negocio específico
             parent_business_id=business.id,  # Asociarlo al negocio general
+            client_id=business.client_id,
+            fiscal_street=fiscal_street,
+            fiscal_number=fiscal_number,
+            fiscal_between_streets=fiscal_between_streets,
+            fiscal_apartment=fiscal_apartment,
+            fiscal_district=fiscal_district,
+            fiscal_municipality=fiscal_municipality,
+            fiscal_province=fiscal_province,
+            fiscal_postal_code=fiscal_postal_code,
         )
 
         db.session.add(new_sub_business)

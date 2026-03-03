@@ -140,6 +140,7 @@
           {% set primary_business = (all_client_businesses | selectattr('is_general') | list | first) %}
           {% set child_businesses = all_client_businesses | rejectattr('is_general') | list %}
           {% set current_business = active_business if active_business else primary_business %}
+          {% set current_business_logo = current_business.logo if current_business and current_business.logo else (current_business.parent_business.logo if current_business and current_business.parent_business and current_business.parent_business.logo else None) %}
 
           {% if current_business %}
             {# Compute canonical hrefs so we can compare with request_path for active state #}
@@ -164,9 +165,9 @@
               class="rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-200"
             >
               <div class="flex items-center gap-3 mb-6">
-                {% if current_business and current_business.logo %}
+                {% if current_business_logo %}
                   <img
-                    src="{{ url_for('static', filename=current_business.logo) }}"
+                    src="{{ url_for('static', filename=current_business_logo) }}"
                     alt="Logo de {{ current_business.name }}"
                     class="h-12 w-12 rounded-md object-cover"
                   />
@@ -533,9 +534,9 @@
         {% set href_client_detail = url_for('client.detail_or_edit', client_id=active_client.id) %}
         <div class="p-4">
           <div class="flex items-center gap-3 mb-6">
-            {% if current_business and current_business.logo %}
+            {% if current_business_logo %}
               <img
-                src="{{ url_for('static', filename=current_business.logo) }}"
+                src="{{ url_for('static', filename=current_business_logo) }}"
                 alt="logo"
                 class="h-12 w-12 rounded-md object-cover"
               />

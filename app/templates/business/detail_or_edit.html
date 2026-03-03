@@ -1,151 +1,279 @@
 {% extends "base.html" %}
 {% block content %}
-  <div class="container mx-auto px-4 py-6">
-    <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
-      {{ business.name }}
-    </h1>
-    <!-- Logo del Negocio -->
-    <div class="flex justify-left mt-6 bg-">
-      {% if business.logo %}
-        <img
-          src="{{ url_for('static', filename=business.logo) }}"
-          alt="{{ business.name }}"
-          class="w-48 h-48 object-cover rounded-lg te"
-          width="192"
-          height="192"
-        />
+  <section class="py-8 lg:py-10">
+    <div class="container mx-auto max-w-6xl px-4">
+      <div class="mb-6 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+              {{ business.name }}
+            </h1>
+            <span
+              class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold {{ 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' if business.is_general else 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' }}"
+            >
+              {{ 'Principal' if business.is_general else 'Subnegocio' }}
+            </span>
+          </div>
+          <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+            Configuración general del negocio y su dirección fiscal.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <a
+            href="{{ url_for('business.dashboard', business_id=business.id) }}"
+            class="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+          >
+            Ir a ingresos
+          </a>
+          {% if not edit %}
+            <a
+              href="{{ url_for('business.detail_or_edit', business_id=business.id, edit=True) }}"
+              class="inline-flex items-center rounded-lg bg-blue-700 px-3 py-2 text-sm font-medium text-white hover:bg-blue-800"
+            >
+              Editar
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if not edit %}
+        <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+          <div
+            class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+          >
+            {% set display_logo = business.logo if business.logo else (business.parent_business.logo if business.parent_business and business.parent_business.logo else None) %}
+            {% if display_logo %}
+              <img
+                src="{{ url_for('static', filename=display_logo) }}"
+                alt="{{ business.name }}"
+                class="h-48 w-full rounded-lg object-cover"
+                width="192"
+                height="192"
+              />
+            {% else %}
+              <div
+                class="flex h-48 w-full items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700"
+              >
+                <span class="text-sm text-gray-500 dark:text-gray-300"
+                  >Sin logo</span
+                >
+              </div>
+            {% endif %}
+          </div>
+
+          <div
+            class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800 xl:col-span-2"
+          >
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div
+                class="rounded-lg border border-gray-200 p-4 dark:border-gray-700"
+              >
+                <p
+                  class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                >
+                  Tipo
+                </p>
+                <p
+                  class="mt-1 text-sm font-semibold text-gray-900 dark:text-white"
+                >
+                  {{ 'Principal' if business.is_general else 'Subnegocio' }}
+                </p>
+              </div>
+              <div
+                class="rounded-lg border border-gray-200 p-4 dark:border-gray-700"
+              >
+                <p
+                  class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                >
+                  Descripción
+                </p>
+                <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">
+                  {{ business.description or 'Sin descripción' }}
+                </p>
+              </div>
+            </div>
+
+            <div
+              class="mt-5 rounded-lg border border-gray-200 p-4 dark:border-gray-700"
+            >
+              <p
+                class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400"
+              >
+                Dirección fiscal
+              </p>
+              <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                {{ business.fiscal_street or 'N/D' }}
+                {% if business.fiscal_number %}No. {{ business.fiscal_number }}{% endif %}
+                {% if business.fiscal_between_streets %},
+                {{ business.fiscal_between_streets }}{% endif %}
+                {% if business.fiscal_apartment %},
+                {{ business.fiscal_apartment }}{% endif %}
+                {% if business.fiscal_district %},
+                {{ business.fiscal_district }}{% endif %}
+                {% if business.fiscal_municipality %},
+                {{ business.fiscal_municipality }}{% endif %}
+                {% if business.fiscal_province %},
+                {{ business.fiscal_province }}{% endif %}
+                {% if business.fiscal_postal_code %}, CP
+                {{ business.fiscal_postal_code }}{% endif %}
+              </p>
+              {% if business.parent_business %}
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  Si no defines una dirección fiscal diferente para este
+                  subnegocio, usa automáticamente la del negocio principal.
+                </p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
       {% else %}
         <div
-          class="w-48 h-48 bg-gray-200 flex items-center justify-center rounded-lg dark:bg-gray-600"
+          class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
         >
-          <span class="text-gray-500 dark:text-gray-300">Sin logo</span>
+          <form
+            method="POST"
+            enctype="multipart/form-data"
+            class="grid grid-cols-1 gap-4 md:grid-cols-2"
+          >
+            {{ form.hidden_tag() }}
+
+            <div class="md:col-span-2">
+              <label
+                for="{{ form.name.id }}"
+                class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                >{{ form.name.label }}</label
+              >
+              {{ form.name(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+              {% for error in form.name.errors %}
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {{ error }}
+                </p>
+              {% endfor %}
+            </div>
+
+            <div class="md:col-span-2">
+              <label
+                for="{{ form.description.id }}"
+                class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                >{{ form.description.label }}</label
+              >
+              {{ form.description(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+              {% for error in form.description.errors %}
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {{ error }}
+                </p>
+              {% endfor %}
+            </div>
+
+            <div>
+              <label
+                for="{{ form.fiscal_street.id }}"
+                class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                >{{ form.fiscal_street.label }}</label
+              >
+              {{ form.fiscal_street(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+            <div>
+              <label
+                for="{{ form.fiscal_number.id }}"
+                class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                >{{ form.fiscal_number.label }}</label
+              >
+              {{ form.fiscal_number(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+            <div>
+              <label
+                for="{{ form.fiscal_between_streets.id }}"
+                class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                >{{ form.fiscal_between_streets.label }}</label
+              >
+              {{ form.fiscal_between_streets(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+            <div>
+              <label
+                for="{{ form.fiscal_apartment.id }}"
+                class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                >{{ form.fiscal_apartment.label }}</label
+              >
+              {{ form.fiscal_apartment(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+            <div>
+              <label
+                for="{{ form.fiscal_district.id }}"
+                class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                >{{ form.fiscal_district.label }}</label
+              >
+              {{ form.fiscal_district(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+            <div>
+              <label
+                for="{{ form.fiscal_municipality.id }}"
+                class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                >{{ form.fiscal_municipality.label }}</label
+              >
+              {{ form.fiscal_municipality(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+            <div>
+              <label
+                for="{{ form.fiscal_province.id }}"
+                class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                >{{ form.fiscal_province.label }}</label
+              >
+              {{ form.fiscal_province(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+            <div>
+              <label
+                for="{{ form.fiscal_postal_code.id }}"
+                class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                >{{ form.fiscal_postal_code.label }}</label
+              >
+              {{ form.fiscal_postal_code(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+
+            <div class="md:col-span-2">
+              <div
+                class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-700/50"
+              >
+                {{ form.is_general(class='h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500') }}
+                <label
+                  for="{{ form.is_general.id }}"
+                  class="text-sm text-gray-700 dark:text-gray-200"
+                  >{{ form.is_general.description }}</label
+                >
+              </div>
+            </div>
+
+            <div class="md:col-span-2">
+              <label
+                for="{{ form.logo.id }}"
+                class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                >{{ form.logo.label }}</label
+              >
+              {{ form.logo(class='block w-full rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-900 file:mr-4 file:rounded-md file:border-0 file:bg-blue-700 file:px-4 file:py-2 file:text-white hover:file:bg-blue-800 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+              {% for error in form.logo.errors %}
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {{ error }}
+                </p>
+              {% endfor %}
+            </div>
+
+            <div class="md:col-span-2 flex items-center gap-3 pt-2">
+              <button
+                type="submit"
+                class="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800"
+              >
+                Guardar cambios
+              </button>
+              <a
+                href="{{ url_for('business.detail_or_edit', business_id=business.id) }}"
+                class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+              >
+                Cancelar
+              </a>
+            </div>
+          </form>
         </div>
       {% endif %}
     </div>
-    <p class="text-gray-600 dark:text-gray-300 bg-">
-      Descripción: {{ business.description or "Sin descripción" }}
-    </p>
-    <!-- Botones de Acción -->
-
-    {% if not edit %}
-      <div class="flex space-x-4 mt-6">
-        <a
-          href="{{ url_for('business.dashboard', business_id=business.id) }}"
-          class="text-blue-500 hover:underline dark:text-blue-400"
-          >Dashboard</a
-        >
-        <a
-          href="{{ url_for('business.detail_or_edit', business_id=business.id, edit=True) }}"
-          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-        >
-          Editar
-        </a>
-      </div>
-    {% else %}
-      <!-- Formulario de Edición -->
-      <form method="post" enctype="multipart/form-data" class="mt-6">
-        {{ form.hidden_tag() }}
-        <!-- Campo Nombre -->
-        <div class="mb-4">
-          <label
-            for="{{ form.name.id }}"
-            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-            >{{ form.name.label }}</label
-          >
-          {{
-            form.name(class="bg-gray-50 border border-gray-300 text-gray-900
-            text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full
-            p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400
-            dark:text-white")
-          }}
-          {% for error in form.name.errors %}
-            <p class="text-red-500 text-sm">{{ error }}</p>
-          {% endfor %}
-        </div>
-        <!-- Campo Descripción -->
-        <div class="mb-4">
-          <label
-            for="{{ form.description.id }}"
-            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-          >
-            {{ form.description.label }}
-          </label>
-          {{
-            form.description(class="bg-gray-50 border border-gray-300 text-gray-900
-            text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full
-            p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400
-            dark:text-white")
-          }}
-          {% for error in form.description.errors %}
-            <p class="text-red-500 text-sm">{{ error }}</p>
-          {% endfor %}
-        </div>
-        <!-- Campo Es General -->
-        <div class="mb-4">
-          {{ form.is_general.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
-          <div class="flex items-center mb-4">
-            {{
-              form.is_general(
-                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
-                type="checkbox",
-                checked=business.is_general
-              )
-            }}
-            <div
-              class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-            >
-              {{ form.is_general.description }}
-            </div>
-            {% for error in form.is_general.errors %}
-              <span class="mt-2 text-sm text-red-600 dark:text-red-500"
-                >{{ error }}</span
-              >
-            {% endfor %}
-          </div>
-        </div>
-        <!-- Campo Logo -->
-        <div class="mb-4">
-          <label
-            for="{{ form.logo.id }}"
-            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-            >{{ form.logo.label }}</label
-          >
-          <input
-            type="file"
-            id="{{ form.logo.id }}"
-            name="{{ form.logo.name }}"
-            onchange="updateFileName(this)"
-            class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-hidden dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
-          />
-          <span class="text-gray-500 text-sm">Ningún archivo seleccionado</span>
-          {% for error in form.logo.errors %}
-            <p class="text-red-500 text-sm">{{ error }}</p>
-          {% endfor %}
-        </div>
-        <!-- Botón de Envío -->
-        <button
-          type="submit"
-          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-        >
-          Actualizar Negocio
-        </button>
-        <!-- Botón para Regresar -->
-        <a
-          href="{{ url_for('business.detail_or_edit', business_id=business.id) }}"
-          class="ml-4 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100"
-        >
-          Regresar a los Detalles del Negocio
-        </a>
-      </form>
-    {% endif %}
-  </div>
-  <!-- Script para Actualizar el Nombre del Archivo -->
-  <script>
-    function updateFileName(input) {
-      const fileNameSpan = input.nextElementSibling;
-      fileNameSpan.textContent = input.files[0]
-        ? input.files[0].name
-        : "Ningún archivo seleccionado";
-    }
-  </script>
+  </section>
 {% endblock content %}
