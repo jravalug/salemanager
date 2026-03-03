@@ -37,11 +37,25 @@ class Business(db.Model):
     tax_id = db.Column(
         db.String(20), nullable=True, comment="Número de identificación fiscal opcional"
     )
+    fiscal_street = db.Column(db.String(120), nullable=True)
+    fiscal_number = db.Column(db.String(30), nullable=True)
+    fiscal_between_streets = db.Column(db.String(120), nullable=True)
+    fiscal_apartment = db.Column(db.String(50), nullable=True)
+    fiscal_district = db.Column(db.String(100), nullable=True)
+    fiscal_municipality = db.Column(db.String(100), nullable=True)
+    fiscal_province = db.Column(db.String(100), nullable=True)
+    fiscal_postal_code = db.Column(db.String(20), nullable=True)
     currency = db.Column(
         db.String(10), default="CUP", comment="Tipo de moneda que opera el negocio"
     )
     is_general = db.Column(
         db.Boolean, default=False, comment="Indica si es un negocio general"
+    )
+    client_id = db.Column(
+        db.Integer,
+        db.ForeignKey("clients.id"),
+        nullable=True,
+        comment="Cliente al que pertenece el negocio",
     )
     parent_business_id = db.Column(
         db.Integer, db.ForeignKey("business.id"), nullable=True, comment="Negocio padre"
@@ -65,6 +79,11 @@ class Business(db.Model):
         remote_side=[id],
         backref=db.backref("sub_businesses", lazy="dynamic"),
         uselist=False,
+    )
+    # Relación con el cliente del negocio
+    client = db.relationship(
+        "Client",
+        back_populates="businesses",
     )
     # Relación con los productos asociados al negocio
     products = db.relationship(
@@ -98,8 +117,17 @@ class Business(db.Model):
             "email": self.email,
             "website": self.website,
             "tax_id": self.tax_id,
+            "fiscal_street": self.fiscal_street,
+            "fiscal_number": self.fiscal_number,
+            "fiscal_between_streets": self.fiscal_between_streets,
+            "fiscal_apartment": self.fiscal_apartment,
+            "fiscal_district": self.fiscal_district,
+            "fiscal_municipality": self.fiscal_municipality,
+            "fiscal_province": self.fiscal_province,
+            "fiscal_postal_code": self.fiscal_postal_code,
             "currency": self.currency,
             "is_general": self.is_general,
+            "client_id": self.client_id,
             "parent_business_id": self.parent_business_id,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,

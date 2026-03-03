@@ -9,6 +9,8 @@ instance
 **/load_initial_data.py
 **/excluded_sales_of_jannuary.py
 
+008_Ismauri_del_Risco_I&G.xlsm
+
 start_server.fish
 # Archivos de entorno - NO versionados
 .env

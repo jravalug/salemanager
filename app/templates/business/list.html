@@ -12,14 +12,22 @@
               Mostrando {{ summary.total_businesses }} de {{ summary.total_businesses_all }} negocios
             </p>
           </div>
-          <button
-            data-modal-target="add-business-modal"
-            data-modal-toggle="add-business-modal"
-            class="inline-flex items-center justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-            aria-label="Abrir modal para agregar nuevo negocio"
-          >
-            Agregar Nuevo Negocio
-          </button>
+          <div class="flex flex-wrap gap-2">
+            <a
+              href="{{ url_for('client.list_clients') }}"
+              class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+            >
+              Ver Clientes
+            </a>
+            <button
+              data-modal-target="add-business-modal"
+              data-modal-toggle="add-business-modal"
+              class="inline-flex items-center justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+              aria-label="Abrir modal para agregar nuevo negocio"
+            >
+              Agregar Nuevo Negocio
+            </button>
+          </div>
         </div>
 
         <div class="mt-4 flex flex-wrap gap-2">
@@ -104,6 +112,12 @@
                 </div>
 
                 <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                  <div class="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2">
+                    <span class="text-gray-500 dark:text-gray-400">Cliente:</span>
+                    <span class="font-medium text-gray-900 dark:text-white">
+                      {{ business.client.name if business.client else 'Sin cliente' }}
+                    </span>
+                  </div>
                   <div class="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2">
                     <span class="text-gray-500 dark:text-gray-400">Última venta:</span>
                     <span class="font-medium text-gray-900 dark:text-white">

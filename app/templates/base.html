@@ -131,19 +131,33 @@
 
     <!-- Contenido principal: layout con sidebar a la izquierda y área de contenido a la derecha -->
     <main class="max-w-screen-xl mx-auto px-4 py-6 mt-20 mb-20">
+      {% set active_business = business if business is defined else None %}
+      {% set active_client = client if client is defined and client else (active_business.client if active_business and active_business.client else None) %}
       <div class="lg:flex lg:gap-6">
         <!-- Sidebar izquierdo -->
-        {% if business %}
+        {% if active_client %}
 
-          {# Compute canonical hrefs so we can compare with request_path for active state #}
-          {% set href_dashboard = url_for('business.dashboard', business_id=business.id) %}
-          {% set href_sales = url_for('sale.sales', business_id=business.id) %}
-          {% set href_products = url_for('product.list', business_id=business.id) %}
-          {% set href_inventory = url_for('inventory.item_list', business_id=business.id) %}
-          {% set href_monthly_sales_by_date = url_for('report.monthly_sales_by_date', business_id=business.id) %}
-          {% set href_monthly_sales_by_product = url_for('report.monthly_sales_by_produc', business_id=business.id) %}
-          {% set href_inventory_consumption = url_for('report.inventory_consumption_view', business_id=business.id) %}
-          {% set href_ipv_report = url_for('report.ipv_report', business_id=business.id) %}
+          {% set all_client_businesses = active_client.businesses.all() %}
+          {% set primary_business = (all_client_businesses | selectattr('is_general') | list | first) %}
+          {% set child_businesses = all_client_businesses | rejectattr('is_general') | list %}
+          {% set current_business = active_business if active_business else primary_business %}
+
+          {% if current_business %}
+            {# Compute canonical hrefs so we can compare with request_path for active state #}
+            {% set href_dashboard = url_for('business.dashboard', business_id=current_business.id) %}
+            {% set href_sales = url_for('sale.sales', business_id=current_business.id) %}
+            {% set href_products = url_for('product.list', business_id=current_business.id) %}
+            {% set href_inventory = url_for('inventory.item_list', business_id=current_business.id) %}
+            {% set href_monthly_sales_by_date = url_for('report.monthly_sales_by_date', business_id=current_business.id) %}
+            {% set href_monthly_sales_by_product = url_for('report.monthly_sales_by_produc', business_id=current_business.id) %}
+            {% set href_inventory_consumption = url_for('report.inventory_consumption_view', business_id=current_business.id) %}
+            {% set href_ipv_report = url_for('report.ipv_report', business_id=current_business.id) %}
+            {% set href_business_detail = url_for('business.detail_or_edit', business_id=current_business.id) %}
+            {% set href_add_sub_business = url_for('business.add_sub_business', business_id=current_business.id) if current_business.is_general else None %}
+          {% endif %}
+
+          {% set href_clients = url_for('client.list_clients') %}
+          {% set href_client_detail = url_for('client.detail_or_edit', client_id=active_client.id) %}
           <aside
             id="principal-sidebar"
             class="hidden lg:block w-full lg:w-72 shrink-0"
@@ -152,157 +166,231 @@
               class="rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-200"
             >
               <div class="flex items-center gap-3 mb-6">
-                {% if business.logo %}
+                {% if current_business and current_business.logo %}
                   <img
-                    src="{{ url_for('static', filename=business.logo) }}"
-                    alt="Logo de {{ business.name }}"
+                    src="{{ url_for('static', filename=current_business.logo) }}"
+                    alt="Logo de {{ current_business.name }}"
                     class="h-12 w-12 rounded-md object-cover"
                   />
                 {% endif %}
-                <div>
-                  <div class="font-semibold">Jose Angel Perez</div>
-                  <div class="text-sm text-gray-400">{{ business.name }}</div>
+                <div class="min-w-0 flex-1">
+                  <div class="font-semibold truncate" title="{{ active_client.name }}">{{ active_client.name }}</div>
+                  {% if current_business %}
+                    <div class="text-sm text-gray-500 dark:text-gray-400 truncate" title="{{ current_business.name }}">{{ current_business.name }}</div>
+                  {% endif %}
                 </div>
               </div>
 
-              <div class="grid grid-cols-3 gap-3 mb-6">
+              {% if active_client %}
+                <div class="mb-5 space-y-2 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-xs text-gray-500 dark:text-gray-400">Tipo de cliente</span>
+                    <span class="max-w-[60%] truncate rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700 dark:bg-gray-700 dark:text-gray-200" title="{{ active_client.client_type|upper }}">{{ active_client.client_type|upper }}</span>
+                  </div>
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-xs text-gray-500 dark:text-gray-400">Contabilidad</span>
+                    <span class="max-w-[60%] truncate rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900/50 dark:text-blue-300" title="{{ active_client.accounting_regime|capitalize }}">{{ active_client.accounting_regime|capitalize }}</span>
+                  </div>
+                  {% if href_client_detail %}
+                    <a
+                      class="inline-flex items-center gap-2 text-xs text-blue-600 hover:underline dark:text-blue-400"
+                      href="{{ href_client_detail }}"
+                    >
+                      {{ list_icon('w-4 h-4') }} Editar cliente
+                    </a>
+                  {% endif %}
+                </div>
+              {% endif %}
+
+              <div class="mb-6">
                 <button
-                  class="bg-indigo-600 text-white rounded-md py-2 px-3 text-sm"
+                  type="button"
+                  class="flex items-center w-full p-2 text-sm text-gray-900 transition duration-75 rounded-lg hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+                  aria-controls="dropdown-work-context"
+                  data-collapse-toggle="dropdown-work-context"
                 >
-                  Profile
+                  {{ building('shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400') }}
+                  <span class="flex-1 ms-3 text-left whitespace-nowrap">Contexto de trabajo</span>
+                  <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4" />
+                  </svg>
                 </button>
-                <button
-                  class="bg-purple-600 text-white rounded-md py-2 px-3 text-sm"
-                >
-                  Gifts
-                </button>
-                <button
-                  class="bg-emerald-600 text-white rounded-md py-2 px-3 text-sm"
-                >
-                  Wallet
-                </button>
+                <ul id="dropdown-work-context" class="block py-2 space-y-2">
+                  {% if primary_business %}
+                    <li>
+                      {% set is_active = current_business and current_business.id == primary_business.id %}
+                      <a
+                        href="{{ url_for('business.dashboard', business_id=primary_business.id) }}"
+                        class="flex items-center justify-between gap-2 w-full p-2 rounded pl-11 hover:bg-gray-100 dark:hover:bg-gray-700 {{ 'text-blue-600 dark:text-blue-400' if is_active else 'text-gray-700 dark:text-gray-200' }}"
+                      >
+                        <span class="text-xs uppercase tracking-wide">Principal</span>
+                        <span class="min-w-0 truncate text-xs" title="{{ primary_business.name }}">{{ primary_business.name }}</span>
+                      </a>
+                    </li>
+                  {% endif %}
+                  {% for child in child_businesses %}
+                    <li>
+                      {% set is_active = current_business and current_business.id == child.id %}
+                      <a
+                        href="{{ url_for('business.dashboard', business_id=child.id) }}"
+                        class="flex items-center justify-between gap-2 w-full p-2 rounded pl-11 hover:bg-gray-100 dark:hover:bg-gray-700 {{ 'text-blue-600 dark:text-blue-400' if is_active else 'text-gray-700 dark:text-gray-200' }}"
+                      >
+                        <span class="text-xs uppercase tracking-wide">Subnegocio</span>
+                        <span class="min-w-0 truncate text-xs" title="{{ child.name }}">{{ child.name }}</span>
+                      </a>
+                    </li>
+                  {% endfor %}
+                </ul>
               </div>
 
-              <ul class="space-y-2 font-medium">
-                <li>
-                  {% set is_active = request_path is not none and request_path.startswith(href_dashboard) %}
-                  <a
-                    class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
-                    href="{{ href_dashboard }}"
-                    >{{ receipt('w-5 h-5') }} Dashboard</a
-                  >
-                </li>
-                <li>
-                  {% set is_active = request_path is not none and request_path.startswith(href_sales) %}
-                  <a
-                    class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
-                    href="{{ href_sales }}"
-                    >{{ receipt('w-5 h-5') }} Ventas</a
-                  >
-                </li>
-                <li>
-                  {% set is_active = request_path is not none and request_path.startswith(href_products) %}
-                  <a
-                    class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
-                    href="{{ href_products }}"
-                    >{{ box('w-5 h-5') }} Productos</a
-                  >
-                </li>
-                <li>
-                  {% set is_active = request_path is not none and request_path.startswith(href_inventory) %}
-                  <a
-                    class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
-                    href="{{ href_inventory }}"
-                    >{{ inventory('w-5 h-5') }} Inventarios</a
-                  >
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-                    aria-controls="dropdown-report"
-                    data-collapse-toggle="dropdown-report"
-                  >
-                    {{ stats('shrink-0 w-5 h-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white') }}
-                    <span
-                      class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap"
-                      >Reportes</span
+              {% if current_business %}
+                <ul class="space-y-2 font-medium">
+                  <li>
+                    {% set is_active = request_path is not none and request_path.startswith(href_dashboard) %}
+                    <a
+                      class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+                      href="{{ href_dashboard }}"
+                      >{{ receipt('w-5 h-5') }} Ingresos</a
                     >
-                    <svg
-                      class="w-3 h-3"
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 10 6"
+                  </li>
+                  <li>
+                    {% set is_active = request_path is not none and request_path.startswith(href_sales) %}
+                    <a
+                      class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+                      href="{{ href_sales }}"
+                      >{{ receipt('w-5 h-5') }} Ventas</a
                     >
-                      <path
-                        stroke="currentColor"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="m1 1 4 4 4-4"
-                      />
-                    </svg>
-                  </button>
-                  {# Hacer que este abierto si el request_path comienza por alguno de los reportes #}
-                  {%
-                    set is_report_active = request_path is not none and (
-                      request_path.startswith(href_monthly_sales_by_date) or
-                      request_path.startswith(href_monthly_sales_by_product) or
-                      request_path.startswith(href_inventory_consumption) or
-                      request_path.startswith(href_ipv_report)
-                    )
-                  %}
-                  <ul
-                    id="dropdown-report"
-                    class="{{ 'block' if is_report_active else 'hidden' }} py-2 space-y-2"
+                  </li>
+                  <li>
+                    {% set is_active = request_path is not none and request_path.startswith(href_products) %}
+                    <a
+                      class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+                      href="{{ href_products }}"
+                      >{{ box('w-5 h-5') }} Productos</a
+                    >
+                  </li>
+                  <li>
+                    {% set is_active = request_path is not none and request_path.startswith(href_inventory) %}
+                    <a
+                      class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+                      href="{{ href_inventory }}"
+                      >{{ inventory('w-5 h-5') }} Inventarios</a
+                    >
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+                      aria-controls="dropdown-report"
+                      data-collapse-toggle="dropdown-report"
+                    >
+                      {{ stats('shrink-0 w-5 h-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white') }}
+                      <span
+                        class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap"
+                        >Reportes</span
+                      >
+                      <svg
+                        class="w-3 h-3"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 10 6"
+                      >
+                        <path
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="m1 1 4 4 4-4"
+                        />
+                      </svg>
+                    </button>
+                    {%
+                      set is_report_active = request_path is not none and (
+                        request_path.startswith(href_monthly_sales_by_date) or
+                        request_path.startswith(href_monthly_sales_by_product) or
+                        request_path.startswith(href_inventory_consumption) or
+                        request_path.startswith(href_ipv_report)
+                      )
+                    %}
+                    <ul
+                      id="dropdown-report"
+                      class="{{ 'block' if is_report_active else 'hidden' }} py-2 space-y-2"
+                    >
+                      <li>
+                        {% set is_active = request_path is not none and request_path.startswith(href_monthly_sales_by_date) %}
+                        <a
+                          href="{{ href_monthly_sales_by_date }}"
+                          class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
+                          >Ventas por fecha</a
+                        >
+                      </li>
+                      <li>
+                        {% set is_active = request_path is not none and request_path.startswith(href_monthly_sales_by_product) %}
+                        <a
+                          href="{{ href_monthly_sales_by_product }}"
+                          class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
+                          >Ventas por producto</a
+                        >
+                      </li>
+                      <li>
+                        {% set is_active = request_path is not none and request_path.startswith(href_ipv_report) %}
+                        <a
+                          href="{{ href_ipv_report }}"
+                          class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
+                          >Inventario a precio de venta</a
+                        >
+                      </li>
+                      <li>
+                        {% set is_active = request_path is not none and request_path.startswith(href_inventory_consumption) %}
+                        <a
+                          href="{{ href_inventory_consumption }}"
+                          class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
+                          >Consumo de Materias Primas</a
+                        >
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              {% endif %}
+
+              <ul class="space-y-2 font-medium mt-2">
+                <li>
+                  {% set is_active = request_path is not none and request_path.startswith(href_clients) %}
+                  <a
+                    class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+                    href="{{ href_clients }}"
+                    >{{ list_icon('w-5 h-5') }} Clientes</a
                   >
-                    <li>
-                      {% set is_active = request_path is not none and request_path.startswith(href_monthly_sales_by_date) %}
-                      <a
-                        href="{{ href_monthly_sales_by_date }}"
-                        class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
-                        >Ventas por fecha</a
-                      >
-                    </li>
-                    <li>
-                      {% set is_active = request_path is not none and request_path.startswith(href_monthly_sales_by_product) %}
-                      <a
-                        href="{{ href_monthly_sales_by_product }}"
-                        class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
-                        >Ventas por Producto</a
-                      >
-                    </li>
-                    <li>
-                      {% set is_active = request_path is not none and request_path.startswith(href_ipv_report) %}
-                      <a
-                        href="{{ href_ipv_report }}"
-                        class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
-                        >Inventario a Precio de Venta</a
-                      >
-                    </li>
-                    <li>
-                      {% set is_active = request_path is not none and request_path.startswith(href_inventory_consumption) %}
-                      <a
-                        href="{{ href_inventory_consumption }}"
-                        class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
-                        >Consumo de Materias Primas</a
-                      >
-                    </li>
-                  </ul>
                 </li>
               </ul>
 
-              <div class="mt-6 border-t border-gray-700 pt-4">
+              <div class="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
+                {% if href_client_detail %}
+                  <a
+                    class="flex items-center gap-3 p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                    href="{{ href_client_detail }}"
+                    >{{ list_icon('w-5 h-5') }} Editar cliente</a
+                  >
+                {% endif %}
+                {% if current_business %}
+                  <a
+                    class="flex items-center gap-3 p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                    href="{{ href_business_detail }}"
+                    >{{ building('w-5 h-5') }} Editar negocio activo</a
+                  >
+                {% endif %}
+                {% if href_add_sub_business %}
+                  <a
+                    class="flex items-center gap-3 p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                    href="{{ href_add_sub_business }}"
+                    >{{ building('w-5 h-5') }} Agregar subnegocio</a
+                  >
+                {% endif %}
                 <a
-                  class="flex items-center gap-3 p-2 rounded hover:bg-gray-700"
-                  href="#"
-                  >Settings</a
-                >
-                <a
-                  class="flex items-center gap-3 p-2 rounded text-red-400 hover:bg-gray-700 mt-2"
-                  href="#"
-                  >Log out</a
+                  class="flex items-center gap-3 p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                  href="{{ href_clients }}"
+                  >{{ list_icon('w-5 h-5') }} Cambiar cliente</a
                 >
               </div>
             </div>
@@ -310,6 +398,33 @@
         {% endif %}
         <!-- Área de contenido derecha -->
         <div class="flex-1">
+          {% if active_client %}
+            <nav class="mb-4" aria-label="Breadcrumb">
+              <ol class="flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                <li>
+                  <a href="{{ href_clients }}" class="hover:text-blue-600 dark:hover:text-blue-400">Clientes</a>
+                </li>
+                <li aria-hidden="true">/</li>
+                {% if href_client_detail %}
+                  <li>
+                    <a href="{{ href_client_detail }}" class="hover:text-blue-600 dark:hover:text-blue-400">
+                      {{ active_client.name }}
+                    </a>
+                  </li>
+                {% else %}
+                  <li>{{ active_client.name }}</li>
+                {% endif %}
+                {% if current_business %}
+                  <li aria-hidden="true">/</li>
+                  <li class="text-gray-700 dark:text-gray-200">{{ current_business.name }}</li>
+                  <li class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                    ({{ 'principal' if current_business.is_general else 'subnegocio' }})
+                  </li>
+                {% endif %}
+              </ol>
+            </nav>
+          {% endif %}
+
           <!-- Mensajes flash (moved here so they appear above the card) -->
           {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -338,12 +453,26 @@
       id="mobile-sidebar"
       class="fixed left-0 top-0 h-full w-72 bg-gray-800 dark:bg-gray-900 text-gray-100 z-50 transform -translate-x-full transition-transform duration-200 lg:hidden"
     >
-      {% if business %}
+      {% if active_client %}
+        {% if current_business %}
+          {% set href_dashboard = url_for('business.dashboard', business_id=current_business.id) %}
+          {% set href_sales = url_for('sale.sales', business_id=current_business.id) %}
+          {% set href_products = url_for('product.list', business_id=current_business.id) %}
+          {% set href_inventory = url_for('inventory.item_list', business_id=current_business.id) %}
+          {% set href_monthly_sales_by_date = url_for('report.monthly_sales_by_date', business_id=current_business.id) %}
+          {% set href_monthly_sales_by_product = url_for('report.monthly_sales_by_produc', business_id=current_business.id) %}
+          {% set href_inventory_consumption = url_for('report.inventory_consumption_view', business_id=current_business.id) %}
+          {% set href_ipv_report = url_for('report.ipv_report', business_id=current_business.id) %}
+          {% set href_business_detail = url_for('business.detail_or_edit', business_id=current_business.id) %}
+          {% set href_add_sub_business = url_for('business.add_sub_business', business_id=current_business.id) if current_business.is_general else None %}
+        {% endif %}
+        {% set href_clients = url_for('client.list_clients') %}
+        {% set href_client_detail = url_for('client.detail_or_edit', client_id=active_client.id) %}
         <div class="p-4">
           <div class="flex items-center gap-3 mb-6">
-            {% if business and business.logo %}
+            {% if current_business and current_business.logo %}
               <img
-                src="{{ url_for('static', filename=business.logo) }}"
+                src="{{ url_for('static', filename=current_business.logo) }}"
                 alt="logo"
                 class="h-12 w-12 rounded-md object-cover"
               />
@@ -355,151 +484,219 @@
               />
             {% endif %}
             <div>
-              <div class="font-semibold">
-                {% if business %}{{ business.name }}{% else %}Usuario{% endif %}
-              </div>
-              <div class="text-sm text-gray-400">
-                {% if business %}{{ business.name }}{% else %}email@example.com{% endif %}
-              </div>
+              <div class="font-semibold truncate max-w-48" title="{{ active_client.name }}">{{ active_client.name }}</div>
+              {% if current_business %}
+                <div class="text-sm text-gray-400 truncate max-w-48" title="{{ current_business.name }}">{{ current_business.name }}</div>
+              {% endif %}
             </div>
           </div>
-          <div class="grid grid-cols-3 gap-3 mb-6">
+          {% if active_client %}
+            <div class="mb-5 space-y-2 rounded-lg border border-gray-700 p-3">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs text-gray-400">Tipo de cliente</span>
+                <span class="max-w-[60%] truncate rounded-full bg-gray-700 px-2 py-0.5 text-xs text-gray-100" title="{{ active_client.client_type|upper }}">{{ active_client.client_type|upper }}</span>
+              </div>
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs text-gray-400">Contabilidad</span>
+                <span class="max-w-[60%] truncate rounded-full bg-blue-900/50 px-2 py-0.5 text-xs text-blue-300" title="{{ active_client.accounting_regime|capitalize }}">{{ active_client.accounting_regime|capitalize }}</span>
+              </div>
+              {% if href_client_detail %}
+                <a
+                  class="inline-flex items-center gap-2 text-xs text-blue-400 hover:underline"
+                  href="{{ href_client_detail }}"
+                >
+                  {{ list_icon('w-4 h-4') }} Editar cliente
+                </a>
+              {% endif %}
+            </div>
+          {% endif %}
+          <div class="mb-6">
             <button
-              class="bg-indigo-600 text-white rounded-md py-2 px-3 text-sm"
+              type="button"
+              class="flex items-center w-full p-2 text-sm text-gray-100 transition duration-75 rounded-lg hover:bg-gray-700"
+              aria-controls="dropdown-work-context-mobile"
+              data-collapse-toggle="dropdown-work-context-mobile"
             >
-              Profile
+              {{ building('shrink-0 w-5 h-5 text-gray-400 transition duration-75') }}
+              <span class="flex-1 ms-3 text-left whitespace-nowrap">Contexto de trabajo</span>
+              <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4" />
+              </svg>
             </button>
-            <button
-              class="bg-purple-600 text-white rounded-md py-2 px-3 text-sm"
-            >
-              Gifts
-            </button>
-            <button
-              class="bg-emerald-600 text-white rounded-md py-2 px-3 text-sm"
-            >
-              Wallet
-            </button>
+            <ul id="dropdown-work-context-mobile" class="block py-2 space-y-2">
+              {% if primary_business %}
+                <li>
+                  {% set is_active = current_business and current_business.id == primary_business.id %}
+                  <a
+                    href="{{ url_for('business.dashboard', business_id=primary_business.id) }}"
+                    class="flex items-center justify-between gap-2 w-full p-2 rounded pl-11 hover:bg-gray-700 {{ 'text-blue-400' if is_active else 'text-gray-200' }}"
+                  >
+                    <span class="text-xs uppercase tracking-wide">Principal</span>
+                    <span class="min-w-0 truncate text-xs" title="{{ primary_business.name }}">{{ primary_business.name }}</span>
+                  </a>
+                </li>
+              {% endif %}
+              {% for child in child_businesses %}
+                <li>
+                  {% set is_active = current_business and current_business.id == child.id %}
+                  <a
+                    href="{{ url_for('business.dashboard', business_id=child.id) }}"
+                    class="flex items-center justify-between gap-2 w-full p-2 rounded pl-11 hover:bg-gray-700 {{ 'text-blue-400' if is_active else 'text-gray-200' }}"
+                  >
+                    <span class="text-xs uppercase tracking-wide">Subnegocio</span>
+                    <span class="min-w-0 truncate text-xs" title="{{ child.name }}">{{ child.name }}</span>
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
           </div>
-          {# TODO: CREATE THE LINK FOR PAGES #}
-          <nav class="space-y-3 text-sm">
-            <div>
-              {% set is_active = request_path is not none and request_path.startswith(href_dashboard) %}
-              <a
-                class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
-                href="{{ href_dashboard }}"
-                >{{ receipt('w-5 h-5') }} Dashboard</a
-              >
-            </div>
-            <div>
-              {% set is_active = request_path is not none and request_path.startswith(href_sales) %}
-              <a
-                class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
-                href="{{ href_sales }}"
-                >{{ receipt('w-5 h-5') }} Ventas</a
-              >
-            </div>
-            <div>
-              {% set is_active = request_path is not none and request_path.startswith(href_products) %}
-              <a
-                class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
-                href="{{ href_products }}"
-                >{{ box('w-5 h-5') }} Productos</a
-              >
-            </div>
-            <div>
-              {% set is_active = request_path is not none and request_path.startswith(href_inventory) %}
-              <a
-                class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
-                href="{{ href_inventory }}"
-                >{{ inventory('w-5 h-5') }} Inventarios</a
-              >
-            </div>
-            <div>
-              <button
-                type="button"
-                class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-                aria-controls="dropdown-report"
-                data-collapse-toggle="dropdown-report"
-              >
-                {{ stats('shrink-0 w-5 h-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white') }}
-                <span
-                  class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap"
-                  >Reportes</span
+          {% if current_business %}
+            <nav class="space-y-3 text-sm">
+              <div>
+                {% set is_active = request_path is not none and request_path.startswith(href_dashboard) %}
+                <a
+                  class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+                  href="{{ href_dashboard }}"
+                  >{{ receipt('w-5 h-5') }} Ingresos</a
                 >
-                <svg
-                  class="w-3 h-3"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 10 6"
+              </div>
+              <div>
+                {% set is_active = request_path is not none and request_path.startswith(href_sales) %}
+                <a
+                  class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+                  href="{{ href_sales }}"
+                  >{{ receipt('w-5 h-5') }} Ventas</a
                 >
-                  <path
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="m1 1 4 4 4-4"
-                  />
-                </svg>
-              </button>
-              {# Hacer que este abierto si el request_path comienza por alguno de los reportes #}
-              {%
-                set is_report_active = request_path is not none and (
-                  request_path.startswith(href_monthly_sales_by_date) or
-                  request_path.startswith(href_monthly_sales_by_product) or
-                  request_path.startswith(href_inventory_consumption) or
-                  request_path.startswith(href_ipv_report)
-                )
-              %}
-              <ul
-                id="dropdown-report"
-                class="{{ 'block' if is_report_active else 'hidden' }} py-2 space-y-2"
+              </div>
+              <div>
+                {% set is_active = request_path is not none and request_path.startswith(href_products) %}
+                <a
+                  class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+                  href="{{ href_products }}"
+                  >{{ box('w-5 h-5') }} Productos</a
+                >
+              </div>
+              <div>
+                {% set is_active = request_path is not none and request_path.startswith(href_inventory) %}
+                <a
+                  class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+                  href="{{ href_inventory }}"
+                  >{{ inventory('w-5 h-5') }} Inventarios</a
+                >
+              </div>
+              <div>
+                <button
+                  type="button"
+                  class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+                  aria-controls="dropdown-report-mobile"
+                  data-collapse-toggle="dropdown-report-mobile"
+                >
+                  {{ stats('shrink-0 w-5 h-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white') }}
+                  <span
+                    class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap"
+                    >Reportes</span
+                  >
+                  <svg
+                    class="w-3 h-3"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 10 6"
+                  >
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="m1 1 4 4 4-4"
+                    />
+                  </svg>
+                </button>
+                {%
+                  set is_report_active = request_path is not none and (
+                    request_path.startswith(href_monthly_sales_by_date) or
+                    request_path.startswith(href_monthly_sales_by_product) or
+                    request_path.startswith(href_inventory_consumption) or
+                    request_path.startswith(href_ipv_report)
+                  )
+                %}
+                <ul
+                  id="dropdown-report-mobile"
+                  class="{{ 'block' if is_report_active else 'hidden' }} py-2 space-y-2"
+                >
+                  <li>
+                    {% set is_active = request_path is not none and request_path.startswith(href_monthly_sales_by_date) %}
+                    <a
+                      href="{{ href_monthly_sales_by_date }}"
+                      class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
+                      >Ventas por fecha</a
+                    >
+                  </li>
+                  <li>
+                    {% set is_active = request_path is not none and request_path.startswith(href_monthly_sales_by_product) %}
+                    <a
+                      href="{{ href_monthly_sales_by_product }}"
+                      class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
+                      >Ventas por producto</a
+                    >
+                  </li>
+                  <li>
+                    {% set is_active = request_path is not none and request_path.startswith(href_ipv_report) %}
+                    <a
+                      href="{{ href_ipv_report }}"
+                      class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
+                      >Inventario a precio de venta</a
+                    >
+                  </li>
+                  <li>
+                    {% set is_active = request_path is not none and request_path.startswith(href_inventory_consumption) %}
+                    <a
+                      href="{{ href_inventory_consumption }}"
+                      class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
+                      >Consumo de Materias Primas</a
+                    >
+                  </li>
+                </ul>
+              </div>
+            </nav>
+          {% endif %}
+
+          <nav class="space-y-3 text-sm mt-2">
+            <div>
+              {% set is_active = request_path is not none and request_path.startswith(href_clients) %}
+              <a
+                class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+                href="{{ href_clients }}"
+                >{{ list_icon('w-5 h-5') }} Clientes</a
               >
-                <li>
-                  {% set is_active = request_path is not none and request_path.startswith(href_monthly_sales_by_date) %}
-                  <a
-                    href="{{ href_monthly_sales_by_date }}"
-                    class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
-                    >Ventas por fecha</a
-                  >
-                </li>
-                <li>
-                  {% set is_active = request_path is not none and request_path.startswith(href_monthly_sales_by_product) %}
-                  <a
-                    href="{{ href_monthly_sales_by_product }}"
-                    class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
-                    >Ventas por Producto</a
-                  >
-                </li>
-                <li>
-                  {% set is_active = request_path is not none and request_path.startswith(href_ipv_report) %}
-                  <a
-                    href="{{ href_ipv_report }}"
-                    class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
-                    >Inventario a Precio de Venta</a
-                  >
-                </li>
-                <li>
-                  {% set is_active = request_path is not none and request_path.startswith(href_inventory_consumption) %}
-                  <a
-                    href="{{ href_inventory_consumption }}"
-                    class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
-                    >Consumo de Materias Primas</a
-                  >
-                </li>
-              </ul>
             </div>
           </nav>
-          <div class="mt-6 border-t border-gray-700 pt-4">
+          <div class="mt-6 border-t border-gray-700 pt-4 space-y-2">
+            {% if href_client_detail %}
+              <a
+                class="flex items-center gap-3 p-2 rounded hover:bg-gray-700"
+                href="{{ href_client_detail }}"
+                >{{ list_icon('w-5 h-5') }} Editar cliente</a
+              >
+            {% endif %}
+            {% if current_business %}
+              <a
+                class="flex items-center gap-3 p-2 rounded hover:bg-gray-700"
+                href="{{ href_business_detail }}"
+                >{{ building('w-5 h-5') }} Editar negocio activo</a
+              >
+            {% endif %}
+            {% if href_add_sub_business %}
+              <a
+                class="flex items-center gap-3 p-2 rounded hover:bg-gray-700"
+                href="{{ href_add_sub_business }}"
+                >{{ building('w-5 h-5') }} Agregar subnegocio</a
+              >
+            {% endif %}
             <a
               class="flex items-center gap-3 p-2 rounded hover:bg-gray-700"
-              href="#"
-              >Settings</a
-            >
-            <a
-              class="flex items-center gap-3 p-2 rounded text-red-400 hover:bg-gray-700 mt-2"
-              href="#"
-              >Log out</a
+              href="{{ href_clients }}"
+              >{{ list_icon('w-5 h-5') }} Cambiar cliente</a
             >
           </div>
         </div>

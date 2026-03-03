@@ -26,114 +26,8 @@ sale_service = SalesService()
 
 @bp.route("/list", methods=["GET", "POST"])
 def business_list():
-    """
-    Muestra la lista de negocios y maneja la creación de nuevos negocios.
-    """
-    form = BusinessForm()
-
-    if form.validate_on_submit():
-        name = form.name.data
-        description = form.description.data
-        logo_path = None
-
-        # Solo manejar la subida del logo si se proporciona un archivo
-        if form.logo.data and form.logo.data.filename != "":
-            logo_path = handle_logo_upload(form.logo.data)
-            if logo_path is None:
-                return redirect(
-                    url_for("business.business_list")
-                )  # Detener si hay un error en la subida
-
-        try:
-            business_service.create_business(
-                name=name, description=description, logo=logo_path
-            )
-            flash("Negocio agregado correctamente", "success")
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            flash(f"Error al agregar el negocio: {str(e)}", "error")
-        except Exception as e:
-            flash(f"Error inesperado: {str(e)}", "error")
-        return redirect(url_for("business.business_list"))
-
-    parent_business_list = business_repo.get_parent_business()
-    activity_filter = request.args.get("activity", "all")
-
-    business_ids = [business.id for business in parent_business_list]
-
-    product_counts = {}
-    sales_counts = {}
-    last_sales_dates = {}
-
-    if business_ids:
-        product_counts = {
-            business_id: count
-            for business_id, count in db.session.query(
-                Product.business_id,
-                func.count(Product.id),
-            )
-            .filter(Product.business_id.in_(business_ids))
-            .group_by(Product.business_id)
-            .all()
-        }
-
-        sales_counts = {
-            business_id: count
-            for business_id, count in db.session.query(
-                Sale.business_id,
-                func.count(Sale.id),
-            )
-            .filter(Sale.business_id.in_(business_ids))
-            .group_by(Sale.business_id)
-            .all()
-        }
-
-        last_sales_dates = {
-            business_id: last_date
-            for business_id, last_date in db.session.query(
-                Sale.business_id,
-                func.max(Sale.date),
-            )
-            .filter(Sale.business_id.in_(business_ids))
-            .group_by(Sale.business_id)
-            .all()
-        }
-
-    business_metrics = []
-    for business in parent_business_list:
-        sales_count = int(sales_counts.get(business.id, 0))
-        business_metrics.append(
-            {
-                "business": business,
-                "sub_business_count": business.sub_businesses.count(),
-                "product_count": int(product_counts.get(business.id, 0)),
-                "sales_count": sales_count,
-                "has_sales": sales_count > 0,
-                "last_sale_date": last_sales_dates.get(business.id),
-            }
-        )
-
-    if activity_filter == "with_sales":
-        business_metrics = [item for item in business_metrics if item["has_sales"]]
-    elif activity_filter == "without_sales":
-        business_metrics = [item for item in business_metrics if not item["has_sales"]]
-
-    summary = {
-        "total_businesses": len(business_metrics),
-        "total_businesses_all": len(parent_business_list),
-        "total_sub_businesses": sum(item["sub_business_count"] for item in business_metrics),
-        "total_products": sum(item["product_count"] for item in business_metrics),
-        "total_sales": sum(item["sales_count"] for item in business_metrics),
-    }
-
-    return render_template(
-        "business/list.html",
-        business_list=parent_business_list,
-        business_metrics=business_metrics,
-        summary=summary,
-        activity_filter=activity_filter,
-        form=form,
-    )
+    flash("El acceso principal ahora es por clientes.", "info")
+    return redirect(url_for("client.list_clients"))
 
 
 @bp.route("/<int:business_id>", methods=["GET", "POST"])
@@ -181,9 +75,18 @@ def detail_or_edit(business_id):
 @bp.route("/<int:business_id>/dashboard")
 def dashboard(business_id):
     """
-    Muestra el dashboard de un negocio con ventas mensuales.
+    Muestra el dashboard de ingresos del contexto seleccionado (negocio principal o subnegocio).
     """
     business = Business.query.get_or_404(business_id)
+    client = business.client
+
+    primary_business = None
+    if client:
+        primary_business = client.businesses.filter_by(is_general=True).first()
+
+    if primary_business is None:
+        primary_business = business if business.is_general else business.parent_business
+
     business_filters = business_service.get_parent_filters(business)
 
     monthly_totals_raw = sale_service.generate_monthly_totals_sales(
@@ -266,6 +169,8 @@ def dashboard(business_id):
     return render_template(
         "business/dashboard.html",
         business=business,
+        client=client,
+        primary_business=primary_business,
         monthly_totals=dict(monthly_totals_display),
         monthly_totals_last_12=dict(monthly_totals_last_12),
         chart_months=chart_months,

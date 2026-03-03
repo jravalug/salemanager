@@ -1,5 +1,6 @@
 import logging
 import os
+from datetime import date
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -57,6 +58,9 @@ def create_app(env=None):
 
     # Register blueprints
     _register_blueprints(app)
+
+    # Auto-update client accounting regimes
+    _run_client_regime_auto_update(app)
 
     logger.info("🚀 Flask application created successfully")
     return app
@@ -144,3 +148,38 @@ def _register_blueprints(app):
     register_web_blueprints(app)
     register_api_blueprints(app)
     logger.debug("Blueprints registered")
+
+
+def _run_client_regime_auto_update(app):
+    """Evalúa y aplica transición de régimen contable de clientes en enero."""
+    if not app.config.get("ACCOUNTING_REGIME_AUTO_UPDATE", True):
+        logger.info("Client regime auto-update is disabled by configuration")
+        return
+
+    auto_update_month = int(app.config.get("ACCOUNTING_REGIME_AUTO_UPDATE_MONTH", 1))
+    today = date.today()
+
+    if today.month < auto_update_month:
+        logger.debug(
+            "Skipping client regime auto-update until month %s", auto_update_month
+        )
+        return
+
+    try:
+        from .services.client_accounting_service import ClientAccountingService
+
+        with app.app_context():
+            summary = ClientAccountingService().evaluate_annual_regime_transition(
+                process_date=today
+            )
+
+        logger.info(
+            "Client regime auto-update completed: reviewed_year=%s, target_year=%s, "
+            "evaluated_clients=%s, updated_clients=%s",
+            summary["reviewed_year"],
+            summary["target_year"],
+            summary["evaluated_clients"],
+            summary["updated_clients"],
+        )
+    except Exception as exc:
+        logger.warning("Client regime auto-update skipped: %s", exc)

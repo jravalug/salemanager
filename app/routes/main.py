@@ -1,4 +1,4 @@
-from flask import Blueprint, send_from_directory, render_template
+from flask import Blueprint, send_from_directory, redirect, url_for
 
 bp = Blueprint("main", __name__)
 
@@ -10,4 +10,4 @@ def node_modules(filename):
 
 @bp.route("/")
 def index():
-    return render_template("index.html")
+    return redirect(url_for("client.list_clients"))

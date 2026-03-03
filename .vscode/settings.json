@@ -12,5 +12,6 @@
   },
   "emmet.includeLanguages": {
     "jinja-html": "html"
-  }
+  },
+  "github.copilot.chat.localeOverride": "es"
 }

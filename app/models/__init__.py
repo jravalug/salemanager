@@ -1,4 +1,5 @@
 from .business import Business
+from .client import Client
 from .sale import Sale, SaleDetail
 from .product import Product, ProductDetail
 from .inventory import InventoryItem

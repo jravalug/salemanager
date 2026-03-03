@@ -9,6 +9,13 @@ SYNC_INTERVAL = 60  # Sincronización automática cada 60 segundos
 LOCAL_DB_FILENAME = "bookkeeply.db"
 
 
+def _get_bool_env(name: str, default: bool) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 class Config:
     """Configuración base compartida por todos los ambientes"""
 
@@ -35,6 +42,20 @@ class Config:
     LOG_FILE = os.environ.get("LOG_FILE", "salemanager.log")
     LOG_MAX_BYTES = int(os.environ.get("LOG_MAX_BYTES", 5 * 1024 * 1024))
     LOG_BACKUP_COUNT = int(os.environ.get("LOG_BACKUP_COUNT", 5))
+
+    # Reglas de contabilidad por cliente
+    ACCOUNTING_FISCAL_THRESHOLD = float(
+        os.environ.get("ACCOUNTING_FISCAL_THRESHOLD", 500000)
+    )
+    ACCOUNTING_REGIME_ALLOW_REVERSION = _get_bool_env(
+        "ACCOUNTING_REGIME_ALLOW_REVERSION", True
+    )
+    ACCOUNTING_REGIME_AUTO_UPDATE = _get_bool_env(
+        "ACCOUNTING_REGIME_AUTO_UPDATE", True
+    )
+    ACCOUNTING_REGIME_AUTO_UPDATE_MONTH = int(
+        os.environ.get("ACCOUNTING_REGIME_AUTO_UPDATE_MONTH", 1)
+    )
 
 
 class DevelopmentConfig(Config):

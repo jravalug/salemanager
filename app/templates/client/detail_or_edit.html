@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block title %}Cliente {{ client.name }} - SALEManager{% endblock %}
+{% block content %}
+  <section class="py-8 lg:py-10">
+    <div class="container mx-auto max-w-6xl px-4">
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ client.name }}</h1>
+          <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">Información general del cliente, su configuración contable y su estructura de negocios.</p>
+        </div>
+      </div>
+
+      <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+          <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Régimen actual</p>
+          <p class="mt-2 text-lg font-semibold text-gray-900 dark:text-white">{{ client.accounting_regime|capitalize }}</p>
+        </div>
+        <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+          <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Última evaluación</p>
+          <p class="mt-2 text-lg font-semibold text-gray-900 dark:text-white">{{ client.last_regime_evaluation_year or 'N/D' }}</p>
+        </div>
+        <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+          <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Negocios principales</p>
+          <p class="mt-2 text-lg font-semibold text-gray-900 dark:text-white">{{ client_businesses|length }}</p>
+        </div>
+        <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+          <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Subnegocios</p>
+          <p class="mt-2 text-lg font-semibold text-gray-900 dark:text-white">{{ total_sub_businesses }}</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800 xl:col-span-2">
+          <form method="POST" class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {{ form.hidden_tag() }}
+
+            <div>
+              <label for="{{ form.name.id }}" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">{{ form.name.label }}</label>
+              {{ form.name(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+
+            <div>
+              <label for="{{ form.client_type.id }}" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">{{ form.client_type.label }}</label>
+              {{ form.client_type(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+
+            <div>
+              <label for="{{ form.identity_number.id }}" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">{{ form.identity_number.label }}</label>
+              {{ form.identity_number(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+
+            <div>
+              <label for="{{ form.nit.id }}" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">{{ form.nit.label }}</label>
+              {{ form.nit(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+
+            <div>
+              <label for="{{ form.accounting_regime.id }}" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">{{ form.accounting_regime.label }}</label>
+              {{ form.accounting_regime(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+
+            <div class="md:col-span-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800 dark:border-blue-900/60 dark:bg-blue-950/30 dark:text-blue-200">
+              El negocio principal del cliente se gestiona automáticamente desde el sistema.
+            </div>
+
+            <div>
+              <label for="{{ form.legal_street.id }}" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">{{ form.legal_street.label }}</label>
+              {{ form.legal_street(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+
+            <div>
+              <label for="{{ form.legal_number.id }}" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">{{ form.legal_number.label }}</label>
+              {{ form.legal_number(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+
+            <div>
+              <label for="{{ form.legal_between_streets.id }}" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">{{ form.legal_between_streets.label }}</label>
+              {{ form.legal_between_streets(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+
+            <div>
+              <label for="{{ form.legal_apartment.id }}" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">{{ form.legal_apartment.label }}</label>
+              {{ form.legal_apartment(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+
+            <div>
+              <label for="{{ form.legal_district.id }}" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">{{ form.legal_district.label }}</label>
+              {{ form.legal_district(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+
+            <div>
+              <label for="{{ form.legal_municipality.id }}" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">{{ form.legal_municipality.label }}</label>
+              {{ form.legal_municipality(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+
+            <div>
+              <label for="{{ form.legal_province.id }}" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">{{ form.legal_province.label }}</label>
+              {{ form.legal_province(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+
+            <div>
+              <label for="{{ form.legal_postal_code.id }}" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">{{ form.legal_postal_code.label }}</label>
+              {{ form.legal_postal_code(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+
+            <div class="md:col-span-2">
+              <label for="{{ form.phone_numbers_input.id }}" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">{{ form.phone_numbers_input.label }}</label>
+              {{ form.phone_numbers_input(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white', rows=2) }}
+            </div>
+
+            <div>
+              <label for="{{ form.primary_phone_number.id }}" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">{{ form.primary_phone_number.label }}</label>
+              {{ form.primary_phone_number(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+
+            <div class="md:col-span-2">
+              <label for="{{ form.email_addresses_input.id }}" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">{{ form.email_addresses_input.label }}</label>
+              {{ form.email_addresses_input(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white', rows=2) }}
+            </div>
+
+            <div>
+              <label for="{{ form.primary_email_address.id }}" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">{{ form.primary_email_address.label }}</label>
+              {{ form.primary_email_address(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+
+            <div>
+              <label for="{{ form.fiscal_account_number.id }}" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">{{ form.fiscal_account_number.label }}</label>
+              {{ form.fiscal_account_number(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+
+            <div>
+              <label for="{{ form.fiscal_account_card_number.id }}" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">{{ form.fiscal_account_card_number.label }}</label>
+              {{ form.fiscal_account_card_number(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+
+            <div class="md:col-span-2 flex items-center gap-2">
+              {{ form.is_active(class='rounded border-gray-300 text-blue-600 focus:ring-blue-500') }}
+              <label for="{{ form.is_active.id }}" class="text-sm text-gray-700 dark:text-gray-200">Cliente activo</label>
+            </div>
+
+            <div class="md:col-span-2">
+              <button type="submit" class="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800">Guardar cambios</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Negocios del cliente</h3>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Solo los negocios principales pertenecen directamente al cliente. Los subnegocios dependen de su negocio padre.</p>
+
+          {% if business_groups %}
+            <div class="mt-4 space-y-3">
+              {% for business_item in business_groups %}
+                <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                  <div class="flex items-center justify-between gap-2">
+                    <p class="font-medium text-gray-900 dark:text-white">{{ business_item.business.name }}</p>
+                    <span class="inline-flex rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                      Principal
+                    </span>
+                  </div>
+                  <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ business_item.business.description or 'Sin descripción' }}</p>
+                  {% if business_item.children %}
+                    <div class="mt-2">
+                      <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Subnegocios</p>
+                      <div class="mt-1 flex flex-wrap gap-1.5">
+                        {% for child in business_item.children %}
+                          <span class="inline-flex rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-700 dark:border-gray-600 dark:text-gray-200">{{ child.name }}</span>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  {% endif %}
+                  <div class="mt-2">
+                    <a
+                      href="{{ url_for('business.detail_or_edit', business_id=business_item.business.id) }}"
+                      class="inline-flex items-center rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+                    >
+                      Editar negocio
+                    </a>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="mt-4 rounded-lg border border-dashed border-gray-300 px-3 py-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
+              Este cliente todavía no tiene negocios asociados.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

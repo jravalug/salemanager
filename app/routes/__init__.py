@@ -4,6 +4,7 @@ from .sale import bp as sales_bp
 from .product import bp as products_bp
 from .reports import bp as reports_bp
 from .inventory import bp as inventory_bp
+from .client import bp as clients_bp
 
 
 def register_web_blueprints(app):
@@ -16,3 +17,4 @@ def register_web_blueprints(app):
     app.register_blueprint(products_bp)
     app.register_blueprint(inventory_bp)
     app.register_blueprint(reports_bp)  # Registra el blueprint de la API
+    app.register_blueprint(clients_bp)
