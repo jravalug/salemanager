@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from flask import Flask
 
 from config import get_config
+from .logging_config import setup_logging
 
 from .context_processors import inject_now, inject_request
 from .extensions import db, migrate
@@ -44,6 +45,9 @@ def create_app(env=None):
 
     # Apply configuration
     config_instance = _configure_app(app, env)
+
+    # Setup logging
+    setup_logging(app)
 
     # Setup database
     _setup_database(app, config_instance)

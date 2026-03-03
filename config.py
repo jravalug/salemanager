@@ -1,10 +1,5 @@
 import os
-import logging
 from pathlib import Path
-
-# Configurar logging básico
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # Directorio raíz del proyecto
 BASE_DIR = Path(__file__).parent
@@ -34,12 +29,20 @@ class Config:
     TESTING = False
     ENV = None
 
+    # Logging
+    LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
+    LOG_DIR = str(BASE_DIR / "logs")
+    LOG_FILE = os.environ.get("LOG_FILE", "salemanager.log")
+    LOG_MAX_BYTES = int(os.environ.get("LOG_MAX_BYTES", 5 * 1024 * 1024))
+    LOG_BACKUP_COUNT = int(os.environ.get("LOG_BACKUP_COUNT", 5))
+
 
 class DevelopmentConfig(Config):
     """Configuración para desarrollo local con Embedded Replica de Turso"""
 
     ENV = "development"
     DEBUG = True
+    LOG_LEVEL = os.environ.get("LOG_LEVEL", "DEBUG")
     SECRET_KEY = os.environ.get("SECRET_KEY") or "dev-secret-key-change-in-production"
 
     def __init__(self):
@@ -80,10 +83,7 @@ class DevelopmentConfig(Config):
             },
         }
 
-        logger.info(
-            f"🔄 Development using Turso Embedded Replica: {local_db_path} "
-            f"(pure offline-first - no sync_url configured)"
-        )
+        # Logging initialization occurs in app.logging_config.setup_logging
 
     # Caché deshabilitado en desarrollo
     CACHE_TYPE = "simple"
