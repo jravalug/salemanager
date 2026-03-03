@@ -6,10 +6,12 @@ from flask import (
     flash,
     request,
 )
+from datetime import datetime
+from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.extensions import db
-from app.models import Business
+from app.models import Business, Product, Sale
 from app.forms import BusinessForm
 from app.repositories.business_repository import BusinessRepository
 from app.services import BusinessService, SalesService
@@ -55,7 +57,83 @@ def business_list():
         return redirect(url_for("business.business_list"))
 
     parent_business_list = business_repo.get_parent_business()
-    return render_template("business/list.html", business_list=parent_business_list, form=form)
+    activity_filter = request.args.get("activity", "all")
+
+    business_ids = [business.id for business in parent_business_list]
+
+    product_counts = {}
+    sales_counts = {}
+    last_sales_dates = {}
+
+    if business_ids:
+        product_counts = {
+            business_id: count
+            for business_id, count in db.session.query(
+                Product.business_id,
+                func.count(Product.id),
+            )
+            .filter(Product.business_id.in_(business_ids))
+            .group_by(Product.business_id)
+            .all()
+        }
+
+        sales_counts = {
+            business_id: count
+            for business_id, count in db.session.query(
+                Sale.business_id,
+                func.count(Sale.id),
+            )
+            .filter(Sale.business_id.in_(business_ids))
+            .group_by(Sale.business_id)
+            .all()
+        }
+
+        last_sales_dates = {
+            business_id: last_date
+            for business_id, last_date in db.session.query(
+                Sale.business_id,
+                func.max(Sale.date),
+            )
+            .filter(Sale.business_id.in_(business_ids))
+            .group_by(Sale.business_id)
+            .all()
+        }
+
+    business_metrics = []
+    for business in parent_business_list:
+        sales_count = int(sales_counts.get(business.id, 0))
+        business_metrics.append(
+            {
+                "business": business,
+                "sub_business_count": business.sub_businesses.count(),
+                "product_count": int(product_counts.get(business.id, 0)),
+                "sales_count": sales_count,
+                "has_sales": sales_count > 0,
+                "last_sale_date": last_sales_dates.get(business.id),
+            }
+        )
+
+    if activity_filter == "with_sales":
+        business_metrics = [item for item in business_metrics if item["has_sales"]]
+    elif activity_filter == "without_sales":
+        business_metrics = [item for item in business_metrics if not item["has_sales"]]
+
+    summary = {
+        "total_businesses": len(business_metrics),
+        "total_businesses_all": len(parent_business_list),
+        "total_sub_businesses": sum(item["sub_business_count"] for item in business_metrics),
+        "total_products": sum(item["product_count"] for item in business_metrics),
+        "total_sales": sum(item["sales_count"] for item in business_metrics),
+    }
+
+    return render_template(
+        "business/list.html",
+        business_list=parent_business_list,
+        business_metrics=business_metrics,
+        summary=summary,
+        activity_filter=activity_filter,
+        form=form,
+    )
 
 
 @bp.route("/<int:business_id>", methods=["GET", "POST"])
@@ -108,17 +186,105 @@ def dashboard(business_id):
     business = Business.query.get_or_404(business_id)
     business_filters = business_service.get_parent_filters(business)
 
-    monthly_totals = sale_service.generate_monthly_totals_sales(
+    monthly_totals_raw = sale_service.generate_monthly_totals_sales(
         business_id=business_filters["business_id"],
         specific_business_id=business_filters.get("specific_business_id"),
     )
-    total_general = sum(total for month, total in monthly_totals)
+
+    # monthly_totals_raw comes sorted DESC by month (latest first)
+    monthly_totals_desc = [
+        (month, float(total or 0)) for month, total in monthly_totals_raw
+    ]
+
+    month_abbr = {
+        1: "ENE",
+        2: "FEB",
+        3: "MAR",
+        4: "ABR",
+        5: "MAY",
+        6: "JUN",
+        7: "JUL",
+        8: "AGO",
+        9: "SEP",
+        10: "OCT",
+        11: "NOV",
+        12: "DIC",
+    }
+
+    def _format_month(month_value):
+        try:
+            parsed = datetime.strptime(month_value, "%Y-%m")
+            return f"{month_abbr.get(parsed.month, 'N/D')}/{parsed.year}"
+        except Exception:
+            return month_value
+
+    monthly_totals_ordered = list(reversed(monthly_totals_desc))
+    monthly_totals_display = [
+        (_format_month(month), total) for month, total in monthly_totals_ordered
+    ]
+    monthly_totals_last_12 = monthly_totals_display[-12:]
+    chart_months = [month for month, _ in monthly_totals_last_12]
+    chart_totals = [total for _, total in monthly_totals_last_12]
+
+    if monthly_totals_last_12:
+        best_month_label, best_month_total = max(monthly_totals_last_12, key=lambda item: item[1])
+        lowest_month_label, lowest_month_total = min(monthly_totals_last_12, key=lambda item: item[1])
+    else:
+        best_month_label, best_month_total = "N/D", 0
+        lowest_month_label, lowest_month_total = "N/D", 0
+
+    month_count = len(monthly_totals_desc)
+    total_general = sum(total for _, total in monthly_totals_desc)
+    average_monthly = (total_general / month_count) if month_count > 0 else 0
+
+    latest_month = _format_month(monthly_totals_desc[0][0]) if month_count > 0 else "N/D"
+    latest_total = monthly_totals_desc[0][1] if month_count > 0 else 0
+
+    previous_total = monthly_totals_desc[1][1] if month_count > 1 else None
+    if previous_total in (None, 0):
+        trend_delta = 0
+        trend_percent = None
+        trend_direction = "neutral"
+    else:
+        trend_delta = latest_total - previous_total
+        trend_percent = (trend_delta / previous_total) * 100
+        trend_direction = "up" if trend_delta > 0 else "down" if trend_delta < 0 else "neutral"
+
+    # Comparación último mes vs promedio
+    latest_vs_avg_delta = latest_total - average_monthly if month_count > 0 else 0
+    if average_monthly > 0:
+        latest_vs_avg_percent = (latest_vs_avg_delta / average_monthly) * 100
+        latest_vs_avg_direction = (
+            "up"
+            if latest_vs_avg_delta > 0
+            else "down" if latest_vs_avg_delta < 0 else "neutral"
+        )
+    else:
+        latest_vs_avg_percent = None
+        latest_vs_avg_direction = "neutral"
 
     return render_template(
         "business/dashboard.html",
         business=business,
-        monthly_totals=dict(monthly_totals),
+        monthly_totals=dict(monthly_totals_display),
+        monthly_totals_last_12=dict(monthly_totals_last_12),
+        chart_months=chart_months,
+        chart_totals=chart_totals,
+        best_month_label=best_month_label,
+        best_month_total=best_month_total,
+        lowest_month_label=lowest_month_label,
+        lowest_month_total=lowest_month_total,
         total_general=total_general,
+        month_count=month_count,
+        average_monthly=average_monthly,
+        latest_month=latest_month,
+        latest_total=latest_total,
+        trend_delta=trend_delta,
+        trend_percent=trend_percent,
+        trend_direction=trend_direction,
+        latest_vs_avg_delta=latest_vs_avg_delta,
+        latest_vs_avg_percent=latest_vs_avg_percent,
+        latest_vs_avg_direction=latest_vs_avg_direction,
     )
 
 

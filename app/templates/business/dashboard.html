@@ -1,209 +1,285 @@
 {% extends "base.html" %}
 {% block content %}
-  <div class="container mx-auto px-4 py-8 dark:bg-gray-900">
-    <!-- Header -->
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
-        {{ business.name }} - Resumen de Ventas
-      </h2>
-      <div class="flex gap-4">
-        <a
-          href="{{ url_for('business.business_list') }}"
-          class="py-2 px-4 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 
-                text-gray-700 dark:text-white rounded-lg transition duration-200"
-        >
-          Regresar
-        </a>
-        <a
-          href="{{ url_for('business.add_sub_business', business_id=business.id) }}"
-          class="py-2 px-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 
-                text-white rounded-lg transition duration-200"
-        >
-          Agregar Negocio
-        </a>
+  <div class="container mx-auto px-4 py-6 lg:py-8 dark:bg-gray-900">
+    <div class="mb-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Dashboard de negocio</p>
+          <h2 class="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+            {{ business.name }}
+          </h2>
+          <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+            Resumen visual del comportamiento mensual de ventas.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <a
+            href="{{ url_for('business.business_list') }}"
+            class="inline-flex items-center justify-center py-2.5 px-4 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-lg transition duration-200"
+          >
+            Regresar
+          </a>
+          <a
+            href="{{ url_for('business.add_sub_business', business_id=business.id) }}"
+            class="inline-flex items-center justify-center py-2.5 px-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg transition duration-200"
+          >
+            Agregar Negocio
+          </a>
+        </div>
       </div>
     </div>
 
-    <!-- Negocios Específicos -->
     {% if business.is_general %}
-      <div class="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-        <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+      <div class="mb-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
           Negocios Específicos
         </h3>
-        <div class="divide-y divide-gray-200 dark:divide-gray-700">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           {% for sub_business in business.sub_businesses %}
-            <div class="flex items-center justify-between py-3">
-              <span class="text-gray-700 dark:text-gray-300"
-                >{{ sub_business.name }}</span
-              >
+            <div class="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 dark:border-gray-700">
+              <span class="text-gray-700 dark:text-gray-300">{{ sub_business.name }}</span>
               <a
-                href="{{url_for('business.dashboard', business_id=sub_business.id)}}"
-                class="text-blue-600 dark:text-blue-400 hover:underline"
-                >Ver detalles</a
+                href="{{ url_for('business.dashboard', business_id=sub_business.id) }}"
+                class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
               >
+                Ver detalles
+              </a>
             </div>
           {% endfor %}
         </div>
       </div>
     {% endif %}
 
-    <!-- Tarjetas de Resumen -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-      <!-- Total General -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 flex items-center justify-center h-48 sm:col-span-1">
-      <div class="text-center">
-        <h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-300">Total General</h3>
-        <p class="text-3xl font-bold text-blue-600 dark:text-blue-400">
-          {{ total_general|currency }}
-        </p>
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+      <div class="rounded-xl border border-blue-200 bg-blue-50 p-5 dark:border-blue-900/60 dark:bg-blue-950/30">
+        <p class="text-sm text-blue-700 dark:text-blue-300">Total General</p>
+        <p class="mt-2 text-2xl font-bold text-blue-800 dark:text-blue-200">{{ total_general|currency }}</p>
+      </div>
+      <div class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
+        <p class="text-sm text-gray-500 dark:text-gray-400">Meses con ventas</p>
+        <p class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{{ month_count }}</p>
+      </div>
+      <div class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
+        <p class="text-sm text-gray-500 dark:text-gray-400">Promedio mensual</p>
+        <p class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{{ average_monthly|currency }}</p>
+      </div>
+      <div class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
+        <p class="text-sm text-gray-500 dark:text-gray-400">Último mes ({{ latest_month }})</p>
+        <p class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{{ latest_total|currency }}</p>
       </div>
     </div>
 
-      <!-- Gráfico de Desempeño Mensual -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 sm:col-span-3" >
-        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-          Desempeño Mensual
-        </h3>
-        <div id="sales-chart" class="h-96"></div>
+    <div class="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
+        <div>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Tendencia mensual</p>
+          <p class="text-lg font-semibold text-gray-900 dark:text-white">
+            {{ latest_month }} vs mes anterior
+          </p>
+        </div>
+        <div class="mt-3 flex items-center gap-3">
+          {% if trend_percent is not none %}
+            {% if trend_direction == 'up' %}
+              <span class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                ▲ {{ '%.2f'|format(trend_percent) }}%
+              </span>
+            {% elif trend_direction == 'down' %}
+              <span class="inline-flex items-center rounded-full bg-rose-100 px-3 py-1 text-sm font-medium text-rose-700 dark:bg-rose-900/40 dark:text-rose-300">
+                ▼ {{ '%.2f'|format(trend_percent|abs) }}%
+              </span>
+            {% else %}
+              <span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                ▬ 0.00%
+              </span>
+            {% endif %}
+            <span class="text-sm text-gray-600 dark:text-gray-300">
+              {{ trend_delta|currency }}
+            </span>
+          {% else %}
+            <span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+              Sin comparativo
+            </span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
+        <div>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Rendimiento ejecutivo</p>
+          <p class="text-lg font-semibold text-gray-900 dark:text-white">
+            {{ latest_month }} vs promedio mensual
+          </p>
+        </div>
+        <div class="mt-3 flex items-center gap-3">
+          {% if latest_vs_avg_percent is not none %}
+            {% if latest_vs_avg_direction == 'up' %}
+              <span class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                ▲ {{ '%.2f'|format(latest_vs_avg_percent) }}%
+              </span>
+            {% elif latest_vs_avg_direction == 'down' %}
+              <span class="inline-flex items-center rounded-full bg-rose-100 px-3 py-1 text-sm font-medium text-rose-700 dark:bg-rose-900/40 dark:text-rose-300">
+                ▼ {{ '%.2f'|format(latest_vs_avg_percent|abs) }}%
+              </span>
+            {% else %}
+              <span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                ▬ 0.00%
+              </span>
+            {% endif %}
+            <span class="text-sm text-gray-600 dark:text-gray-300">
+              {{ latest_vs_avg_delta|currency }}
+            </span>
+          {% else %}
+            <span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+              Sin comparativo
+            </span>
+          {% endif %}
+        </div>
       </div>
     </div>
 
-    <!-- Tabla de Ventas Mensuales -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-      <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-        <thead
-          class="bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-400 uppercase"
-        >
-          <tr>
-            <th class="py-3 px-6">Mes</th>
-            <th class="py-3 px-6 text-right">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for month, total in monthly_totals.items() %}
-            <tr
-              class="hover:bg-gray-50 dark:hover:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700"
-            >
-              <td class="py-4 px-6">{{ month }}</td>
-              <td
-                class="py-4 px-6 text-right font-medium text-gray-900 dark:text-gray-300"
-              >
-                {{ total | currency }}
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div class="grid grid-cols-1 xl:grid-cols-5 gap-6">
+      <div class="xl:col-span-3 rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Desempeño Mensual</h3>
+        {% if month_count > 0 %}
+          <div id="sales-chart" class="h-96"></div>
+        {% else %}
+          <div class="h-96 flex items-center justify-center rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
+            <p class="text-gray-500 dark:text-gray-400">No hay datos para mostrar el gráfico.</p>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="xl:col-span-2 rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Lectura rápida</h3>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Basado en los últimos 12 meses</p>
+
+        <div class="mt-5 space-y-4">
+          <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900/50 dark:bg-emerald-900/20">
+            <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Mejor mes</p>
+            <p class="mt-1 text-sm text-emerald-800 dark:text-emerald-200">{{ best_month_label }}</p>
+            <p class="text-xl font-bold text-emerald-800 dark:text-emerald-200">{{ best_month_total|currency }}</p>
+          </div>
+
+          <div class="rounded-lg border border-rose-200 bg-rose-50 p-4 dark:border-rose-900/50 dark:bg-rose-900/20">
+            <p class="text-xs font-semibold uppercase tracking-wide text-rose-700 dark:text-rose-300">Mes más bajo</p>
+            <p class="mt-1 text-sm text-rose-800 dark:text-rose-200">{{ lowest_month_label }}</p>
+            <p class="text-xl font-bold text-rose-800 dark:text-rose-200">{{ lowest_month_total|currency }}</p>
+          </div>
+
+          <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Leyenda del gráfico</p>
+            <ul class="mt-3 space-y-2 text-sm text-gray-700 dark:text-gray-300">
+              <li class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span> Mejor que el mes anterior</li>
+              <li class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-rose-500"></span> Peor que el mes anterior</li>
+              <li class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-gray-400"></span> Igual o sin referencia</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Datos Ocultos para ApexCharts -->
-    <input type="hidden" id="chart-data" value="{{ monthly_totals|tojson }}" />
-  </div>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script type="module">
+      const months = {{ chart_months|tojson }};
+      const totals = {{ chart_totals|tojson }}.map(Number);
 
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-  <script type="module">
-    
-    // Obtener datos del backend
-    const chartData = {{ monthly_totals|tojson }};
-    const months = Object.keys(chartData);
-    const totals = Object.values(chartData).map(Number);
+      const displayMonths = [...months].reverse();
+      const displayTotals = [...totals].reverse();
+      const isDark = document.documentElement.classList.contains("dark");
+      const axisLabelColor = isDark ? "#d1d5db" : "#4b5563";
+      const gridBorderColor = isDark ? "#374151" : "#e5e7eb";
 
-    // Configuración de ApexCharts
-    const options = {
-      series: [
-        {
-          name: "Ventas",
-          data: totals,
-        },
-      ],
-      chart: {
-        sparkline: {
-          enabled: false,
-        },
-        type: "bar",
-        width: "100%",
-        height: 400,
-        toolbar: {
-          show: false,
-        }
-      },     
-      fill: {
-        opacity: 1,
-      },
-      plotOptions: {
-        bar: {
-          horizontal: true,
-          columnWidth: "100%",
-          borderRadiusApplication: "end",
-          borderRadius: 6,
+      if (displayMonths.length > 0) {
+        const monthlyColors = displayTotals.map((value, index) => {
+          const previousMonthValue = displayTotals[index + 1];
+          if (previousMonthValue === undefined) return "#9ca3af";
+          const previous = previousMonthValue;
+          if (value > previous) return "#10b981"; // sube (verde)
+          if (value < previous) return "#ef4444"; // baja (rojo)
+          return "#9ca3af"; // igual (gris)
+        });
+
+        const options = {
+          series: [
+            {
+              name: "Ventas",
+              data: displayTotals,
+            },
+          ],
+          chart: {
+            type: "bar",
+            width: "100%",
+            height: 380,
+            toolbar: {
+              show: false,
+            },
+          },
+          plotOptions: {
+            bar: {
+              horizontal: true,
+              distributed: true,
+              borderRadius: 6,
+              dataLabels: {
+                position: "top",
+              },
+            },
+          },
+          colors: monthlyColors,
           dataLabels: {
-            position: "top",
+            enabled: false,
           },
-        },
-      },      
-      legend: {
-        show: true,
-        position: "bottom",
-      },
-      dataLabels: {
-        enabled: false,
-      },
-      tooltip: {
-        shared: true,
-        intersect: false,
-        formatter: function (value) {
-          return "$" + value
-        }
-      },
-      xaxis: {
-        labels: {
-          show: true,
-          style: {
-            fontFamily: "Inter, sans-serif",
-            cssClass: 'text-xs font-normal fill-gray-500 dark:fill-gray-400'
+          legend: {
+            show: false,
           },
-          formatter: function(value) {
-            return "$" + value
-          }
-        },
-        categories: months,
-        axisTicks: {
-          show: false,
-        },
-        axisBorder: {
-          show: false,
-        },
-      },
-      yaxis: {
-        labels: {
-          show: true,
-          style: {
-            fontFamily: "Inter, sans-serif",
-            cssClass: 'text-xs font-normal fill-gray-500 dark:fill-gray-400'
-          }
-        }
-      },
-      grid: {
-        show: true,
-        strokeDashArray: 4,
-        padding: {
-          left: 2,
-          right: 2,
-          top: -20
-        },
-      },
-      fill: {
-        opacity: 1,
-      }
-      
-    };
+          tooltip: {
+            shared: true,
+            intersect: false,
+            y: {
+              formatter: function (value) {
+                return "$" + value;
+              },
+            },
+          },
+          xaxis: {
+            categories: displayMonths,
+            labels: {
+              show: true,
+              style: {
+                colors: axisLabelColor,
+              },
+              formatter: function (value) {
+                return "$" + value;
+              },
+            },
+            axisTicks: {
+              show: false,
+            },
+            axisBorder: {
+              show: false,
+            },
+          },
+          yaxis: {
+            labels: {
+              show: true,
+              style: {
+                colors: axisLabelColor,
+              },
+            },
+          },
+          grid: {
+            show: true,
+            borderColor: gridBorderColor,
+            strokeDashArray: 4,
+            padding: {
+              left: 2,
+              right: 2,
+            },
+          },
+        };
 
-    // Inicializar gráfico
-    const chart = new ApexCharts(
-      document.getElementById("sales-chart"),
-      options,
-    );
-    chart.render();
-  </script>
+        const chart = new ApexCharts(document.getElementById("sales-chart"), options);
+        chart.render();
+      }
+    </script>
+  </div>
 {% endblock content %}
