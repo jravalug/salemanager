@@ -136,7 +136,6 @@
       <div class="lg:flex lg:gap-6">
         <!-- Sidebar izquierdo -->
         {% if active_client %}
-
           {% set all_client_businesses = active_client.businesses.all() %}
           {% set primary_business = (all_client_businesses | selectattr('is_general') | list | first) %}
           {% set child_businesses = all_client_businesses | rejectattr('is_general') | list %}
@@ -155,7 +154,6 @@
             {% set href_business_detail = url_for('business.detail_or_edit', business_id=current_business.id) %}
             {% set href_add_sub_business = url_for('business.add_sub_business', business_id=current_business.id) if current_business.is_general else None %}
           {% endif %}
-
           {% set href_clients = url_for('client.list_clients') %}
           {% set href_client_detail = url_for('client.detail_or_edit', client_id=active_client.id) %}
           <aside
@@ -174,22 +172,46 @@
                   />
                 {% endif %}
                 <div class="min-w-0 flex-1">
-                  <div class="font-semibold truncate" title="{{ active_client.name }}">{{ active_client.name }}</div>
+                  <div
+                    class="font-semibold truncate"
+                    title="{{ active_client.name }}"
+                  >
+                    {{ active_client.name }}
+                  </div>
                   {% if current_business %}
-                    <div class="text-sm text-gray-500 dark:text-gray-400 truncate" title="{{ current_business.name }}">{{ current_business.name }}</div>
+                    <div
+                      class="text-sm text-gray-500 dark:text-gray-400 truncate"
+                      title="{{ current_business.name }}"
+                    >
+                      {{ current_business.name }}
+                    </div>
                   {% endif %}
                 </div>
               </div>
 
               {% if active_client %}
-                <div class="mb-5 space-y-2 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                <div
+                  class="mb-5 space-y-2 rounded-lg border border-gray-200 p-3 dark:border-gray-700"
+                >
                   <div class="flex items-center justify-between gap-2">
-                    <span class="text-xs text-gray-500 dark:text-gray-400">Tipo de cliente</span>
-                    <span class="max-w-[60%] truncate rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700 dark:bg-gray-700 dark:text-gray-200" title="{{ active_client.client_type|upper }}">{{ active_client.client_type|upper }}</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400"
+                      >Tipo de cliente</span
+                    >
+                    <span
+                      class="max-w-[60%] truncate rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700 dark:bg-gray-700 dark:text-gray-200"
+                      title="{{ active_client.client_type|upper }}"
+                      >{{ active_client.client_type|upper }}</span
+                    >
                   </div>
                   <div class="flex items-center justify-between gap-2">
-                    <span class="text-xs text-gray-500 dark:text-gray-400">Contabilidad</span>
-                    <span class="max-w-[60%] truncate rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900/50 dark:text-blue-300" title="{{ active_client.accounting_regime|capitalize }}">{{ active_client.accounting_regime|capitalize }}</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400"
+                      >Contabilidad</span
+                    >
+                    <span
+                      class="max-w-[60%] truncate rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
+                      title="{{ active_client.accounting_regime|capitalize }}"
+                      >{{ active_client.accounting_regime|capitalize }}</span
+                    >
                   </div>
                   {% if href_client_detail %}
                     <a
@@ -210,9 +232,23 @@
                   data-collapse-toggle="dropdown-work-context"
                 >
                   {{ building('shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400') }}
-                  <span class="flex-1 ms-3 text-left whitespace-nowrap">Contexto de trabajo</span>
-                  <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4" />
+                  <span class="flex-1 ms-3 text-left whitespace-nowrap"
+                    >Contexto de trabajo</span
+                  >
+                  <svg
+                    class="w-3 h-3"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 10 6"
+                  >
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="m1 1 4 4 4-4"
+                    />
                   </svg>
                 </button>
                 <ul id="dropdown-work-context" class="block py-2 space-y-2">
@@ -223,8 +259,14 @@
                         href="{{ url_for('business.dashboard', business_id=primary_business.id) }}"
                         class="flex items-center justify-between gap-2 w-full p-2 rounded pl-11 hover:bg-gray-100 dark:hover:bg-gray-700 {{ 'text-blue-600 dark:text-blue-400' if is_active else 'text-gray-700 dark:text-gray-200' }}"
                       >
-                        <span class="text-xs uppercase tracking-wide">Principal</span>
-                        <span class="min-w-0 truncate text-xs" title="{{ primary_business.name }}">{{ primary_business.name }}</span>
+                        <span class="text-xs uppercase tracking-wide"
+                          >Principal</span
+                        >
+                        <span
+                          class="min-w-0 truncate text-xs"
+                          title="{{ primary_business.name }}"
+                          >{{ primary_business.name }}</span
+                        >
                       </a>
                     </li>
                   {% endif %}
@@ -235,8 +277,14 @@
                         href="{{ url_for('business.dashboard', business_id=child.id) }}"
                         class="flex items-center justify-between gap-2 w-full p-2 rounded pl-11 hover:bg-gray-100 dark:hover:bg-gray-700 {{ 'text-blue-600 dark:text-blue-400' if is_active else 'text-gray-700 dark:text-gray-200' }}"
                       >
-                        <span class="text-xs uppercase tracking-wide">Subnegocio</span>
-                        <span class="min-w-0 truncate text-xs" title="{{ child.name }}">{{ child.name }}</span>
+                        <span class="text-xs uppercase tracking-wide"
+                          >Subnegocio</span
+                        >
+                        <span
+                          class="min-w-0 truncate text-xs"
+                          title="{{ child.name }}"
+                          >{{ child.name }}</span
+                        >
                       </a>
                     </li>
                   {% endfor %}
@@ -365,7 +413,9 @@
                 </li>
               </ul>
 
-              <div class="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
+              <div
+                class="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2"
+              >
                 {% if href_client_detail %}
                   <a
                     class="flex items-center gap-3 p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -400,14 +450,23 @@
         <div class="flex-1">
           {% if active_client %}
             <nav class="mb-4" aria-label="Breadcrumb">
-              <ol class="flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+              <ol
+                class="flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400"
+              >
                 <li>
-                  <a href="{{ href_clients }}" class="hover:text-blue-600 dark:hover:text-blue-400">Clientes</a>
+                  <a
+                    href="{{ href_clients }}"
+                    class="hover:text-blue-600 dark:hover:text-blue-400"
+                    >Clientes</a
+                  >
                 </li>
                 <li aria-hidden="true">/</li>
                 {% if href_client_detail %}
                   <li>
-                    <a href="{{ href_client_detail }}" class="hover:text-blue-600 dark:hover:text-blue-400">
+                    <a
+                      href="{{ href_client_detail }}"
+                      class="hover:text-blue-600 dark:hover:text-blue-400"
+                    >
                       {{ active_client.name }}
                     </a>
                   </li>
@@ -416,8 +475,12 @@
                 {% endif %}
                 {% if current_business %}
                   <li aria-hidden="true">/</li>
-                  <li class="text-gray-700 dark:text-gray-200">{{ current_business.name }}</li>
-                  <li class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                  <li class="text-gray-700 dark:text-gray-200">
+                    {{ current_business.name }}
+                  </li>
+                  <li
+                    class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500"
+                  >
                     ({{ 'principal' if current_business.is_general else 'subnegocio' }})
                   </li>
                 {% endif %}
@@ -484,9 +547,19 @@
               />
             {% endif %}
             <div>
-              <div class="font-semibold truncate max-w-48" title="{{ active_client.name }}">{{ active_client.name }}</div>
+              <div
+                class="font-semibold truncate max-w-48"
+                title="{{ active_client.name }}"
+              >
+                {{ active_client.name }}
+              </div>
               {% if current_business %}
-                <div class="text-sm text-gray-400 truncate max-w-48" title="{{ current_business.name }}">{{ current_business.name }}</div>
+                <div
+                  class="text-sm text-gray-400 truncate max-w-48"
+                  title="{{ current_business.name }}"
+                >
+                  {{ current_business.name }}
+                </div>
               {% endif %}
             </div>
           </div>
@@ -494,11 +567,19 @@
             <div class="mb-5 space-y-2 rounded-lg border border-gray-700 p-3">
               <div class="flex items-center justify-between gap-2">
                 <span class="text-xs text-gray-400">Tipo de cliente</span>
-                <span class="max-w-[60%] truncate rounded-full bg-gray-700 px-2 py-0.5 text-xs text-gray-100" title="{{ active_client.client_type|upper }}">{{ active_client.client_type|upper }}</span>
+                <span
+                  class="max-w-[60%] truncate rounded-full bg-gray-700 px-2 py-0.5 text-xs text-gray-100"
+                  title="{{ active_client.client_type|upper }}"
+                  >{{ active_client.client_type|upper }}</span
+                >
               </div>
               <div class="flex items-center justify-between gap-2">
                 <span class="text-xs text-gray-400">Contabilidad</span>
-                <span class="max-w-[60%] truncate rounded-full bg-blue-900/50 px-2 py-0.5 text-xs text-blue-300" title="{{ active_client.accounting_regime|capitalize }}">{{ active_client.accounting_regime|capitalize }}</span>
+                <span
+                  class="max-w-[60%] truncate rounded-full bg-blue-900/50 px-2 py-0.5 text-xs text-blue-300"
+                  title="{{ active_client.accounting_regime|capitalize }}"
+                  >{{ active_client.accounting_regime|capitalize }}</span
+                >
               </div>
               {% if href_client_detail %}
                 <a
@@ -518,9 +599,23 @@
               data-collapse-toggle="dropdown-work-context-mobile"
             >
               {{ building('shrink-0 w-5 h-5 text-gray-400 transition duration-75') }}
-              <span class="flex-1 ms-3 text-left whitespace-nowrap">Contexto de trabajo</span>
-              <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4" />
+              <span class="flex-1 ms-3 text-left whitespace-nowrap"
+                >Contexto de trabajo</span
+              >
+              <svg
+                class="w-3 h-3"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 10 6"
+              >
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="m1 1 4 4 4-4"
+                />
               </svg>
             </button>
             <ul id="dropdown-work-context-mobile" class="block py-2 space-y-2">
@@ -531,8 +626,14 @@
                     href="{{ url_for('business.dashboard', business_id=primary_business.id) }}"
                     class="flex items-center justify-between gap-2 w-full p-2 rounded pl-11 hover:bg-gray-700 {{ 'text-blue-400' if is_active else 'text-gray-200' }}"
                   >
-                    <span class="text-xs uppercase tracking-wide">Principal</span>
-                    <span class="min-w-0 truncate text-xs" title="{{ primary_business.name }}">{{ primary_business.name }}</span>
+                    <span class="text-xs uppercase tracking-wide"
+                      >Principal</span
+                    >
+                    <span
+                      class="min-w-0 truncate text-xs"
+                      title="{{ primary_business.name }}"
+                      >{{ primary_business.name }}</span
+                    >
                   </a>
                 </li>
               {% endif %}
@@ -543,8 +644,14 @@
                     href="{{ url_for('business.dashboard', business_id=child.id) }}"
                     class="flex items-center justify-between gap-2 w-full p-2 rounded pl-11 hover:bg-gray-700 {{ 'text-blue-400' if is_active else 'text-gray-200' }}"
                   >
-                    <span class="text-xs uppercase tracking-wide">Subnegocio</span>
-                    <span class="min-w-0 truncate text-xs" title="{{ child.name }}">{{ child.name }}</span>
+                    <span class="text-xs uppercase tracking-wide"
+                      >Subnegocio</span
+                    >
+                    <span
+                      class="min-w-0 truncate text-xs"
+                      title="{{ child.name }}"
+                      >{{ child.name }}</span
+                    >
                   </a>
                 </li>
               {% endfor %}

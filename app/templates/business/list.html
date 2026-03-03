@@ -3,13 +3,22 @@
 {% block content %}
   <section class="py-8 lg:py-10">
     <div class="container mx-auto px-4">
-      <div class="mb-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div
+        class="mb-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+      >
+        <div
+          class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
+        >
           <div>
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Listado de Negocios</h1>
-            <p class="mt-2 text-gray-600 dark:text-gray-300">Vista ejecutiva de negocios, operación y actividad comercial.</p>
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+              Listado de Negocios
+            </h1>
+            <p class="mt-2 text-gray-600 dark:text-gray-300">
+              Vista ejecutiva de negocios, operación y actividad comercial.
+            </p>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Mostrando {{ summary.total_businesses }} de {{ summary.total_businesses_all }} negocios
+              Mostrando {{ summary.total_businesses }} de
+              {{ summary.total_businesses_all }} negocios
             </p>
           </div>
           <div class="flex flex-wrap gap-2">
@@ -53,21 +62,41 @@
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-        <div class="rounded-xl border border-blue-200 bg-blue-50 p-5 dark:border-blue-900/60 dark:bg-blue-950/30">
-          <p class="text-sm text-blue-700 dark:text-blue-300">Negocios generales</p>
-          <p class="mt-2 text-2xl font-bold text-blue-900 dark:text-blue-200">{{ summary.total_businesses }}</p>
+        <div
+          class="rounded-xl border border-blue-200 bg-blue-50 p-5 dark:border-blue-900/60 dark:bg-blue-950/30"
+        >
+          <p class="text-sm text-blue-700 dark:text-blue-300">
+            Negocios generales
+          </p>
+          <p class="mt-2 text-2xl font-bold text-blue-900 dark:text-blue-200">
+            {{ summary.total_businesses }}
+          </p>
         </div>
-        <div class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
+        <div
+          class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800"
+        >
           <p class="text-sm text-gray-500 dark:text-gray-400">Sub negocios</p>
-          <p class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{{ summary.total_sub_businesses }}</p>
+          <p class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
+            {{ summary.total_sub_businesses }}
+          </p>
         </div>
-        <div class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
+        <div
+          class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800"
+        >
           <p class="text-sm text-gray-500 dark:text-gray-400">Productos</p>
-          <p class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{{ summary.total_products }}</p>
+          <p class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
+            {{ summary.total_products }}
+          </p>
         </div>
-        <div class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
-          <p class="text-sm text-gray-500 dark:text-gray-400">Ventas registradas</p>
-          <p class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{{ summary.total_sales }}</p>
+        <div
+          class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800"
+        >
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Ventas registradas
+          </p>
+          <p class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
+            {{ summary.total_sales }}
+          </p>
         </div>
       </div>
 
@@ -75,12 +104,18 @@
         <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {% for item in business_metrics %}
             {% set business = item.business %}
-            <article class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 overflow-hidden">
+            <article
+              class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 overflow-hidden"
+            >
               <div class="p-6">
                 <div class="flex items-start justify-between gap-4">
                   <div>
-                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">{{ business.name }}</h3>
-                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ business.description or "Sin descripción" }}</p>
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+                      {{ business.name }}
+                    </h3>
+                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                      {{ business.description or "Sin descripción" }}
+                    </p>
                   </div>
                   {% if business.logo %}
                     <img
@@ -94,38 +129,74 @@
 
                 <div class="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div class="rounded-lg bg-gray-50 dark:bg-gray-700/60 p-3">
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Sub negocios</p>
-                    <p class="text-lg font-semibold text-gray-900 dark:text-white">{{ item.sub_business_count }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                      Sub negocios
+                    </p>
+                    <p
+                      class="text-lg font-semibold text-gray-900 dark:text-white"
+                    >
+                      {{ item.sub_business_count }}
+                    </p>
                   </div>
                   <div class="rounded-lg bg-gray-50 dark:bg-gray-700/60 p-3">
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Productos</p>
-                    <p class="text-lg font-semibold text-gray-900 dark:text-white">{{ item.product_count }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                      Productos
+                    </p>
+                    <p
+                      class="text-lg font-semibold text-gray-900 dark:text-white"
+                    >
+                      {{ item.product_count }}
+                    </p>
                   </div>
                   <div class="rounded-lg bg-gray-50 dark:bg-gray-700/60 p-3">
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Ventas</p>
-                    <p class="text-lg font-semibold text-gray-900 dark:text-white">{{ item.sales_count }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                      Ventas
+                    </p>
+                    <p
+                      class="text-lg font-semibold text-gray-900 dark:text-white"
+                    >
+                      {{ item.sales_count }}
+                    </p>
                   </div>
                   <div class="rounded-lg bg-gray-50 dark:bg-gray-700/60 p-3">
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Moneda</p>
-                    <p class="text-lg font-semibold text-gray-900 dark:text-white">{{ business.currency or 'CUP' }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                      Moneda
+                    </p>
+                    <p
+                      class="text-lg font-semibold text-gray-900 dark:text-white"
+                    >
+                      {{ business.currency or 'CUP' }}
+                    </p>
                   </div>
                 </div>
 
                 <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                  <div class="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2">
-                    <span class="text-gray-500 dark:text-gray-400">Cliente:</span>
+                  <div
+                    class="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2"
+                  >
+                    <span class="text-gray-500 dark:text-gray-400"
+                      >Cliente:</span
+                    >
                     <span class="font-medium text-gray-900 dark:text-white">
                       {{ business.client.name if business.client else 'Sin cliente' }}
                     </span>
                   </div>
-                  <div class="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2">
-                    <span class="text-gray-500 dark:text-gray-400">Última venta:</span>
+                  <div
+                    class="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2"
+                  >
+                    <span class="text-gray-500 dark:text-gray-400"
+                      >Última venta:</span
+                    >
                     <span class="font-medium text-gray-900 dark:text-white">
                       {{ item.last_sale_date.strftime('%d/%m/%Y') if item.last_sale_date else 'Sin ventas' }}
                     </span>
                   </div>
-                  <div class="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2">
-                    <span class="text-gray-500 dark:text-gray-400">Creado:</span>
+                  <div
+                    class="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2"
+                  >
+                    <span class="text-gray-500 dark:text-gray-400"
+                      >Creado:</span
+                    >
                     <span class="font-medium text-gray-900 dark:text-white">
                       {{ business.created_at.strftime('%d/%m/%Y') if business.created_at else 'N/D' }}
                     </span>
@@ -133,7 +204,9 @@
                 </div>
               </div>
 
-              <div class="flex items-center justify-end gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-900/30">
+              <div
+                class="flex items-center justify-end gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-900/30"
+              >
                 <a
                   href="{{ url_for('business.detail_or_edit', business_id=business.id) }}"
                   class="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
@@ -151,9 +224,13 @@
           {% endfor %}
         </div>
       {% else %}
-        <div class="rounded-xl border border-dashed border-gray-300 bg-white py-16 text-center text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+        <div
+          class="rounded-xl border border-dashed border-gray-300 bg-white py-16 text-center text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+        >
           <p class="text-lg font-medium">No hay negocios registrados.</p>
-          <p class="mt-1">Agrega uno para comenzar a ver métricas relevantes.</p>
+          <p class="mt-1">
+            Agrega uno para comenzar a ver métricas relevantes.
+          </p>
         </div>
       {% endif %}
     </div>

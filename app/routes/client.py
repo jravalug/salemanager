@@ -20,20 +20,18 @@ def _split_list_values(raw_value: str | None) -> list[str]:
 
 def _build_default_business_name(client_name: str) -> str:
     base_name = client_name.strip()
-    exact_match = (
-        Business.query.filter(func.lower(Business.name) == base_name.lower())
-        .first()
-    )
+    exact_match = Business.query.filter(
+        func.lower(Business.name) == base_name.lower()
+    ).first()
     if not exact_match:
         return base_name
 
     index = 1
     while True:
         candidate = f"{base_name} ({index})"
-        found = (
-            Business.query.filter(func.lower(Business.name) == candidate.lower())
-            .first()
-        )
+        found = Business.query.filter(
+            func.lower(Business.name) == candidate.lower()
+        ).first()
         if not found:
             return candidate
         index += 1
@@ -64,7 +62,9 @@ def list_clients():
             or None,
             fiscal_account_number=(form.fiscal_account_number.data or "").strip()
             or None,
-            fiscal_account_card_number=(form.fiscal_account_card_number.data or "").strip()
+            fiscal_account_card_number=(
+                form.fiscal_account_card_number.data or ""
+            ).strip()
             or None,
             client_type=form.client_type.data,
             accounting_regime=form.accounting_regime.data,
@@ -136,9 +136,9 @@ def list_clients():
         last_sale_date = None
 
         if all_business_ids:
-            product_count = (
-                Product.query.filter(Product.business_id.in_(all_business_ids)).count()
-            )
+            product_count = Product.query.filter(
+                Product.business_id.in_(all_business_ids)
+            ).count()
 
         sales_conditions = []
         if parent_business_ids:
@@ -153,10 +153,9 @@ def list_clients():
                 func.strftime("%Y-%m", Sale.date) == current_month
             ).count()
 
-            revenue_value = (
-                sale_query.with_entities(func.coalesce(func.sum(Sale.total_amount), 0.0))
-                .scalar()
-            )
+            revenue_value = sale_query.with_entities(
+                func.coalesce(func.sum(Sale.total_amount), 0.0)
+            ).scalar()
             revenue_total = float(revenue_value or 0.0)
             last_sale_date = sale_query.with_entities(func.max(Sale.date)).scalar()
 
@@ -235,7 +234,9 @@ def detail_or_edit(client_id):
                 form.legal_municipality.data or ""
             ).strip() or None
             client.legal_province = (form.legal_province.data or "").strip() or None
-            client.legal_postal_code = (form.legal_postal_code.data or "").strip() or None
+            client.legal_postal_code = (
+                form.legal_postal_code.data or ""
+            ).strip() or None
             client.phone_numbers = _split_list_values(form.phone_numbers_input.data)
             client.primary_phone_number = (
                 form.primary_phone_number.data or ""
@@ -292,7 +293,9 @@ def detail_or_edit(client_id):
 @bp.route("/evaluate-regime", methods=["POST"])
 def evaluate_regime():
     try:
-        summary = ClientAccountingService().evaluate_annual_regime_transition(force=True)
+        summary = ClientAccountingService().evaluate_annual_regime_transition(
+            force=True
+        )
         flash(
             "Evaluación completada. "
             f"Evaluados: {summary['evaluated_clients']} | "

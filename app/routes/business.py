@@ -130,8 +130,12 @@ def dashboard(business_id):
     chart_totals = [total for _, total in monthly_totals_last_12]
 
     if monthly_totals_last_12:
-        best_month_label, best_month_total = max(monthly_totals_last_12, key=lambda item: item[1])
-        lowest_month_label, lowest_month_total = min(monthly_totals_last_12, key=lambda item: item[1])
+        best_month_label, best_month_total = max(
+            monthly_totals_last_12, key=lambda item: item[1]
+        )
+        lowest_month_label, lowest_month_total = min(
+            monthly_totals_last_12, key=lambda item: item[1]
+        )
     else:
         best_month_label, best_month_total = "N/D", 0
         lowest_month_label, lowest_month_total = "N/D", 0
@@ -140,7 +144,9 @@ def dashboard(business_id):
     total_general = sum(total for _, total in monthly_totals_desc)
     average_monthly = (total_general / month_count) if month_count > 0 else 0
 
-    latest_month = _format_month(monthly_totals_desc[0][0]) if month_count > 0 else "N/D"
+    latest_month = (
+        _format_month(monthly_totals_desc[0][0]) if month_count > 0 else "N/D"
+    )
     latest_total = monthly_totals_desc[0][1] if month_count > 0 else 0
 
     previous_total = monthly_totals_desc[1][1] if month_count > 1 else None
@@ -151,7 +157,9 @@ def dashboard(business_id):
     else:
         trend_delta = latest_total - previous_total
         trend_percent = (trend_delta / previous_total) * 100
-        trend_direction = "up" if trend_delta > 0 else "down" if trend_delta < 0 else "neutral"
+        trend_direction = (
+            "up" if trend_delta > 0 else "down" if trend_delta < 0 else "neutral"
+        )
 
     # Comparación último mes vs promedio
     latest_vs_avg_delta = latest_total - average_monthly if month_count > 0 else 0

@@ -22,17 +22,27 @@ class ClientForm(FlaskForm):
         validators=[Optional(), Length(max=30)],
     )
 
-    legal_street = StringField("Domicilio legal: calle/avenida", validators=[Optional(), Length(max=120)])
-    legal_number = StringField("Domicilio legal: número/edificio", validators=[Optional(), Length(max=30)])
+    legal_street = StringField(
+        "Domicilio legal: calle/avenida", validators=[Optional(), Length(max=120)]
+    )
+    legal_number = StringField(
+        "Domicilio legal: número/edificio", validators=[Optional(), Length(max=30)]
+    )
     legal_between_streets = StringField(
         "Domicilio legal: entrecalles", validators=[Optional(), Length(max=120)]
     )
-    legal_apartment = StringField("Domicilio legal: apartamento", validators=[Optional(), Length(max=50)])
-    legal_district = StringField("Domicilio legal: reparto", validators=[Optional(), Length(max=100)])
+    legal_apartment = StringField(
+        "Domicilio legal: apartamento", validators=[Optional(), Length(max=50)]
+    )
+    legal_district = StringField(
+        "Domicilio legal: reparto", validators=[Optional(), Length(max=100)]
+    )
     legal_municipality = StringField(
         "Domicilio legal: municipio", validators=[Optional(), Length(max=100)]
     )
-    legal_province = StringField("Domicilio legal: provincia", validators=[Optional(), Length(max=100)])
+    legal_province = StringField(
+        "Domicilio legal: provincia", validators=[Optional(), Length(max=100)]
+    )
     legal_postal_code = StringField(
         "Domicilio legal: código postal", validators=[Optional(), Length(max=20)]
     )

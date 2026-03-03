@@ -46,7 +46,9 @@ class ClientAccountingService:
                     continue
 
                 evaluated_count += 1
-                gross_income = self.get_client_gross_income_for_year(client.id, reviewed_year)
+                gross_income = self.get_client_gross_income_for_year(
+                    client.id, reviewed_year
+                )
                 previous_regime = client.accounting_regime
 
                 if gross_income > threshold:

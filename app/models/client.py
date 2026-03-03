@@ -33,9 +33,7 @@ class Client(db.Model):
     fiscal_account_card_number = db.Column(db.String(30), nullable=True)
 
     client_type = db.Column(db.String(20), nullable=False, default=TYPE_TCP)
-    accounting_regime = db.Column(
-        db.String(20), nullable=False, default=REGIME_FISCAL
-    )
+    accounting_regime = db.Column(db.String(20), nullable=False, default=REGIME_FISCAL)
     regime_changed_at = db.Column(db.DateTime, nullable=True)
     regime_change_reason = db.Column(db.String(255), nullable=True)
     last_regime_evaluation_year = db.Column(db.Integer, nullable=True)

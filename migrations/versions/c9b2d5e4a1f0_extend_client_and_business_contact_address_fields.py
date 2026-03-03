@@ -46,10 +46,14 @@ def upgrade():
 
     for column_name, column_type in client_columns_to_add:
         if column_name not in existing_client_columns:
-            op.add_column("clientes", sa.Column(column_name, column_type, nullable=True))
+            op.add_column(
+                "clientes", sa.Column(column_name, column_type, nullable=True)
+            )
 
     if "tax_id" in existing_client_columns:
-        op.execute("UPDATE clientes SET nit = tax_id WHERE nit IS NULL AND tax_id IS NOT NULL")
+        op.execute(
+            "UPDATE clientes SET nit = tax_id WHERE nit IS NULL AND tax_id IS NOT NULL"
+        )
 
     existing_business_columns = {
         column["name"] for column in inspector.get_columns("business")
@@ -68,7 +72,9 @@ def upgrade():
 
     for column_name, column_type in business_columns_to_add:
         if column_name not in existing_business_columns:
-            op.add_column("business", sa.Column(column_name, column_type, nullable=True))
+            op.add_column(
+                "business", sa.Column(column_name, column_type, nullable=True)
+            )
 
 
 def downgrade():
