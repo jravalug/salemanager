@@ -1,0 +1,12 @@
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div
+        id="toast-{{ category }}"
+        class="mb-4 w-full max-w-2xl p-4 rounded-lg shadow-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200"
+      >
+        <div class="font-medium">{{ message }}</div>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}

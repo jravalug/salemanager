@@ -1,0 +1,13 @@
+<div
+  id="mobile-sidebar-backdrop"
+  class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden"
+></div>
+<aside
+  id="mobile-sidebar"
+  class="fixed left-0 top-0 h-full w-72 bg-gray-800 dark:bg-gray-900 text-gray-100 z-50 transform -translate-x-full transition-transform duration-200 lg:hidden"
+>
+  {% if active_client %}
+    {% set sidebar_variant = 'mobile' %}
+    {% include 'components/sidebar_content.html' %}
+  {% endif %}
+</aside>
