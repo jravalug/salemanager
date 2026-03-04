@@ -11,3 +11,5 @@ from .app_setting import AppSetting
 from .financial_ledger_entry import FinancialLedgerEntry
 from .fiscal_income_entry import FiscalIncomeEntry
 from .collection_receipt import CollectionReceipt
+from .cash_subaccount_balance import CashSubaccountBalance
+from .cash_subaccount_movement import CashSubaccountMovement

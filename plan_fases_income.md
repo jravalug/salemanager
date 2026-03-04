@@ -232,19 +232,19 @@ Objetivo: convivencia limpia con flujos actuales.
 Objetivo: modelar y persistir sub-saldos de efectivo según régimen contable.
 
 ### Entregables
-- [ ] Definir entidad de movimientos/saldos por negocio en `CUP` con ubicación y sub-saldo.
-- [ ] Implementar catálogo base de sub-saldos para régimen fiscal (`caja_fisica`, `caja_tarjeta_magnetica`, `banco`).
-- [ ] Implementar catálogo base de sub-saldos para régimen financiera (tarjeta, nómina, cambios, pagos menores, compras, por depositar, banco).
-- [ ] Garantizar actualización idempotente de saldos por evento/movimiento.
+- [x] Definir entidad de movimientos/saldos por negocio en `CUP` con ubicación y sub-saldo.
+- [x] Implementar catálogo base de sub-saldos para régimen fiscal (`caja_fisica`, `caja_tarjeta_magnetica`, `banco`).
+- [x] Implementar catálogo base de sub-saldos para régimen financiera (tarjeta, nómina, cambios, pagos menores, compras, por depositar, banco).
+- [x] Garantizar actualización idempotente de saldos por evento/movimiento.
 
 ## Fase 8 — Reglas operativas y movimientos internos
 
 Objetivo: aplicar reglas de negocio de incrementos/disminuciones por canal y operación interna.
 
 ### Entregables
-- [ ] Registrar `cash` en `caja_fisica`.
+- [x] Registrar `cash` en `caja_fisica`.
 - [ ] Registrar `transferencia`/`cheque` en banco solo al conciliar (`pending -> collected`).
-- [ ] En contabilidad financiera, registrar ingreso `cash` en `efectivo_por_depositar`.
+- [x] En contabilidad financiera, registrar ingreso `cash` en `efectivo_por_depositar`.
 - [ ] Permitir transferencia de `efectivo_por_depositar` a banco o a cualquier sub-saldo de caja.
 - [ ] Permitir transferencia de banco a cualquier sub-saldo de caja.
 - [ ] Implementar transferencia interna `banco -> tarjeta` (disminuye banco, aumenta sub-saldo tarjeta).
@@ -255,7 +255,7 @@ Objetivo: aplicar reglas de negocio de incrementos/disminuciones por canal y ope
 - [ ] Exigir respaldo documental en rebajas de `fondo_para_pagos_menores`.
 - [ ] Permitir rebajas de `fondo_para_compras` sin respaldo documental obligatorio.
 - [ ] Emitir alerta y bloquear movimiento por fondo insuficiente o por exceder umbral.
-- [ ] Registrar fecha/hora de ingreso y extracción en cada movimiento de banco/sub-saldo.
+- [x] Registrar fecha/hora de ingreso y extracción en cada movimiento de banco/sub-saldo.
 
 ## Fase 9 — Reproceso histórico y reportes de efectivo
 
@@ -304,8 +304,8 @@ Objetivo: permitir que cada negocio configure sus fondos operativos y umbrales.
 - [x] F3.2 Endpoint/servicio de conciliación de pendiente.
 - [x] F4.1 Modelo y migración de comprobante de cobro.
 - [ ] F0.x Agregar nuevas configuraciones globales transversales (por definir).
-- [ ] F7.1 Modelo de movimientos/saldos por ubicación y sub-saldo.
-- [ ] F7.2 Catálogo de sub-saldos por régimen (fiscal/financiera).
+- [x] F7.1 Modelo de movimientos/saldos por ubicación y sub-saldo.
+- [x] F7.2 Catálogo de sub-saldos por régimen (fiscal/financiera).
 - [ ] F8.1 Reglas de canal para incrementos/disminuciones de saldos.
 - [ ] F8.2 Movimiento interno banco->tarjeta y pagos con tarjeta.
 - [ ] F8.3 Flujo de nómina (extracción y reversión de no cobrado).
@@ -347,3 +347,5 @@ Objetivo: permitir que cada negocio configure sus fondos operativos y umbrales.
 - 2026-03-04: Se definió flujo financiero adicional: ingresos `cash` a `efectivo_por_depositar`, transferencias internas desde `efectivo_por_depositar` y desde banco hacia sub-saldos de caja, con registro de fecha/hora de entradas y extracciones.
 - 2026-03-04: Se cerró regla de control operativo: ante fondo insuficiente o umbral excedido, el sistema emite alerta y bloquea la operación.
 - 2026-03-04: Se cerró criterio de alerta operativa: aviso manual en UI/API sin guardar intentos rechazados en base de datos.
+- 2026-03-04: Se inició implementación F7 en `conda webdev`: nuevos modelos `cash_subaccount_balance` y `cash_subaccount_movement`, servicio `CashFlowService` e integración en creación/conciliación de ingresos.
+- 2026-03-04: Se aplicó migración `e8f1a2b3c4d5` y smoke técnico F7 en `webdev` (financiera: `cash_to_deposit=250`, fiscal: `bank=500` tras conciliación, movimientos registrados: `2`).

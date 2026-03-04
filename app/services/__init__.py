@@ -9,3 +9,4 @@ from .client_accounting_service import *
 from .inventory_service import *
 from .app_setting_service import *
 from .income_posting_service import *
+from .cash_flow_service import *

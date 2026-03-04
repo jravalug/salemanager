@@ -25,6 +25,7 @@ from app.models.business import Business
 from app.repositories.income_repository import IncomeRepository
 from app.services.business_service import BusinessService
 from app.services.income_posting_service import IncomePostingService
+from app.services.cash_flow_service import CashFlowService
 from app.utils.slug_utils import get_business_by_slugs
 from app.utils.income_utils import calculate_month_totals, group_sales_by_month
 
@@ -364,6 +365,10 @@ class IncomeManagementService:
             db.session.add(income_event)
             db.session.flush()
             IncomePostingService().post_event(income_event, commit=False)
+            CashFlowService().record_income_event_inflow(
+                income_event=income_event,
+                commit=False,
+            )
         db.session.commit()
         return new_income
 
@@ -440,6 +445,10 @@ class IncomeManagementService:
             receipt.reconciled_by = income_event.reconciled_by
 
         IncomePostingService().post_event(income_event, commit=False)
+        CashFlowService().record_income_event_inflow(
+            income_event=income_event,
+            commit=False,
+        )
         db.session.commit()
 
         return income_event
