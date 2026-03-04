@@ -9,7 +9,7 @@ from flask import (
     url_for,
 )
 from app.forms import MonthForm
-from app.services import SalesReportService
+from app.services import IncomeReportService
 from app.utils import (
     generate_excel_sales_by_date,
     generate_excel_ipv,
@@ -24,7 +24,7 @@ bp = Blueprint(
     url_prefix="/clients/<string:client_slug>/business/<string:business_slug>/report",
 )
 
-sales_service = SalesReportService()
+sales_service = IncomeReportService()
 
 
 def _redirect_clients_list():

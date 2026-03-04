@@ -5,7 +5,8 @@ from flask import current_app
 from sqlalchemy import func
 
 from app.extensions import db
-from app.models import Business, Client, Sale
+from app.models import AppSetting, Business, Client, Sale
+from app.services.app_setting_service import AppSettingService
 
 
 class ClientAccountingService:
@@ -31,7 +32,13 @@ class ClientAccountingService:
         reviewed_year = process_date.year - 1
         target_year = process_date.year
 
-        threshold = float(current_app.config.get("ACCOUNTING_FISCAL_THRESHOLD", 500000))
+        threshold_default = float(
+            current_app.config.get("ACCOUNTING_FISCAL_THRESHOLD", 500000)
+        )
+        threshold = AppSettingService.get_float(
+            AppSetting.KEY_ACCOUNTING_FISCAL_THRESHOLD,
+            default=threshold_default,
+        )
         allow_reversion = bool(
             current_app.config.get("ACCOUNTING_REGIME_ALLOW_REVERSION", True)
         )

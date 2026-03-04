@@ -2,9 +2,9 @@
 from app import create_app, db
 from app.models import Sale
 
-from app.repositories.sales_repository import SalesRepository
+from app.repositories.income_repository import IncomeRepository
 
-sale_repo = SalesRepository()
+sale_repo = IncomeRepository()
 
 
 def migrate_sale_numbers():

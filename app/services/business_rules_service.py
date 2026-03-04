@@ -1,6 +1,6 @@
 from app.extensions import db
 from app.models import Business, Client, DailyIncome, Sale
-from app.services.sale_service import SalesService
+from app.services.income_management_service import IncomeManagementService
 
 
 class BusinessRulesService:
@@ -17,7 +17,7 @@ class BusinessRulesService:
 
     def __init__(self):
         """Inicializa dependencias usadas por las reglas de negocio."""
-        self.sale_service = SalesService()
+        self.income_service = IncomeManagementService()
 
     @staticmethod
     def normalize_optional_text(value):
@@ -87,8 +87,8 @@ class BusinessRulesService:
 
         if parent_business:
             for field_name in self.INHERITED_FISCAL_FIELDS:
-                fiscal_values[field_name] = (
-                    fiscal_values[field_name] or getattr(parent_business, field_name)
+                fiscal_values[field_name] = fiscal_values[field_name] or getattr(
+                    parent_business, field_name
                 )
 
         return fiscal_values
@@ -120,11 +120,15 @@ class BusinessRulesService:
     def _build_sales_by_day_and_location(self, business: Business):
         """Agrupa ventas por día y ubicación de caja/banco para el resumen."""
         sales_by_day_and_location = {}
-        main_business_id, specific_business_id = self._resolve_business_scope_ids(business)
+        main_business_id, specific_business_id = self._resolve_business_scope_ids(
+            business
+        )
 
         sales_query = Sale.query.filter(Sale.business_id == main_business_id)
         if specific_business_id is not None:
-            sales_query = sales_query.filter(Sale.specific_business_id == specific_business_id)
+            sales_query = sales_query.filter(
+                Sale.specific_business_id == specific_business_id
+            )
 
         for sale in sales_query.all():
             location = self._income_location_by_payment_method(sale.payment_method)
@@ -179,13 +183,15 @@ class BusinessRulesService:
         if business.income_entry_mode != Business.INCOME_MODE_DETAILED:
             return
 
-        main_business_id, specific_business_id = self._resolve_business_scope_ids(business)
-        sales_scope = self.sale_service.generate_monthly_totals_sales(
+        main_business_id, specific_business_id = self._resolve_business_scope_ids(
+            business
+        )
+        incomes_scope = self.income_service.generate_monthly_totals_sales(
             business_id=main_business_id,
             specific_business_id=specific_business_id,
         )
 
-        if not sales_scope:
+        if not incomes_scope:
             self._delete_sales_summary_entries_for_business(business.id)
             db.session.commit()
             return

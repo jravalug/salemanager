@@ -210,7 +210,7 @@
             <div class="gap-4 sm:flex sm:items-center">
               <a
                 class="w-full rounded-lg  border border-gray-200 bg-white px-5  py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700 text-center"
-                href="{{ url_for('sale.sales', client_slug=business.client.slug, business_slug=business.slug) }}"
+                href="{{ url_for('income.sales', client_slug=business.client.slug, business_slug=business.slug) }}"
               >
                 Regresar al listado
               </a>
@@ -273,7 +273,7 @@
         <form
           method="post"
           class="p-4 md:p-5"
-          action="{{ url_for('sale.details', client_slug=business.client.slug, business_slug=business.slug, sale_id=sale.id) }}"
+          action="{{ url_for('income.details', client_slug=business.client.slug, business_slug=business.slug, sale_id=sale.id) }}"
         >
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-5">
             <!-- Campo Oculto CSRF -->
@@ -619,7 +619,7 @@
         <form
           id="edit-sp-form"
           method="POST"
-          action="{{ url_for('sale.details', client_slug=business.client.slug, business_slug=business.slug, sale_id=sale.id) }}"
+          action="{{ url_for('income.details', client_slug=business.client.slug, business_slug=business.slug, sale_id=sale.id) }}"
           class="p-4 md:p-5"
         >
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-5">
@@ -730,7 +730,7 @@
         <form
           method="post"
           class="p-4 md:p-5"
-          action="{{ url_for('sale.sales', client_slug=business.client.slug, business_slug=business.slug) }}"
+          action="{{ url_for('income.sales', client_slug=business.client.slug, business_slug=business.slug) }}"
         >
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-5">
             <!-- Campo Oculto CSRF -->

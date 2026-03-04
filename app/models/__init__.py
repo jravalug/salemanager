@@ -6,3 +6,5 @@ from .inventory import InventoryItem
 from .account_classifier import ACAccount, ACSubAccount, ACElement
 from .invoice import Invoice, InvoicePurchaseDetail, InvoiceServiceDetail
 from .daily_income import DailyIncome
+from .income_event import IncomeEvent
+from .app_setting import AppSetting

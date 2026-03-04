@@ -137,7 +137,7 @@
                     <td class="py-4 px-6">
                       {% for sale_id, sale_number in product.orders %}
                         <a
-                          href="{{ url_for('sale.details', client_slug=business.client.slug, business_slug=business.slug, sale_id=sale_id) }}"
+                          href="{{ url_for('income.details', client_slug=business.client.slug, business_slug=business.slug, sale_id=sale_id) }}"
                           class="text-blue-500 hover:underline dark:text-blue-400"
                           >[{{ sale_number }}]</a
                         >

@@ -7,8 +7,8 @@ from app.extensions import db
 from app.models import Business, Sale, SaleDetail, Product
 
 
-class SalesRepository:
-    """Acceso a datos para operaciones CRUD y consultas de ventas."""
+class IncomeRepository:
+    """Acceso a datos para operaciones CRUD y consultas de ingresos detallados."""
 
     @staticmethod
     def _get_sale_detail_or_error(sale_id: int, sale_detail_id: int) -> SaleDetail:

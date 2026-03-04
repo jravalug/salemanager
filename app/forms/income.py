@@ -11,26 +11,24 @@ from wtforms import (
 )
 from wtforms.validators import DataRequired, Optional, NumberRange
 
+from app.forms.business import DailyIncomeForm
 from app.models.business import Business
 
 
-class SaleForm(FlaskForm):
-    """Formulario para crear y editar ventas."""
+class IncomeForm(FlaskForm):
+    """Formulario para crear y editar ingresos detallados."""
 
     specific_business_id = SelectField(
         "Negocio Específico",
-        coerce=lambda x: int(x) if x else None,  # Acepta valores nulos
+        coerce=lambda x: int(x) if x else None,
         validators=[Optional()],
-        choices=[("", "--- Seleccionar ---")],  # Opción vacía por defecto
+        choices=[("", "--- Seleccionar ---")],
     )
-    sale_number = StringField(
-        "Número de Venta",
-    )
-
+    sale_number = StringField("Número de Ingreso")
     date = DateField(
-        "Fecha de la Venta",
+        "Fecha del Ingreso",
         format="%Y-%m-%d",
-        validators=[DataRequired(message="La fecha de la venta es obligatoria.")],
+        validators=[DataRequired(message="La fecha del ingreso es obligatoria.")],
     )
     payment_method = SelectField(
         "Método de Pago",
@@ -44,15 +42,15 @@ class SaleForm(FlaskForm):
         validators=[Optional()],
     )
     status = SelectField(
-        "Estado de la Venta",
+        "Estado del Ingreso",
         choices=[
-            ("completed", "Completada"),
+            ("completed", "Completado"),
             ("pending", "Pendiente"),
-            ("cancelled", "Cancelada"),
-            ("returned", "Devuelta"),
+            ("cancelled", "Cancelado"),
+            ("returned", "Devuelto"),
         ],
         default="completed",
-        validators=[DataRequired(message="El estado de la venta es obligatorio.")],
+        validators=[DataRequired(message="El estado del ingreso es obligatorio.")],
     )
     customer_name = StringField("Nombre del Cliente", validators=[Optional()])
     discount = FloatField(
@@ -72,35 +70,23 @@ class SaleForm(FlaskForm):
         ],
     )
     excluded = BooleanField(
-        "Venta Excluida",
-        false_values=(
-            False,
-            "false",
-            "",
-            "n",
-            "no",
-            "0",
-        ),  # Valores que se consideran False
-        description="Marque esta casilla para excluir la venta.",
+        "Ingreso Excluido",
+        false_values=(False, "false", "", "n", "no", "0"),
+        description="Marque esta casilla para excluir el ingreso.",
     )
 
     def __init__(self, parent_business_id, *args, **kwargs):
-        """Inicializa opciones de sub-negocios en base al negocio padre."""
         super().__init__(*args, **kwargs)
-
-        # Obtener sub negocios
         sub_businesses = Business.query.filter_by(
             parent_business_id=parent_business_id
         ).all()
-
-        # Siempre incluir la opción vacía al inicio
         self.specific_business_id.choices = [("", "Seleccionar sub-negocio ...")] + [
             (b.id, b.name) for b in sub_businesses
         ]
 
 
-class SaleDetailForm(FlaskForm):
-    """Formulario para agregar productos a una venta."""
+class IncomeDetailForm(FlaskForm):
+    """Formulario para agregar detalle de ingreso."""
 
     product_id = SelectField(
         "Producto",
@@ -113,7 +99,7 @@ class SaleDetailForm(FlaskForm):
             DataRequired(message="La cantidad es obligatoria."),
             NumberRange(min=1, message="La cantidad debe ser al menos 1."),
         ],
-        default=1,  # Valor predeterminado válido
+        default=1,
     )
     discount = FloatField(
         "Descuento",
@@ -125,25 +111,18 @@ class SaleDetailForm(FlaskForm):
     )
 
     def set_product_choices(self, products):
-        """
-        Configura las opciones del campo product_id.
-        Cada opción muestra el nombre del producto y su precio.
-        """
         self.product_id.choices = [
             (product.id, f"{product.name} - ${product.price:.2f}")
             for product in products
         ]
 
 
-class UpdateSaleDetailForm(FlaskForm):
-    """Formulario para actualizar un producto ya agregado a una venta."""
+class UpdateIncomeDetailForm(FlaskForm):
+    """Formulario para actualizar detalle de ingreso."""
 
     sale_detail_id = HiddenField(
-        "ID de la Venta del Producto",
-        validators=[
-            DataRequired(message="El ID de la Venta del Producto es obligatorio.")
-        ],
-        description="ID de la relación de la Venta y el Producto.",
+        "ID del Ingreso del Producto",
+        validators=[DataRequired(message="El ID del detalle es obligatorio.")],
     )
     quantity = IntegerField(
         "Cantidad",
@@ -151,7 +130,7 @@ class UpdateSaleDetailForm(FlaskForm):
             DataRequired(message="La cantidad es obligatoria."),
             NumberRange(min=1, message="La cantidad debe ser al menos 1."),
         ],
-        default=1,  # Valor predeterminado válido
+        default=1,
     )
     discount = FloatField(
         "Descuento",
@@ -163,14 +142,15 @@ class UpdateSaleDetailForm(FlaskForm):
     )
 
 
-class RemoveSaleDetailForm(FlaskForm):
-    """Formulario para quitar un producto de una venta."""
+class RemoveIncomeDetailForm(FlaskForm):
+    """Formulario para remover detalle de ingreso."""
 
     sale_detail_id = HiddenField(
-        "ID de la Venta del Producto",
-        validators=[
-            DataRequired(message="El ID de la Venta del Producto es obligatorio.")
-        ],
-        description="ID de la relación de la Venta y el Producto.",
+        "ID del Ingreso del Producto",
+        validators=[DataRequired(message="El ID del detalle es obligatorio.")],
     )
     submit = SubmitField("Eliminar Producto")
+
+
+class DailyManualIncomeForm(DailyIncomeForm):
+    """Formulario para registrar ingreso manual diario."""

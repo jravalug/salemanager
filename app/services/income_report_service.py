@@ -7,7 +7,7 @@ from dateutil.relativedelta import relativedelta
 from openpyxl import Workbook
 
 from app.models import Sale
-from app.repositories.sales_repository import SalesRepository
+from app.repositories.income_repository import IncomeRepository
 from app.services.business_service import BusinessService
 from app.utils.slug_utils import get_business_by_slugs
 from app.utils import (
@@ -15,10 +15,10 @@ from app.utils import (
 )
 
 
-class SalesReportService:
+class IncomeReportService:
     def __init__(self):
         """Inicializa dependencias de reportes de ventas."""
-        self.repository = SalesRepository()
+        self.repository = IncomeRepository()
         self.business_service = BusinessService()
 
     def resolve_business_scope(self, client_slug: str, business_slug: str):

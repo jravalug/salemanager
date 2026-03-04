@@ -56,7 +56,7 @@
             </button>
             <form
               method="get"
-              action="{{ url_for('sale.sales', client_slug=business.client.slug, business_slug=business.slug) }}"
+              action="{{ url_for('income.sales', client_slug=business.client.slug, business_slug=business.slug) }}"
               class="flex items-center space-x-2"
             >
               <label for="month_top" class="sr-only">Filtrar por mes</label>
@@ -182,7 +182,7 @@
                     <td class="px-4 py-2">
                       {% for sale in data.sales %}
                         <a
-                          href="{{ url_for('sale.details', client_slug=business.client.slug, business_slug=business.slug, sale_id=sale.id) }}"
+                          href="{{ url_for('income.details', client_slug=business.client.slug, business_slug=business.slug, sale_id=sale.id) }}"
                           class="inline-block me-2 hover:underline {{ 'text-blue-500 dark:text-blue-400' if sale.has_specific_business() }}{{ 'text-red-500 dark:text-red-400' if sale.excluded }}"
                         >
                           {{ 'TRF-' if sale.is_transfer() }}[{{ sale.sale_number }}]
@@ -220,7 +220,7 @@
                               <div class="flex-1">
                                 <div class="flex items-baseline space-x-3">
                                   <a
-                                    href="{{ url_for('sale.details', client_slug=business.client.slug, business_slug=business.slug, sale_id=sale.id) }}"
+                                    href="{{ url_for('income.details', client_slug=business.client.slug, business_slug=business.slug, sale_id=sale.id) }}"
                                     class="font-medium hover:underline {{ 'text-blue-500 dark:text-blue-400' if sale.has_specific_business() }}{{ 'text-red-500 dark:text-red-400' if sale.excluded }}"
                                     >{{ 'TRF-' if sale.is_transfer() }}[{{ sale.sale_number }}]</a
                                   >
@@ -349,7 +349,7 @@
             <div class="flex-1 flex justify-start">
               {% if prev_month %}
                 <a
-                  href="{{ url_for('sale.sales', client_slug=business.client.slug, business_slug=business.slug, month=prev_month) }}"
+                  href="{{ url_for('income.sales', client_slug=business.client.slug, business_slug=business.slug, month=prev_month) }}"
                   class="inline-flex items-center px-4 py-2 text-sm font-medium text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none"
                 >
                   &larr; Anterior
@@ -374,7 +374,7 @@
             <div class="flex-1 flex justify-end">
               {% if next_month %}
                 <a
-                  href="{{ url_for('sale.sales', client_slug=business.client.slug, business_slug=business.slug, month=next_month) }}"
+                  href="{{ url_for('income.sales', client_slug=business.client.slug, business_slug=business.slug, month=next_month) }}"
                   class="inline-flex items-center px-4 py-2 text-sm font-medium text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none"
                 >
                   Siguiente &rarr;
@@ -477,7 +477,7 @@
         <form
           method="post"
           class="p-4 md:p-5"
-          action="{{ url_for('sale.sales', client_slug=business.client.slug, business_slug=business.slug) }}"
+          action="{{ url_for('income.sales', client_slug=business.client.slug, business_slug=business.slug) }}"
         >
           {% if is_daily_mode %}
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-5">

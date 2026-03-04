@@ -68,7 +68,7 @@
           {% set href_dashboard = url_for('client.client_dashboard', client_slug=active_client.slug) %}
           {% if current_business %}
             {% set href_dashboard_selected = url_for('client.client_dashboard', client_slug=active_client.slug, business_slug=current_business.slug) %}
-            {% set href_sales = url_for('sale.sales', client_slug=active_client.slug, business_slug=current_business.slug) %}
+            {% set href_sales = url_for('income.sales', client_slug=active_client.slug, business_slug=current_business.slug) %}
             {% set href_products = url_for('product.list', client_slug=active_client.slug, business_slug=current_business.slug) %}
             {% set href_inventory = url_for('inventory.item_list', client_slug=active_client.slug, business_slug=current_business.slug) %}
             {% set href_monthly_sales_by_date = url_for('report.monthly_sales_by_date', client_slug=active_client.slug, business_slug=current_business.slug) %}

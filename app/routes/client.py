@@ -1,8 +1,18 @@
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import (
+    Blueprint,
+    abort,
+    current_app,
+    flash,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.forms import ClientForm
-from app.services import ClientAccountingService, ClientService
+from app.forms import AccountingSettingsForm, ClientForm
+from app.models import AppSetting
+from app.services import AppSettingService, ClientAccountingService, ClientService
 
 bp = Blueprint("client", __name__, url_prefix="/clients")
 
@@ -81,6 +91,37 @@ def evaluate_regime():
         flash(f"Error al evaluar régimen: {exc}", "error")
 
     return redirect(url_for("client.list_clients"))
+
+
+@bp.route("/settings", methods=["GET", "POST"])
+def accounting_settings():
+    fallback_threshold = float(
+        current_app.config.get("ACCOUNTING_FISCAL_THRESHOLD", 500000)
+    )
+    default_threshold = float(
+        AppSettingService.get_float(
+            AppSetting.KEY_ACCOUNTING_FISCAL_THRESHOLD,
+            default=fallback_threshold,
+        )
+    )
+    form = AccountingSettingsForm()
+
+    if request.method == "GET":
+        form.accounting_fiscal_threshold.data = default_threshold
+
+    if form.validate_on_submit():
+        AppSettingService.set_value(
+            AppSetting.KEY_ACCOUNTING_FISCAL_THRESHOLD,
+            str(form.accounting_fiscal_threshold.data),
+            description="Umbral anual para transición de régimen fiscal a financiera",
+        )
+        flash("Configuración global actualizada correctamente.", "success")
+        return redirect(url_for("client.accounting_settings"))
+
+    return render_template(
+        "client/settings.html",
+        form=form,
+    )
 
 
 @bp.route("/<string:client_slug>/dashboard", methods=["GET"])

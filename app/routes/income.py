@@ -1,36 +1,31 @@
-from flask import (
-    Blueprint,
-    render_template,
-    redirect,
-    url_for,
-    flash,
-    request,
-)
-
 from datetime import datetime
-from app.forms import (
-    SaleForm,
-    DailyIncomeForm,
-)
 
-from app.services import SalesService
+from flask import Blueprint, flash, redirect, render_template, request, url_for
+
+from app.forms import (
+    DailyManualIncomeForm,
+    IncomeDetailForm,
+    IncomeForm,
+    RemoveIncomeDetailForm,
+    UpdateIncomeDetailForm,
+)
 from app.models import DailyIncome
+from app.services import IncomeService
 
 bp = Blueprint(
-    "sale",
+    "income",
     __name__,
-    url_prefix="/clients/<string:client_slug>/business/<string:business_slug>/sale",
+    url_prefix="/clients/<string:client_slug>/business/<string:business_slug>/income",
 )
+
 
 @bp.route("/list", methods=["GET", "POST"])
 def sales(client_slug, business_slug):
-    """
-    Muestra la lista de ventas y maneja la creación de nuevas ventas.
-    """
-    sale_service = SalesService()
+    """Muestra ingresos y maneja creación de ingresos manuales o detallados."""
+    income_service = IncomeService()
 
     try:
-        business, filters = sale_service.resolve_business_and_filters(
+        business, filters = income_service.resolve_business_and_filters(
             client_slug=client_slug,
             business_slug=business_slug,
         )
@@ -40,14 +35,14 @@ def sales(client_slug, business_slug):
 
     month_param = request.args.get("month")
     try:
-        list_context = sale_service.build_sales_list_context(
+        list_context = income_service.build_income_list_context(
             business=business,
             filters=filters,
             month_param=month_param,
         )
     except ValueError:
         flash("Formato de mes inválido. Usa YYYY-MM.", "error")
-        list_context = sale_service.build_sales_list_context(
+        list_context = income_service.build_income_list_context(
             business=business,
             filters=filters,
             month_param=None,
@@ -55,26 +50,28 @@ def sales(client_slug, business_slug):
 
     is_daily_mode = list_context["is_daily_mode"]
 
-    add_sale_form = SaleForm(
+    add_income_detail_form = IncomeForm(
         parent_business_id=filters["business_id"], prefix="add_sale"
     )
-    add_income_form = DailyIncomeForm(prefix="add_income")
-    if not add_income_form.date.data:
-        add_income_form.date.data = datetime.today().date()
-    if not add_income_form.activity.data:
-        add_income_form.activity.data = (
+    add_daily_manual_income_form = DailyManualIncomeForm(prefix="add_income")
+    if not add_daily_manual_income_form.date.data:
+        add_daily_manual_income_form.date.data = datetime.today().date()
+    if not add_daily_manual_income_form.activity.data:
+        add_daily_manual_income_form.activity.data = (
             business.default_income_activity or DailyIncome.ACTIVITY_SALE
         )
 
-    # Manejar la validación y creación de nuevas ventas
     if is_daily_mode:
-        if add_income_form.validate_on_submit():
+        if add_daily_manual_income_form.validate_on_submit():
             try:
-                sale_service.create_daily_income(business=business, form=add_income_form)
+                income_service.create_daily_income(
+                    business=business,
+                    form=add_daily_manual_income_form,
+                )
                 flash("Ingreso diario creado correctamente", "success")
                 return redirect(
                     url_for(
-                        "sale.sales",
+                        "income.sales",
                         client_slug=business.client.slug,
                         business_slug=business.slug,
                     )
@@ -82,65 +79,63 @@ def sales(client_slug, business_slug):
             except Exception as e:
                 flash(f"Error inesperado: {str(e)}", "error")
     else:
-        if add_sale_form.validate_on_submit():
+        if add_income_detail_form.validate_on_submit():
             try:
-                new_sale = sale_service.add_sale(
+                new_income = income_service.add_income(
                     business=business,
-                    form=add_sale_form,
+                    form=add_income_detail_form,
                 )
                 flash("Ingreso detallado creado correctamente", "success")
                 return redirect(
                     url_for(
-                        "sale.details",
+                        "income.details",
                         client_slug=business.client.slug,
                         business_slug=business.slug,
-                        sale_id=new_sale.id,
+                        sale_id=new_income.id,
                     )
                 )
             except Exception as e:
                 flash(f"Error inesperado: {str(e)}", "error")
                 return redirect(
                     url_for(
-                        "sale.sales",
+                        "income.sales",
                         client_slug=business.client.slug,
                         business_slug=business.slug,
                     )
                 )
 
     return render_template(
-        "sale/list.html",
+        "income/list.html",
         business=business,
-        add_sale_form=add_sale_form,
-        add_income_form=add_income_form,
+        add_sale_form=add_income_detail_form,
+        add_income_form=add_daily_manual_income_form,
         **list_context,
     )
 
 
 @bp.route("/<int:sale_id>", methods=["GET", "POST"])
 def details(client_slug, business_slug, sale_id):
-    """
-    Muestra los detalles de una venta específica y maneja las operaciones relacionadas.
-    """
-    sale_service = SalesService()
+    """Muestra detalles de ingreso detallado."""
+    income_service = IncomeService()
 
     try:
-        business, filters, sale = sale_service.resolve_sale_scope(
+        business, filters, income = income_service.resolve_income_scope(
             client_slug=client_slug,
             business_slug=business_slug,
-            sale_id=sale_id,
+            income_id=sale_id,
         )
     except Exception as e:
         flash(str(e), "error")
         return redirect(
             url_for(
-                "sale.sales",
+                "income.sales",
                 client_slug=client_slug,
                 business_slug=business_slug,
             )
         )
 
-    details_context = sale_service.build_sale_details_context(
-        sale=sale,
+    details_context = income_service.build_income_details_context(
+        income=income,
         filters=filters,
     )
     add_product_form = details_context["add_product_form"]
@@ -149,86 +144,83 @@ def details(client_slug, business_slug, sale_id):
     update_sale_form = details_context["update_sale_form"]
     add_sale_form = details_context["add_sale_form"]
 
-    # Función auxiliar para redirigir a los detalles de la venta
-    def redirect_to_sale():
+    def redirect_to_income_detail():
         return redirect(
             url_for(
-                "sale.details",
+                "income.details",
                 client_slug=business.client.slug,
                 business_slug=business.slug,
-                sale_id=sale.id,
+                sale_id=income.id,
             )
         )
 
-    # Procesar formularios
     try:
         if remove_product_form.validate_on_submit():
-            removed_product = sale_service.handle_remove_product_form(
-                sale=sale,
+            removed_product = income_service.handle_remove_product_form(
+                income=income,
                 sale_detail_id=remove_product_form.sale_detail_id.data,
             )
             flash(f"Producto '{removed_product.name}' eliminado", "success")
-            return redirect_to_sale()
+            return redirect_to_income_detail()
 
         if add_product_form.validate_on_submit():
-            new_sale_detail = sale_service.handle_add_product_form(
-                sale=sale,
+            new_income_detail = income_service.handle_add_product_form(
+                income=income,
                 product_id=add_product_form.product_id.data,
                 quantity=add_product_form.quantity.data,
                 discount=add_product_form.discount.data,
             )
-            flash(f"Producto '{new_sale_detail.product.name}' agregado", "success")
-            return redirect_to_sale()
+            flash(f"Producto '{new_income_detail.product.name}' agregado", "success")
+            return redirect_to_income_detail()
 
         if update_product_form.validate_on_submit():
-            sale_service.handle_update_product_form(
-                sale=sale,
+            income_service.handle_update_product_form(
+                income=income,
                 sale_detail_id=update_product_form.sale_detail_id.data,
                 quantity=update_product_form.quantity.data,
                 discount=update_product_form.discount.data,
             )
             flash("Producto actualizado correctamente", "success")
-            return redirect_to_sale()
+            return redirect_to_income_detail()
 
         if update_sale_form.validate_on_submit():
-            sale_service.update_sale(sale=sale, form=update_sale_form)
-            flash("Venta actualizada correctamente", "success")
-            return redirect_to_sale()
+            income_service.update_income(income=income, form=update_sale_form)
+            flash("Ingreso actualizado correctamente", "success")
+            return redirect_to_income_detail()
 
     except Exception as e:
         flash(f"Error: {str(e)}", "error")
-        return redirect_to_sale()
+        return redirect_to_income_detail()
 
-    # Manejar la validación y creación de nuevas ventas
     if add_sale_form.validate_on_submit():
         try:
-            new_sale = sale_service.add_sale(
+            new_income = income_service.add_income(
                 business=business,
                 form=add_sale_form,
             )
             flash("Ingreso detallado creado correctamente", "success")
             return redirect(
                 url_for(
-                    "sale.details",
+                    "income.details",
                     client_slug=business.client.slug,
                     business_slug=business.slug,
-                    sale_id=new_sale.id,
+                    sale_id=new_income.id,
                 )
             )
         except Exception as e:
             flash(f"Error inesperado: {str(e)}", "error")
             return redirect(
                 url_for(
-                    "sale.sales",
+                    "income.sales",
                     client_slug=business.client.slug,
                     business_slug=business.slug,
                 )
             )
 
     return render_template(
-        "sale/details.html",
+        "income/details.html",
         business=business,
-        sale=sale,
+        sale=income,
         products=details_context["sale_details"],
         add_product_form=add_product_form,
         remove_product_form=remove_product_form,
@@ -236,5 +228,3 @@ def details(client_slug, business_slug, sale_id):
         update_sale_form=update_sale_form,
         add_sale_form=add_sale_form,
     )
-
-
