@@ -110,12 +110,15 @@ def accounting_settings():
         form.accounting_fiscal_threshold.data = default_threshold
 
     if form.validate_on_submit():
-        AppSettingService.set_value(
-            AppSetting.KEY_ACCOUNTING_FISCAL_THRESHOLD,
-            str(form.accounting_fiscal_threshold.data),
-            description="Umbral anual para transición de régimen fiscal a financiera",
-        )
-        flash("Configuración global actualizada correctamente.", "success")
+        try:
+            AppSettingService.set_value(
+                AppSetting.KEY_ACCOUNTING_FISCAL_THRESHOLD,
+                str(form.accounting_fiscal_threshold.data),
+                description="Umbral anual para transición de régimen fiscal a financiera",
+            )
+            flash("Configuración global actualizada correctamente.", "success")
+        except RuntimeError as exc:
+            flash(str(exc), "error")
         return redirect(url_for("client.accounting_settings"))
 
     return render_template(
