@@ -262,12 +262,12 @@ Objetivo: aplicar reglas de negocio de incrementos/disminuciones por canal y ope
 Objetivo: reconstruir saldos y exponer visibilidad operativa por sub-saldo.
 
 ### Entregables
-- [ ] Script/migración de recálculo histórico completo por negocio y sub-saldo.
-- [ ] Validación de consistencia entre ingresos/eventos, conciliaciones y saldos resultantes.
-- [ ] Reporte de saldo actual por negocio (`banco` + sub-saldos de caja).
-- [ ] Reporte de movimientos por rango de fechas y sub-saldo.
-- [ ] Reporte cronológico de entradas/salidas (fecha/hora, origen, destino, monto, motivo).
-- [ ] Endpoint/API y exportación básica para reportes de efectivo.
+- [x] Script/migración de recálculo histórico completo por negocio y sub-saldo.
+- [x] Validación de consistencia entre ingresos/eventos, conciliaciones y saldos resultantes.
+- [x] Reporte de saldo actual por negocio (`banco` + sub-saldos de caja).
+- [x] Reporte de movimientos por rango de fechas y sub-saldo.
+- [x] Reporte cronológico de entradas/salidas (fecha/hora, origen, destino, monto, motivo).
+- [x] Endpoint/API y exportación básica para reportes de efectivo.
 
 ## Fase 10 — Configuración dinámica de fondos
 
@@ -313,9 +313,9 @@ Objetivo: permitir que cada negocio configure sus fondos operativos y umbrales.
 - [x] F8.5 Flujo `efectivo_por_depositar` -> (banco | sub-saldo de caja).
 - [x] F8.6 Alertas y bloqueo por fondo insuficiente / umbral excedido.
 - [x] F8.7 Trazabilidad fecha/hora en ingresos y extracciones.
-- [ ] F9.1 Recalcular histórico completo por sub-saldo.
-- [ ] F9.2 Validar consistencia de saldos históricos.
-- [ ] F9.3 Exponer reporte/API/export de saldos y movimientos.
+- [x] F9.1 Recalcular histórico completo por sub-saldo.
+- [x] F9.2 Validar consistencia de saldos históricos.
+- [x] F9.3 Exponer reporte/API/export de saldos y movimientos.
 - [ ] F10.1 Configuración dinámica de fondos por negocio.
 
 ---
@@ -356,3 +356,6 @@ Objetivo: permitir que cada negocio configure sus fondos operativos y umbrales.
 - 2026-03-04: Smoke F8.2/F8.3 validado en `webdev`: `status -> 200 200 200 200 200 400`, alerta esperada por fondo insuficiente y balances finales `cash_to_deposit=100`, `bank=100`, `payroll_extracted=50`, `magnetic_card=30`.
 - 2026-03-04: Se completó F8.4 en `conda webdev`: modelo/migración `cash_change_denomination`, endpoint `POST /cash-flow/change-fund/transfer` con validación de suma por denominaciones y consulta `GET /cash-flow/change-fund/movements`.
 - 2026-03-04: Smoke F8.4 validado en `webdev`: transferencia válida al fondo para cambios (`200`) con 2 denominaciones registradas y bloqueo esperado (`400`) cuando la suma de denominaciones no coincide con el monto.
+- 2026-03-04: Se completó F9 en `conda webdev`: recálculo histórico por sub-saldo (`POST /cash-flow/rebuild`), validación de consistencia (`GET /cash-flow/consistency`) y reportes de efectivo con exportación (`/cash-flow/reports/current-balance`, `/cash-flow/reports/movements`, `/cash-flow/reports/chronological` + `/export`).
+- 2026-03-04: Se añadió script operativo de reproceso `migrations/migrate_rebuild_cash_subaccount_balances.py` para ejecutar recálculo masivo por negocio.
+- 2026-03-04: Smoke F9 validado en `webdev`: consistencia `True -> False -> True` (antes de alterar, tras alterar saldo manualmente y después de recálculo), `updated_count=1` en rebuild y estado `200` en reportes/exportes de efectivo.

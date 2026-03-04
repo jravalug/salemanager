@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from datetime import datetime, date
+from sqlalchemy import func
 
 from app import db
 from app.models import (
+    Business,
     Client,
     IncomeEvent,
     CashSubaccountBalance,
@@ -728,3 +730,334 @@ class CashFlowService:
             occurred_at_value=occurred_at_value,
             commit=commit,
         )
+
+    @staticmethod
+    def _movement_sign(kind: str) -> int:
+        if kind in {
+            CashSubaccountMovement.KIND_INFLOW,
+            CashSubaccountMovement.KIND_TRANSFER_IN,
+        }:
+            return 1
+        if kind in {
+            CashSubaccountMovement.KIND_OUTFLOW,
+            CashSubaccountMovement.KIND_TRANSFER_OUT,
+        }:
+            return -1
+        return 0
+
+    def _calculate_expected_balances(self, business_id: int) -> dict[str, float]:
+        expected = {}
+        rows = (
+            db.session.query(
+                CashSubaccountMovement.subaccount_code,
+                CashSubaccountMovement.movement_kind,
+                func.coalesce(func.sum(CashSubaccountMovement.amount), 0.0),
+            )
+            .filter(CashSubaccountMovement.business_id == business_id)
+            .group_by(
+                CashSubaccountMovement.subaccount_code,
+                CashSubaccountMovement.movement_kind,
+            )
+            .all()
+        )
+        for subaccount_code, movement_kind, total_amount in rows:
+            sign = self._movement_sign(movement_kind)
+            expected[subaccount_code] = round(
+                float(expected.get(subaccount_code, 0.0))
+                + (float(total_amount or 0.0) * sign),
+                2,
+            )
+        return expected
+
+    @staticmethod
+    def _resolve_report_datetime(
+        value, field_name: str, end_of_day: bool
+    ) -> datetime | None:
+        if not value:
+            return None
+
+        raw = str(value).strip()
+        try:
+            if "T" in raw:
+                return datetime.fromisoformat(raw)
+            parsed_date = datetime.strptime(raw, "%Y-%m-%d").date()
+            if end_of_day:
+                return datetime.combine(parsed_date, datetime.max.time())
+            return datetime.combine(parsed_date, datetime.min.time())
+        except ValueError:
+            raise ValueError(
+                f"{field_name} no tiene un formato válido. Usa YYYY-MM-DD o ISO datetime."
+            )
+
+    def rebuild_balances_from_history(
+        self, business_id: int, commit: bool = True
+    ) -> dict:
+        business = Business.query.get(business_id)
+        if not business:
+            raise ValueError("Negocio no encontrado")
+
+        regime = (business.client.accounting_regime or "").strip().lower()
+        if regime in {Client.REGIME_FISCAL, Client.REGIME_FINANCIAL}:
+            self.ensure_default_subaccounts(business_id=business_id, regime=regime)
+
+        balances = (
+            CashSubaccountBalance.query.filter_by(business_id=business_id)
+            .order_by(CashSubaccountBalance.subaccount_code.asc())
+            .all()
+        )
+        expected = self._calculate_expected_balances(business_id)
+
+        updates = []
+        for balance in balances:
+            expected_value = round(float(expected.get(balance.subaccount_code, 0.0)), 2)
+            if expected_value < 0:
+                raise ValueError(
+                    f"El recálculo arroja saldo negativo para '{balance.subaccount_code}'."
+                )
+
+            current_value = round(float(balance.current_balance or 0.0), 2)
+            if current_value != expected_value:
+                updates.append(
+                    {
+                        "subaccount_code": balance.subaccount_code,
+                        "previous_balance": current_value,
+                        "new_balance": expected_value,
+                    }
+                )
+                balance.current_balance = expected_value
+
+        if commit:
+            db.session.commit()
+
+        return {
+            "business_id": business_id,
+            "updated_count": len(updates),
+            "updates": updates,
+        }
+
+    def validate_cash_flow_consistency(self, business_id: int) -> dict:
+        business = Business.query.get(business_id)
+        if not business:
+            raise ValueError("Negocio no encontrado")
+
+        expected = self._calculate_expected_balances(business_id)
+        balances = (
+            CashSubaccountBalance.query.filter_by(business_id=business_id)
+            .order_by(CashSubaccountBalance.subaccount_code.asc())
+            .all()
+        )
+
+        balance_mismatches = []
+        for balance in balances:
+            expected_value = round(float(expected.get(balance.subaccount_code, 0.0)), 2)
+            current_value = round(float(balance.current_balance or 0.0), 2)
+            if current_value != expected_value:
+                balance_mismatches.append(
+                    {
+                        "subaccount_code": balance.subaccount_code,
+                        "current_balance": current_value,
+                        "expected_balance": expected_value,
+                    }
+                )
+
+        regime = (business.client.accounting_regime or "").strip().lower()
+        expected_income_refs = []
+        income_events = (
+            IncomeEvent.query.filter_by(business_id=business_id)
+            .order_by(IncomeEvent.event_date.asc(), IncomeEvent.id.asc())
+            .all()
+        )
+        for event in income_events:
+            if event.payment_channel == IncomeEvent.CHANNEL_CASH:
+                target_code = (
+                    self.SUBACCOUNT_FIN_TO_DEPOSIT
+                    if regime == Client.REGIME_FINANCIAL
+                    else self.SUBACCOUNT_FISCAL_CASH
+                )
+                expected_income_refs.append(
+                    {
+                        "income_event_id": event.id,
+                        "subaccount_code": target_code,
+                        "movement_kind": CashSubaccountMovement.KIND_INFLOW,
+                        "source_ref": f"income_event:{event.id}:cash_inflow",
+                    }
+                )
+
+            if (
+                event.payment_channel == IncomeEvent.CHANNEL_BANK_TRANSFER
+                and event.collection_status
+                in {IncomeEvent.STATUS_COLLECTED, IncomeEvent.STATUS_IMMEDIATE}
+            ):
+                expected_income_refs.append(
+                    {
+                        "income_event_id": event.id,
+                        "subaccount_code": self.SUBACCOUNT_BANK,
+                        "movement_kind": CashSubaccountMovement.KIND_INFLOW,
+                        "source_ref": f"income_event:{event.id}:bank_inflow",
+                    }
+                )
+
+        missing_income_movements = []
+        for expected_ref in expected_income_refs:
+            exists = (
+                CashSubaccountMovement.query.filter_by(
+                    business_id=business_id,
+                    subaccount_code=expected_ref["subaccount_code"],
+                    movement_kind=expected_ref["movement_kind"],
+                    source_ref=expected_ref["source_ref"],
+                ).first()
+                is not None
+            )
+            if not exists:
+                missing_income_movements.append(expected_ref)
+
+        return {
+            "business_id": business_id,
+            "is_consistent": (not balance_mismatches)
+            and (not missing_income_movements),
+            "balance_mismatches": balance_mismatches,
+            "missing_income_movements": missing_income_movements,
+            "totals": {
+                "balance_mismatches": len(balance_mismatches),
+                "missing_income_movements": len(missing_income_movements),
+            },
+        }
+
+    def get_cash_balance_report(self, business_id: int) -> dict:
+        balances = (
+            CashSubaccountBalance.query.filter_by(business_id=business_id)
+            .order_by(
+                CashSubaccountBalance.location.asc(),
+                CashSubaccountBalance.subaccount_code.asc(),
+            )
+            .all()
+        )
+
+        entries = []
+        total_bank = 0.0
+        total_cash = 0.0
+        for balance in balances:
+            amount = round(float(balance.current_balance or 0.0), 2)
+            entries.append(
+                {
+                    "subaccount_code": balance.subaccount_code,
+                    "subaccount_name": balance.subaccount_name,
+                    "location": balance.location,
+                    "regime": balance.regime,
+                    "current_balance": amount,
+                    "currency": balance.currency,
+                }
+            )
+            if balance.location == CashSubaccountBalance.LOCATION_BANK:
+                total_bank += amount
+            else:
+                total_cash += amount
+
+        return {
+            "business_id": business_id,
+            "entries": entries,
+            "totals": {
+                "bank": round(total_bank, 2),
+                "cash": round(total_cash, 2),
+                "overall": round(total_bank + total_cash, 2),
+            },
+        }
+
+    def get_cash_movement_report(
+        self,
+        business_id: int,
+        start_date: str | None = None,
+        end_date: str | None = None,
+        subaccount_code: str | None = None,
+        chronological: bool = False,
+        limit: int = 500,
+    ) -> dict:
+        start_dt = self._resolve_report_datetime(start_date, "start_date", False)
+        end_dt = self._resolve_report_datetime(end_date, "end_date", True)
+
+        if start_dt and end_dt and start_dt > end_dt:
+            raise ValueError("start_date no puede ser mayor que end_date.")
+
+        query = CashSubaccountMovement.query.filter_by(business_id=business_id)
+        if subaccount_code:
+            query = query.filter(
+                CashSubaccountMovement.subaccount_code == subaccount_code.strip()
+            )
+        if start_dt:
+            query = query.filter(CashSubaccountMovement.occurred_at >= start_dt)
+        if end_dt:
+            query = query.filter(CashSubaccountMovement.occurred_at <= end_dt)
+
+        if chronological:
+            query = query.order_by(
+                CashSubaccountMovement.occurred_at.asc(),
+                CashSubaccountMovement.id.asc(),
+            )
+        else:
+            query = query.order_by(
+                CashSubaccountMovement.occurred_at.desc(),
+                CashSubaccountMovement.id.desc(),
+            )
+
+        movements = query.limit(max(int(limit or 500), 1)).all()
+
+        inflows = 0.0
+        outflows = 0.0
+        entries = []
+        for movement in movements:
+            amount = round(float(movement.amount or 0.0), 2)
+            sign = self._movement_sign(movement.movement_kind)
+            signed_amount = round(amount * sign, 2)
+
+            if sign >= 0:
+                inflows += amount
+            else:
+                outflows += amount
+
+            if movement.movement_kind in {
+                CashSubaccountMovement.KIND_INFLOW,
+                CashSubaccountMovement.KIND_TRANSFER_IN,
+            }:
+                origin_subaccount = movement.counterparty_subaccount_code
+                target_subaccount = movement.subaccount_code
+            else:
+                origin_subaccount = movement.subaccount_code
+                target_subaccount = movement.counterparty_subaccount_code
+
+            entries.append(
+                {
+                    "id": movement.id,
+                    "occurred_at": (
+                        movement.occurred_at.isoformat()
+                        if movement.occurred_at
+                        else None
+                    ),
+                    "subaccount_code": movement.subaccount_code,
+                    "movement_kind": movement.movement_kind,
+                    "amount": amount,
+                    "signed_amount": signed_amount,
+                    "origin_subaccount_code": origin_subaccount,
+                    "target_subaccount_code": target_subaccount,
+                    "source_type": movement.source_type,
+                    "source_ref": movement.source_ref,
+                    "description": movement.description,
+                }
+            )
+
+        return {
+            "business_id": business_id,
+            "filters": {
+                "start_date": start_date,
+                "end_date": end_date,
+                "subaccount_code": subaccount_code,
+                "chronological": chronological,
+                "limit": max(int(limit or 500), 1),
+            },
+            "entries": entries,
+            "totals": {
+                "count": len(entries),
+                "inflows": round(inflows, 2),
+                "outflows": round(outflows, 2),
+                "net": round(inflows - outflows, 2),
+            },
+        }

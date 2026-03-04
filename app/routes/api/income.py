@@ -337,6 +337,194 @@ def get_change_fund_movements(client_slug, business_slug):
     return jsonify(rows)
 
 
+@bp.route("/cash-flow/rebuild", methods=["POST"])
+def rebuild_cash_flow(client_slug, business_slug):
+    try:
+        business = _resolve_scoped_business(client_slug, business_slug)
+    except ValueError:
+        return jsonify({"error": "Negocio no encontrado"}), 404
+
+    try:
+        result = cash_flow_service.rebuild_balances_from_history(
+            business_id=business.id,
+            commit=True,
+        )
+        return jsonify(result)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+
+@bp.route("/cash-flow/consistency", methods=["GET"])
+def validate_cash_flow_consistency(client_slug, business_slug):
+    try:
+        business = _resolve_scoped_business(client_slug, business_slug)
+    except ValueError:
+        return jsonify({"error": "Negocio no encontrado"}), 404
+
+    try:
+        result = cash_flow_service.validate_cash_flow_consistency(
+            business_id=business.id,
+        )
+        return jsonify(result)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+
+@bp.route("/cash-flow/reports/current-balance", methods=["GET"])
+def report_cash_current_balance(client_slug, business_slug):
+    try:
+        business = _resolve_scoped_business(client_slug, business_slug)
+    except ValueError:
+        return jsonify({"error": "Negocio no encontrado"}), 404
+
+    report = cash_flow_service.get_cash_balance_report(business_id=business.id)
+    return jsonify(report)
+
+
+@bp.route("/cash-flow/reports/movements", methods=["GET"])
+def report_cash_movements(client_slug, business_slug):
+    try:
+        business = _resolve_scoped_business(client_slug, business_slug)
+    except ValueError:
+        return jsonify({"error": "Negocio no encontrado"}), 404
+
+    try:
+        report = cash_flow_service.get_cash_movement_report(
+            business_id=business.id,
+            start_date=request.args.get("start_date"),
+            end_date=request.args.get("end_date"),
+            subaccount_code=request.args.get("subaccount_code"),
+            chronological=False,
+            limit=request.args.get("limit", 500),
+        )
+        return jsonify(report)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+
+@bp.route("/cash-flow/reports/chronological", methods=["GET"])
+def report_cash_chronological(client_slug, business_slug):
+    try:
+        business = _resolve_scoped_business(client_slug, business_slug)
+    except ValueError:
+        return jsonify({"error": "Negocio no encontrado"}), 404
+
+    try:
+        report = cash_flow_service.get_cash_movement_report(
+            business_id=business.id,
+            start_date=request.args.get("start_date"),
+            end_date=request.args.get("end_date"),
+            subaccount_code=request.args.get("subaccount_code"),
+            chronological=True,
+            limit=request.args.get("limit", 500),
+        )
+        return jsonify(report)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+
+@bp.route("/cash-flow/reports/current-balance/export", methods=["GET"])
+def export_cash_current_balance(client_slug, business_slug):
+    try:
+        business = _resolve_scoped_business(client_slug, business_slug)
+        report = cash_flow_service.get_cash_balance_report(business_id=business.id)
+
+        rows = [
+            [
+                item.get("subaccount_code"),
+                item.get("subaccount_name"),
+                item.get("location"),
+                item.get("regime"),
+                item.get("current_balance"),
+                item.get("currency"),
+            ]
+            for item in report.get("entries", [])
+        ]
+        totals = report.get("totals", {})
+        rows.append([])
+        rows.append(["TOTAL_BANK", "", "", "", totals.get("bank"), "CUP"])
+        rows.append(["TOTAL_CASH", "", "", "", totals.get("cash"), "CUP"])
+        rows.append(["TOTAL_OVERALL", "", "", "", totals.get("overall"), "CUP"])
+
+        excel_file = income_report_service.generate_excel_tabular_report(
+            title="Saldos Efectivo",
+            headers=[
+                "SUBACCOUNT_CODE",
+                "SUBACCOUNT_NAME",
+                "LOCATION",
+                "REGIME",
+                "CURRENT_BALANCE",
+                "CURRENCY",
+            ],
+            rows=rows,
+        )
+        return send_file(
+            excel_file,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            as_attachment=True,
+            download_name=f"saldos_efectivo_{business.slug}.xlsx",
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+
+@bp.route("/cash-flow/reports/movements/export", methods=["GET"])
+def export_cash_movements(client_slug, business_slug):
+    try:
+        business = _resolve_scoped_business(client_slug, business_slug)
+        report = cash_flow_service.get_cash_movement_report(
+            business_id=business.id,
+            start_date=request.args.get("start_date"),
+            end_date=request.args.get("end_date"),
+            subaccount_code=request.args.get("subaccount_code"),
+            chronological=(request.args.get("chronological", "0") == "1"),
+            limit=request.args.get("limit", 1000),
+        )
+
+        rows = [
+            [
+                item.get("id"),
+                item.get("occurred_at"),
+                item.get("movement_kind"),
+                item.get("subaccount_code"),
+                item.get("origin_subaccount_code"),
+                item.get("target_subaccount_code"),
+                item.get("amount"),
+                item.get("signed_amount"),
+                item.get("source_type"),
+                item.get("source_ref"),
+                item.get("description"),
+            ]
+            for item in report.get("entries", [])
+        ]
+
+        excel_file = income_report_service.generate_excel_tabular_report(
+            title="Movimientos Efectivo",
+            headers=[
+                "ID",
+                "OCCURRED_AT",
+                "MOVEMENT_KIND",
+                "SUBACCOUNT_CODE",
+                "ORIGIN_SUBACCOUNT",
+                "TARGET_SUBACCOUNT",
+                "AMOUNT",
+                "SIGNED_AMOUNT",
+                "SOURCE_TYPE",
+                "SOURCE_REF",
+                "DESCRIPTION",
+            ],
+            rows=rows,
+        )
+        return send_file(
+            excel_file,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            as_attachment=True,
+            download_name=f"movimientos_efectivo_{business.slug}.xlsx",
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+
 def _resolve_scoped_business(client_slug, business_slug):
     business, _ = income_service.resolve_business_and_filters(
         client_slug=client_slug,
