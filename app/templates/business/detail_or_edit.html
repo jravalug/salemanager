@@ -33,7 +33,7 @@
           </a>
           {% if not edit %}
             <a
-              href="{{ url_for('business.detail_or_edit', business_id=business.id, edit=True) }}"
+              href="{{ url_for('business.detail_or_edit', client_slug=business.client.slug, business_id=business.id, edit=True) }}"
               class="inline-flex items-center rounded-lg bg-blue-700 px-3 py-2 text-sm font-medium text-white hover:bg-blue-800"
             >
               Editar
@@ -328,7 +328,7 @@
                 Guardar cambios
               </button>
               <a
-                href="{{ url_for('business.detail_or_edit', business_id=business.id) }}"
+                href="{{ url_for('business.detail_or_edit', client_slug=business.client.slug, business_id=business.id) }}"
                 class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
               >
                 Cancelar

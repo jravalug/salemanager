@@ -50,7 +50,7 @@ def sales(business_id):
 
     except Exception as e:
         flash(str(e), "error")
-        return redirect(url_for("business.business_list"))
+        return redirect(url_for("client.list_clients"))
 
     is_daily_mode = business.income_entry_mode == Business.INCOME_MODE_DAILY
 

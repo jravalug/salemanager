@@ -320,7 +320,7 @@
                   {% endif %}
                   <div class="mt-2">
                     <a
-                      href="{{ url_for('business.detail_or_edit', business_id=business_item.business.id) }}"
+                      href="{{ url_for('business.detail_or_edit', client_slug=client.slug, business_id=business_item.business.id) }}"
                       class="inline-flex items-center rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
                     >
                       Editar negocio

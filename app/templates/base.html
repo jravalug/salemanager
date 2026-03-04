@@ -151,8 +151,8 @@
             {% set href_monthly_sales_by_product = url_for('report.monthly_sales_by_produc', business_id=current_business.id) %}
             {% set href_inventory_consumption = url_for('report.inventory_consumption_view', business_id=current_business.id) %}
             {% set href_ipv_report = url_for('report.ipv_report', business_id=current_business.id) %}
-            {% set href_business_detail = url_for('business.detail_or_edit', business_id=current_business.id) %}
-            {% set href_add_sub_business = url_for('business.add_sub_business', business_id=current_business.id) if current_business.is_general else None %}
+            {% set href_business_detail = url_for('business.detail_or_edit', client_slug=active_client.slug, business_id=current_business.id) %}
+            {% set href_add_sub_business = url_for('business.add_sub_business', client_slug=active_client.slug, business_id=current_business.id) if current_business.is_general else None %}
           {% endif %}
           {% set href_clients = url_for('client.list_clients') %}
           {% set href_client_detail = url_for('client.detail_or_edit', client_slug=active_client.slug) %}
@@ -544,7 +544,7 @@
       {% if active_client %}
         {% set href_dashboard = url_for('client.client_dashboard', client_slug=active_client.slug) %}
         {% if current_business %}
-          {% set href_dashboard_selected = url_for('.client_dashboard', client_slug=active_client.slug, business_id=current_business.id) %}
+          {% set href_dashboard_selected = url_for('client.client_dashboard', client_slug=active_client.slug, business_id=current_business.id) %}
           {% set href_sales = url_for('sale.sales', business_id=current_business.id) %}
           {% set href_products = url_for('product.list', business_id=current_business.id) %}
           {% set href_inventory = url_for('inventory.item_list', business_id=current_business.id) %}
@@ -552,8 +552,8 @@
           {% set href_monthly_sales_by_product = url_for('report.monthly_sales_by_produc', business_id=current_business.id) %}
           {% set href_inventory_consumption = url_for('report.inventory_consumption_view', business_id=current_business.id) %}
           {% set href_ipv_report = url_for('report.ipv_report', business_id=current_business.id) %}
-          {% set href_business_detail = url_for('business.detail_or_edit', business_id=current_business.id) %}
-          {% set href_add_sub_business = url_for('business.add_sub_business', business_id=current_business.id) if current_business.is_general else None %}
+          {% set href_business_detail = url_for('business.detail_or_edit', client_slug=active_client.slug, business_id=current_business.id) %}
+          {% set href_add_sub_business = url_for('business.add_sub_business', client_slug=active_client.slug, business_id=current_business.id) if current_business.is_general else None %}
         {% endif %}
         {% set href_clients = url_for('client.list_clients') %}
         {% set href_client_detail = url_for('client.detail_or_edit', client_slug=active_client.slug) %}

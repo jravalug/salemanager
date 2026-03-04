@@ -17,7 +17,7 @@ from app.repositories.business_repository import BusinessRepository
 from app.services import BusinessService, SalesService
 from app.utils.file_utils import handle_logo_upload
 
-bp = Blueprint("business", __name__, url_prefix="/business")
+bp = Blueprint("business", __name__, url_prefix="/clients/<string:client_slug>/business")
 
 business_repo = BusinessRepository()
 business_service = BusinessService()
@@ -161,14 +161,9 @@ def _sync_sales_summary_daily_income(business):
     db.session.commit()
 
 
-@bp.route("/list", methods=["GET", "POST"])
-def business_list():
-    flash("El acceso principal ahora es por clientes.", "info")
-    return redirect(url_for("client.list_clients"))
-
-
 @bp.route("/<int:business_id>", methods=["GET", "POST"])
-def detail_or_edit(business_id):
+
+def detail_or_edit(client_slug, business_id):
     """
     Muestra los detalles de un negocio y maneja su edición.
     """
@@ -283,7 +278,13 @@ def detail_or_edit(business_id):
 
         _sync_sales_summary_daily_income(business)
 
-        return redirect(url_for("business.detail_or_edit", business_id=business.id))
+        return redirect(
+            url_for(
+                "business.detail_or_edit",
+                client_slug=client_slug,
+                business_id=business.id,
+            )
+        )
 
     return render_template(
         "business/detail_or_edit.html", business=business, form=form, edit=edit
@@ -291,7 +292,7 @@ def detail_or_edit(business_id):
 
 
 @bp.route("/<int:business_id>/add-sub-business", methods=["GET", "POST"])
-def add_sub_business(business_id):
+def add_sub_business(client_slug, business_id):
     # Obtener el negocio general
     business = Business.query.get_or_404(business_id)
 
@@ -386,5 +387,5 @@ def add_sub_business(business_id):
 
 
 @bp.route("/<int:business_id>/daily-income", methods=["GET", "POST"])
-def daily_income(business_id):
+def daily_income(client_slug, business_id):
     return redirect(url_for("sale.sales", business_id=business_id))

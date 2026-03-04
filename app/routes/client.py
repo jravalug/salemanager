@@ -316,7 +316,7 @@ def evaluate_regime():
     return redirect(url_for("client.list_clients"))
 
 
-@bp.route("/<client_slug>/dashboard")
+@bp.route("/<string:client_slug>/dashboard",methods=["GET"])
 def client_dashboard(client_slug):
     clients = Client.query.order_by(Client.id.asc()).all()
     client = next((item for item in clients if item.slug == client_slug), None)
