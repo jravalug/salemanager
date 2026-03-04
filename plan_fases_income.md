@@ -245,16 +245,16 @@ Objetivo: aplicar reglas de negocio de incrementos/disminuciones por canal y ope
 - [x] Registrar `cash` en `caja_fisica`.
 - [ ] Registrar `transferencia`/`cheque` en banco solo al conciliar (`pending -> collected`).
 - [x] En contabilidad financiera, registrar ingreso `cash` en `efectivo_por_depositar`.
-- [ ] Permitir transferencia de `efectivo_por_depositar` a banco o a cualquier sub-saldo de caja.
-- [ ] Permitir transferencia de banco a cualquier sub-saldo de caja.
-- [ ] Implementar transferencia interna `banco -> tarjeta` (disminuye banco, aumenta sub-saldo tarjeta).
-- [ ] Implementar disminución de tarjeta por pagos (tributos, compras, servicios).
-- [ ] Implementar extracción para nómina y reversión a banco de no cobrado.
-- [ ] Implementar control de fondo para cambios con detalle de denominaciones.
+- [x] Permitir transferencia de `efectivo_por_depositar` a banco o a cualquier sub-saldo de caja.
+- [x] Permitir transferencia de banco a cualquier sub-saldo de caja.
+- [x] Implementar transferencia interna `banco -> tarjeta` (disminuye banco, aumenta sub-saldo tarjeta).
+- [x] Implementar disminución de tarjeta por pagos (tributos, compras, servicios).
+- [x] Implementar extracción para nómina y reversión a banco de no cobrado.
+- [x] Implementar control de fondo para cambios con detalle de denominaciones.
 - [ ] Implementar reglas de fondos para pagos menores/compras según umbral máximo por operación.
 - [ ] Exigir respaldo documental en rebajas de `fondo_para_pagos_menores`.
 - [ ] Permitir rebajas de `fondo_para_compras` sin respaldo documental obligatorio.
-- [ ] Emitir alerta y bloquear movimiento por fondo insuficiente o por exceder umbral.
+- [x] Emitir alerta y bloquear movimiento por fondo insuficiente o por exceder umbral.
 - [x] Registrar fecha/hora de ingreso y extracción en cada movimiento de banco/sub-saldo.
 
 ## Fase 9 — Reproceso histórico y reportes de efectivo
@@ -307,12 +307,12 @@ Objetivo: permitir que cada negocio configure sus fondos operativos y umbrales.
 - [x] F7.1 Modelo de movimientos/saldos por ubicación y sub-saldo.
 - [x] F7.2 Catálogo de sub-saldos por régimen (fiscal/financiera).
 - [ ] F8.1 Reglas de canal para incrementos/disminuciones de saldos.
-- [ ] F8.2 Movimiento interno banco->tarjeta y pagos con tarjeta.
-- [ ] F8.3 Flujo de nómina (extracción y reversión de no cobrado).
-- [ ] F8.4 Fondo para cambios con denominaciones.
-- [ ] F8.5 Flujo `efectivo_por_depositar` -> (banco | sub-saldo de caja).
-- [ ] F8.6 Alertas y bloqueo por fondo insuficiente / umbral excedido.
-- [ ] F8.7 Trazabilidad fecha/hora en ingresos y extracciones.
+- [x] F8.2 Movimiento interno banco->tarjeta y pagos con tarjeta.
+- [x] F8.3 Flujo de nómina (extracción y reversión de no cobrado).
+- [x] F8.4 Fondo para cambios con denominaciones.
+- [x] F8.5 Flujo `efectivo_por_depositar` -> (banco | sub-saldo de caja).
+- [x] F8.6 Alertas y bloqueo por fondo insuficiente / umbral excedido.
+- [x] F8.7 Trazabilidad fecha/hora en ingresos y extracciones.
 - [ ] F9.1 Recalcular histórico completo por sub-saldo.
 - [ ] F9.2 Validar consistencia de saldos históricos.
 - [ ] F9.3 Exponer reporte/API/export de saldos y movimientos.
@@ -349,3 +349,10 @@ Objetivo: permitir que cada negocio configure sus fondos operativos y umbrales.
 - 2026-03-04: Se cerró criterio de alerta operativa: aviso manual en UI/API sin guardar intentos rechazados en base de datos.
 - 2026-03-04: Se inició implementación F7 en `conda webdev`: nuevos modelos `cash_subaccount_balance` y `cash_subaccount_movement`, servicio `CashFlowService` e integración en creación/conciliación de ingresos.
 - 2026-03-04: Se aplicó migración `e8f1a2b3c4d5` y smoke técnico F7 en `webdev` (financiera: `cash_to_deposit=250`, fiscal: `bank=500` tras conciliación, movimientos registrados: `2`).
+- 2026-03-04: Se completó tramo inicial F8 en `conda webdev`: transferencias internas manuales entre sub-saldos (`cash_to_deposit -> bank`, `bank -> sub-saldos de caja`) mediante endpoint API y servicio de flujo de efectivo.
+- 2026-03-04: Se validó alerta/bloqueo por fondo insuficiente en smoke F8 (`POST /cash-flow/transfer` devuelve `400` con alerta y no altera saldos).
+- 2026-03-04: Se completó F8.2 en `conda webdev`: endpoint de pago con tarjeta (`POST /cash-flow/card-payment`) y reglas de operación en sub-cuentas de tarjeta.
+- 2026-03-04: Se completó F8.3 en `conda webdev`: endpoints para extracción y reversión de nómina (`POST /cash-flow/payroll/extract`, `POST /cash-flow/payroll/revert`) con validación de fondos y trazabilidad temporal.
+- 2026-03-04: Smoke F8.2/F8.3 validado en `webdev`: `status -> 200 200 200 200 200 400`, alerta esperada por fondo insuficiente y balances finales `cash_to_deposit=100`, `bank=100`, `payroll_extracted=50`, `magnetic_card=30`.
+- 2026-03-04: Se completó F8.4 en `conda webdev`: modelo/migración `cash_change_denomination`, endpoint `POST /cash-flow/change-fund/transfer` con validación de suma por denominaciones y consulta `GET /cash-flow/change-fund/movements`.
+- 2026-03-04: Smoke F8.4 validado en `webdev`: transferencia válida al fondo para cambios (`200`) con 2 denominaciones registradas y bloqueo esperado (`400`) cuando la suma de denominaciones no coincide con el monto.

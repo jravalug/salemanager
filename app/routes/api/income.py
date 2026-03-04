@@ -1,11 +1,12 @@
 from flask import Blueprint, jsonify, request, send_file
 
-from app.services import IncomeService, IncomeReportService
+from app.services import IncomeService, IncomeReportService, CashFlowService
 
 bp = Blueprint("api_income", __name__)
 
 income_service = IncomeService()
 income_report_service = IncomeReportService()
+cash_flow_service = CashFlowService()
 
 
 @bp.route("/records", methods=["GET"])
@@ -102,6 +103,238 @@ def reconcile_income_event(client_slug, business_slug, income_event_id):
         )
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
+
+
+@bp.route("/cash-flow/balances", methods=["GET"])
+def get_cash_flow_balances(client_slug, business_slug):
+    try:
+        business = _resolve_scoped_business(client_slug, business_slug)
+    except ValueError:
+        return jsonify({"error": "Negocio no encontrado"}), 404
+
+    balances = business.cash_subaccount_balances.order_by(
+        "location", "subaccount_code"
+    ).all()
+    return jsonify(
+        [
+            {
+                "id": balance.id,
+                "regime": balance.regime,
+                "location": balance.location,
+                "subaccount_code": balance.subaccount_code,
+                "subaccount_name": balance.subaccount_name,
+                "current_balance": float(balance.current_balance or 0),
+                "currency": balance.currency,
+            }
+            for balance in balances
+        ]
+    )
+
+
+@bp.route("/cash-flow/transfer", methods=["POST"])
+def transfer_cash_flow(client_slug, business_slug):
+    try:
+        business = _resolve_scoped_business(client_slug, business_slug)
+    except ValueError:
+        return jsonify({"error": "Negocio no encontrado"}), 404
+
+    payload = request.get_json(silent=True) or {}
+
+    source_subaccount_code = payload.get(
+        "source_subaccount_code", request.form.get("source_subaccount_code")
+    )
+    target_subaccount_code = payload.get(
+        "target_subaccount_code", request.form.get("target_subaccount_code")
+    )
+    amount = payload.get("amount", request.form.get("amount"))
+    description = payload.get("description", request.form.get("description"))
+    occurred_at = payload.get("occurred_at", request.form.get("occurred_at"))
+
+    try:
+        cash_flow_service.transfer_between_subaccounts(
+            business_id=business.id,
+            source_subaccount_code=(source_subaccount_code or "").strip(),
+            target_subaccount_code=(target_subaccount_code or "").strip(),
+            amount=float(amount or 0),
+            description=description,
+            occurred_at_value=occurred_at,
+            source_type="manual_transfer",
+            source_ref=payload.get("source_ref"),
+            commit=True,
+        )
+        return jsonify(
+            {
+                "status": "ok",
+                "message": "Transferencia registrada correctamente.",
+            }
+        )
+    except ValueError as exc:
+        return (
+            jsonify(
+                {
+                    "error": str(exc),
+                    "alert": "No hay fondo suficiente para la operación.",
+                }
+            ),
+            400,
+        )
+
+
+@bp.route("/cash-flow/card-payment", methods=["POST"])
+def register_card_payment(client_slug, business_slug):
+    try:
+        business = _resolve_scoped_business(client_slug, business_slug)
+    except ValueError:
+        return jsonify({"error": "Negocio no encontrado"}), 404
+
+    payload = request.get_json(silent=True) or {}
+    amount = payload.get("amount", request.form.get("amount"))
+    description = payload.get("description", request.form.get("description"))
+    occurred_at = payload.get("occurred_at", request.form.get("occurred_at"))
+    subaccount_code = payload.get(
+        "subaccount_code", request.form.get("subaccount_code")
+    )
+
+    try:
+        cash_flow_service.register_card_payment_outflow(
+            business_id=business.id,
+            amount=float(amount or 0),
+            description=description,
+            occurred_at_value=occurred_at,
+            source_ref=payload.get("source_ref"),
+            subaccount_code=(subaccount_code or "").strip() or None,
+            commit=True,
+        )
+        return jsonify(
+            {
+                "status": "ok",
+                "message": "Pago con tarjeta registrado correctamente.",
+            }
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc), "alert": str(exc)}), 400
+
+
+@bp.route("/cash-flow/payroll/extract", methods=["POST"])
+def extract_payroll_cash_flow(client_slug, business_slug):
+    try:
+        business = _resolve_scoped_business(client_slug, business_slug)
+    except ValueError:
+        return jsonify({"error": "Negocio no encontrado"}), 404
+
+    payload = request.get_json(silent=True) or {}
+    amount = payload.get("amount", request.form.get("amount"))
+    description = payload.get("description", request.form.get("description"))
+    occurred_at = payload.get("occurred_at", request.form.get("occurred_at"))
+
+    try:
+        cash_flow_service.extract_payroll_funds(
+            business_id=business.id,
+            amount=float(amount or 0),
+            description=description,
+            occurred_at_value=occurred_at,
+            source_ref=payload.get("source_ref"),
+            commit=True,
+        )
+        return jsonify(
+            {
+                "status": "ok",
+                "message": "Extracción para nómina registrada correctamente.",
+            }
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc), "alert": str(exc)}), 400
+
+
+@bp.route("/cash-flow/payroll/revert", methods=["POST"])
+def revert_payroll_cash_flow(client_slug, business_slug):
+    try:
+        business = _resolve_scoped_business(client_slug, business_slug)
+    except ValueError:
+        return jsonify({"error": "Negocio no encontrado"}), 404
+
+    payload = request.get_json(silent=True) or {}
+    amount = payload.get("amount", request.form.get("amount"))
+    description = payload.get("description", request.form.get("description"))
+    occurred_at = payload.get("occurred_at", request.form.get("occurred_at"))
+
+    try:
+        cash_flow_service.revert_unpaid_payroll(
+            business_id=business.id,
+            amount=float(amount or 0),
+            description=description,
+            occurred_at_value=occurred_at,
+            source_ref=payload.get("source_ref"),
+            commit=True,
+        )
+        return jsonify(
+            {
+                "status": "ok",
+                "message": "Reversión de nómina no cobrada registrada correctamente.",
+            }
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc), "alert": str(exc)}), 400
+
+
+@bp.route("/cash-flow/change-fund/transfer", methods=["POST"])
+def transfer_change_fund_cash_flow(client_slug, business_slug):
+    try:
+        business = _resolve_scoped_business(client_slug, business_slug)
+    except ValueError:
+        return jsonify({"error": "Negocio no encontrado"}), 404
+
+    payload = request.get_json(silent=True) or {}
+    source_subaccount_code = payload.get(
+        "source_subaccount_code", request.form.get("source_subaccount_code")
+    )
+    target_subaccount_code = payload.get(
+        "target_subaccount_code", request.form.get("target_subaccount_code")
+    )
+    amount = payload.get("amount", request.form.get("amount"))
+    description = payload.get("description", request.form.get("description"))
+    occurred_at = payload.get("occurred_at", request.form.get("occurred_at"))
+    denominations = payload.get("denominations") or []
+
+    try:
+        cash_flow_service.transfer_change_fund_with_denominations(
+            business_id=business.id,
+            source_subaccount_code=(source_subaccount_code or "").strip(),
+            target_subaccount_code=(target_subaccount_code or "").strip(),
+            amount=float(amount or 0),
+            denominations=denominations,
+            description=description,
+            occurred_at_value=occurred_at,
+            source_ref=payload.get("source_ref"),
+            commit=True,
+        )
+        return jsonify(
+            {
+                "status": "ok",
+                "message": "Movimiento de fondo para cambios registrado correctamente.",
+            }
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc), "alert": str(exc)}), 400
+
+
+@bp.route("/cash-flow/change-fund/movements", methods=["GET"])
+def get_change_fund_movements(client_slug, business_slug):
+    try:
+        business = _resolve_scoped_business(client_slug, business_slug)
+    except ValueError:
+        return jsonify({"error": "Negocio no encontrado"}), 404
+
+    try:
+        limit = int(request.args.get("limit", 20))
+    except (TypeError, ValueError):
+        limit = 20
+
+    rows = cash_flow_service.get_change_fund_movement_details(
+        business_id=business.id,
+        limit=limit,
+    )
+    return jsonify(rows)
 
 
 def _resolve_scoped_business(client_slug, business_slug):

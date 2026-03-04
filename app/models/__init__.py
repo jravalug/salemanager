@@ -13,3 +13,4 @@ from .fiscal_income_entry import FiscalIncomeEntry
 from .collection_receipt import CollectionReceipt
 from .cash_subaccount_balance import CashSubaccountBalance
 from .cash_subaccount_movement import CashSubaccountMovement
+from .cash_change_denomination import CashChangeDenomination
