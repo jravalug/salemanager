@@ -137,14 +137,13 @@
         <!-- Sidebar izquierdo -->
         {% if active_client %}
           {% set all_client_businesses = active_client.businesses.all() %}
-          {% set primary_business = (all_client_businesses | selectattr('is_general') | list | first) %}
-          {% set child_businesses = all_client_businesses | rejectattr('is_general') | list %}
-          {% set current_business = active_business if active_business else primary_business %}
+          {% set parent_businesses = all_client_businesses | selectattr('is_general') | list %}
+          {% set primary_business = (parent_businesses | first) %}
+          {% set current_business = active_business if active_business else None %}
           {% set current_business_logo = current_business.logo if current_business and current_business.logo else (current_business.parent_business.logo if current_business and current_business.parent_business and current_business.parent_business.logo else None) %}
-
+          {% set href_dashboard = url_for('main.client_dashboard', client_slug=active_client.slug) %}
           {% if current_business %}
-            {# Compute canonical hrefs so we can compare with request_path for active state #}
-            {% set href_dashboard = url_for('business.dashboard', business_id=current_business.id) %}
+            {% set href_dashboard_selected = url_for('main.client_dashboard', client_slug=active_client.slug, business_id=current_business.id) %}
             {% set href_sales = url_for('sale.sales', business_id=current_business.id) %}
             {% set href_products = url_for('product.list', business_id=current_business.id) %}
             {% set href_inventory = url_for('inventory.item_list', business_id=current_business.id) %}
@@ -156,7 +155,7 @@
             {% set href_add_sub_business = url_for('business.add_sub_business', business_id=current_business.id) if current_business.is_general else None %}
           {% endif %}
           {% set href_clients = url_for('client.list_clients') %}
-          {% set href_client_detail = url_for('client.detail_or_edit', client_id=active_client.id) %}
+          {% set href_client_detail = url_for('client.detail_or_edit', client_slug=active_client.slug) %}
           <aside
             id="principal-sidebar"
             class="hidden lg:block w-full lg:w-72 shrink-0"
@@ -253,52 +252,77 @@
                   </svg>
                 </button>
                 <ul id="dropdown-work-context" class="block py-2 space-y-2">
-                  {% if primary_business %}
-                    <li>
-                      {% set is_active = current_business and current_business.id == primary_business.id %}
+                  <li>
+                    {% set is_active = current_business is none and request_path is not none and request_path.startswith(href_dashboard) %}
+                    <a
+                      href="{{ href_dashboard }}"
+                      class="flex items-center justify-between gap-2 w-full p-2 rounded pl-11 hover:bg-gray-100 dark:hover:bg-gray-700 {{ 'text-blue-600 dark:text-blue-400' if is_active else 'text-gray-700 dark:text-gray-200' }}"
+                    >
+                      <span class="text-xs uppercase tracking-wide"
+                        >Resumen general</span
+                      >
+                    </a>
+                  </li>
+                  {% for parent in parent_businesses %}
+                    <li class="space-y-1">
+                      {% set is_parent_active = current_business and current_business.id == parent.id %}
                       <a
-                        href="{{ url_for('business.dashboard', business_id=primary_business.id) }}"
-                        class="flex items-center justify-between gap-2 w-full p-2 rounded pl-11 hover:bg-gray-100 dark:hover:bg-gray-700 {{ 'text-blue-600 dark:text-blue-400' if is_active else 'text-gray-700 dark:text-gray-200' }}"
+                        href="{{ url_for('main.client_dashboard', client_slug=active_client.slug, business_id=parent.id) }}"
+                        class="flex items-center justify-between gap-2 w-full p-2 rounded pl-11 hover:bg-gray-100 dark:hover:bg-gray-700 {{ 'text-blue-600 dark:text-blue-400' if is_parent_active else 'text-gray-700 dark:text-gray-200' }}"
                       >
                         <span class="text-xs uppercase tracking-wide"
                           >Principal</span
                         >
                         <span
                           class="min-w-0 truncate text-xs"
-                          title="{{ primary_business.name }}"
-                          >{{ primary_business.name }}</span
+                          title="{{ parent.name }}"
+                          >{{ parent.name }}</span
                         >
                       </a>
-                    </li>
-                  {% endif %}
-                  {% for child in child_businesses %}
-                    <li>
-                      {% set is_active = current_business and current_business.id == child.id %}
-                      <a
-                        href="{{ url_for('business.dashboard', business_id=child.id) }}"
-                        class="flex items-center justify-between gap-2 w-full p-2 rounded pl-11 hover:bg-gray-100 dark:hover:bg-gray-700 {{ 'text-blue-600 dark:text-blue-400' if is_active else 'text-gray-700 dark:text-gray-200' }}"
-                      >
-                        <span class="text-xs uppercase tracking-wide"
-                          >Subnegocio</span
-                        >
-                        <span
-                          class="min-w-0 truncate text-xs"
-                          title="{{ child.name }}"
-                          >{{ child.name }}</span
-                        >
-                      </a>
+                      {% set parent_children = parent.sub_businesses.all() %}
+                      {% if parent_children %}
+                        <ul class="space-y-1">
+                          {% for child in parent_children %}
+                            {% set is_child_active = current_business and current_business.id == child.id %}
+                            <li>
+                              <a
+                                href="{{ url_for('main.client_dashboard', client_slug=active_client.slug, business_id=child.id) }}"
+                                class="flex items-center justify-between gap-2 w-full p-2 rounded pl-16 hover:bg-gray-100 dark:hover:bg-gray-700 {{ 'text-blue-600 dark:text-blue-400' if is_child_active else 'text-gray-700 dark:text-gray-300' }}"
+                              >
+                                <span class="text-xs">↳ Subnegocio</span>
+                                <span
+                                  class="min-w-0 truncate text-xs"
+                                  title="{{ child.name }}"
+                                  >{{ child.name }}</span
+                                >
+                              </a>
+                            </li>
+                          {% endfor %}
+                        </ul>
+                      {% endif %}
                     </li>
                   {% endfor %}
                 </ul>
               </div>
 
+              <ul class="space-y-2 font-medium">
+                <li>
+                  {% set is_active = request_path is not none and request_path.startswith(href_dashboard) %}
+                  <a
+                    class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+                    href="{{ href_dashboard }}"
+                    >{{ receipt('w-5 h-5') }} Dashboard</a
+                  >
+                </li>
+              </ul>
+
               {% if current_business %}
                 <ul class="space-y-2 font-medium">
                   <li>
-                    {% set is_active = request_path is not none and request_path.startswith(href_dashboard) %}
+                    {% set is_active = request_path is not none and request_path.startswith(href_dashboard_selected) %}
                     <a
                       class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
-                      href="{{ href_dashboard }}"
+                      href="{{ href_dashboard_selected }}"
                       >{{ receipt('w-5 h-5') }} Ingresos</a
                     >
                   </li>
@@ -307,7 +331,7 @@
                     <a
                       class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
                       href="{{ href_sales }}"
-                      >{{ receipt('w-5 h-5') }} Ventas</a
+                      >{{ receipt('w-5 h-5') }} Ingresos</a
                     >
                   </li>
                   <li>
@@ -371,7 +395,7 @@
                         <a
                           href="{{ href_monthly_sales_by_date }}"
                           class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
-                          >Ventas por fecha</a
+                          >Ingresos por fecha</a
                         >
                       </li>
                       <li>
@@ -379,7 +403,7 @@
                         <a
                           href="{{ href_monthly_sales_by_product }}"
                           class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
-                          >Ventas por producto</a
+                          >Ingresos por producto</a
                         >
                       </li>
                       <li>
@@ -518,8 +542,9 @@
       class="fixed left-0 top-0 h-full w-72 bg-gray-800 dark:bg-gray-900 text-gray-100 z-50 transform -translate-x-full transition-transform duration-200 lg:hidden"
     >
       {% if active_client %}
+        {% set href_dashboard = url_for('main.client_dashboard', client_slug=active_client.slug) %}
         {% if current_business %}
-          {% set href_dashboard = url_for('business.dashboard', business_id=current_business.id) %}
+          {% set href_dashboard_selected = url_for('main.client_dashboard', client_slug=active_client.slug, business_id=current_business.id) %}
           {% set href_sales = url_for('sale.sales', business_id=current_business.id) %}
           {% set href_products = url_for('product.list', business_id=current_business.id) %}
           {% set href_inventory = url_for('inventory.item_list', business_id=current_business.id) %}
@@ -531,7 +556,7 @@
           {% set href_add_sub_business = url_for('business.add_sub_business', business_id=current_business.id) if current_business.is_general else None %}
         {% endif %}
         {% set href_clients = url_for('client.list_clients') %}
-        {% set href_client_detail = url_for('client.detail_or_edit', client_id=active_client.id) %}
+        {% set href_client_detail = url_for('client.detail_or_edit', client_slug=active_client.slug) %}
         <div class="p-4">
           <div class="flex items-center gap-3 mb-6">
             {% if current_business_logo %}
@@ -620,51 +645,75 @@
               </svg>
             </button>
             <ul id="dropdown-work-context-mobile" class="block py-2 space-y-2">
-              {% if primary_business %}
-                <li>
-                  {% set is_active = current_business and current_business.id == primary_business.id %}
+              <li>
+                {% set is_active = current_business is none and request_path is not none and request_path.startswith(href_dashboard) %}
+                <a
+                  href="{{ href_dashboard }}"
+                  class="flex items-center justify-between gap-2 w-full p-2 rounded pl-11 hover:bg-gray-700 {{ 'text-blue-400' if is_active else 'text-gray-200' }}"
+                >
+                  <span class="text-xs uppercase tracking-wide"
+                    >Resumen general</span
+                  >
+                </a>
+              </li>
+              {% for parent in parent_businesses %}
+                <li class="space-y-1">
+                  {% set is_parent_active = current_business and current_business.id == parent.id %}
                   <a
-                    href="{{ url_for('business.dashboard', business_id=primary_business.id) }}"
-                    class="flex items-center justify-between gap-2 w-full p-2 rounded pl-11 hover:bg-gray-700 {{ 'text-blue-400' if is_active else 'text-gray-200' }}"
+                    href="{{ url_for('main.client_dashboard', client_slug=active_client.slug, business_id=parent.id) }}"
+                    class="flex items-center justify-between gap-2 w-full p-2 rounded pl-11 hover:bg-gray-700 {{ 'text-blue-400' if is_parent_active else 'text-gray-200' }}"
                   >
                     <span class="text-xs uppercase tracking-wide"
                       >Principal</span
                     >
                     <span
                       class="min-w-0 truncate text-xs"
-                      title="{{ primary_business.name }}"
-                      >{{ primary_business.name }}</span
+                      title="{{ parent.name }}"
+                      >{{ parent.name }}</span
                     >
                   </a>
-                </li>
-              {% endif %}
-              {% for child in child_businesses %}
-                <li>
-                  {% set is_active = current_business and current_business.id == child.id %}
-                  <a
-                    href="{{ url_for('business.dashboard', business_id=child.id) }}"
-                    class="flex items-center justify-between gap-2 w-full p-2 rounded pl-11 hover:bg-gray-700 {{ 'text-blue-400' if is_active else 'text-gray-200' }}"
-                  >
-                    <span class="text-xs uppercase tracking-wide"
-                      >Subnegocio</span
-                    >
-                    <span
-                      class="min-w-0 truncate text-xs"
-                      title="{{ child.name }}"
-                      >{{ child.name }}</span
-                    >
-                  </a>
+                  {% set parent_children = parent.sub_businesses.all() %}
+                  {% if parent_children %}
+                    <ul class="space-y-1">
+                      {% for child in parent_children %}
+                        {% set is_child_active = current_business and current_business.id == child.id %}
+                        <li>
+                          <a
+                            href="{{ url_for('main.client_dashboard', client_slug=active_client.slug, business_id=child.id) }}"
+                            class="flex items-center justify-between gap-2 w-full p-2 rounded pl-16 hover:bg-gray-700 {{ 'text-blue-400' if is_child_active else 'text-gray-300' }}"
+                          >
+                            <span class="text-xs">↳ Subnegocio</span>
+                            <span
+                              class="min-w-0 truncate text-xs"
+                              title="{{ child.name }}"
+                              >{{ child.name }}</span
+                            >
+                          </a>
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  {% endif %}
                 </li>
               {% endfor %}
             </ul>
           </div>
+          <nav class="space-y-3 text-sm">
+            <div>
+              {% set is_active = request_path is not none and request_path.startswith(href_dashboard) %}
+              <a
+                class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
+                href="{{ href_dashboard }}"
+                >{{ receipt('w-5 h-5') }} Dashboard</a
+              >
+            </div>
+          </nav>
           {% if current_business %}
             <nav class="space-y-3 text-sm">
               <div>
-                {% set is_active = request_path is not none and request_path.startswith(href_dashboard) %}
+                {% set is_active = request_path is not none and request_path.startswith(href_dashboard_selected) %}
                 <a
                   class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
-                  href="{{ href_dashboard }}"
+                  href="{{ href_dashboard_selected }}"
                   >{{ receipt('w-5 h-5') }} Ingresos</a
                 >
               </div>
@@ -673,7 +722,7 @@
                 <a
                   class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 {{ 'text-blue-500' if is_active else '' }}"
                   href="{{ href_sales }}"
-                  >{{ receipt('w-5 h-5') }} Ventas</a
+                  >{{ receipt('w-5 h-5') }} Ingresos</a
                 >
               </div>
               <div>
@@ -737,7 +786,7 @@
                     <a
                       href="{{ href_monthly_sales_by_date }}"
                       class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
-                      >Ventas por fecha</a
+                      >Ingresos por fecha</a
                     >
                   </li>
                   <li>
@@ -745,7 +794,7 @@
                     <a
                       href="{{ href_monthly_sales_by_product }}"
                       class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 group hover:bg-gray-100  dark:hover:bg-gray-700 {{ 'dark:text-blue-500' if is_active else 'dark:text-white' }}"
-                      >Ventas por producto</a
+                      >Ingresos por producto</a
                     >
                   </li>
                   <li>

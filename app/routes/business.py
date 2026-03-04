@@ -11,8 +11,8 @@ from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.extensions import db
-from app.models import Business, Product, Sale
-from app.forms import BusinessForm
+from app.models import Business, Client, DailyIncome, Product, Sale
+from app.forms import BusinessForm, DailyIncomeForm
 from app.repositories.business_repository import BusinessRepository
 from app.services import BusinessService, SalesService
 from app.utils.file_utils import handle_logo_upload
@@ -82,6 +82,85 @@ def _sync_children_inherited_fields(parent_business, previous_parent_state):
         db.session.commit()
 
 
+def _resolve_business_income_defaults(client, business):
+    if not client:
+        return Business.INCOME_MODE_DAILY, Business.INCOME_ACTIVITY_SALE
+
+    if client.client_type == Client.TYPE_MIPYME:
+        default_mode = Business.INCOME_MODE_DETAILED
+    elif (
+        client.client_type == Client.TYPE_TCP
+        and client.accounting_regime == Client.REGIME_FINANCIAL
+    ):
+        default_mode = Business.INCOME_MODE_DETAILED
+    else:
+        default_mode = Business.INCOME_MODE_DAILY
+
+    default_activity = business.default_income_activity or Business.INCOME_ACTIVITY_SALE
+    return default_mode, default_activity
+
+
+def _sync_sales_summary_daily_income(business):
+    if not business:
+        return
+
+    if business.income_entry_mode != Business.INCOME_MODE_DETAILED:
+        return
+
+    sales_scope = sale_service.generate_monthly_totals_sales(
+        business_id=business.id if business.is_general else business.parent_business_id,
+        specific_business_id=None if business.is_general else business.id,
+    )
+
+    if not sales_scope:
+        DailyIncome.query.filter_by(
+            business_id=business.id,
+            source=DailyIncome.SOURCE_SALES_SUMMARY,
+        ).delete()
+        db.session.commit()
+        return
+
+    sales_by_day_and_location = {}
+    sales_query = Sale.query.filter(
+        Sale.business_id
+        == (business.id if business.is_general else business.parent_business_id)
+    )
+    if not business.is_general:
+        sales_query = sales_query.filter(Sale.specific_business_id == business.id)
+
+    for sale in sales_query.all():
+        location = (
+            DailyIncome.LOCATION_BANK
+            if sale.payment_method in {"transfer", "card", "bank"}
+            else DailyIncome.LOCATION_CASH
+        )
+        bucket_key = (sale.date, location)
+        sales_by_day_and_location[bucket_key] = sales_by_day_and_location.get(
+            bucket_key, 0.0
+        ) + float(sale.total_amount or 0)
+
+    DailyIncome.query.filter_by(
+        business_id=business.id,
+        source=DailyIncome.SOURCE_SALES_SUMMARY,
+    ).delete()
+
+    for (day, location), amount in sales_by_day_and_location.items():
+        db.session.add(
+            DailyIncome(
+                business_id=business.id,
+                date=day,
+                income_type=DailyIncome.TYPE_INCOME_OBTAINED,
+                activity=business.default_income_activity or DailyIncome.ACTIVITY_SALE,
+                amount=round(amount, 2),
+                description="Resumen automático de ventas del día",
+                cash_location=location,
+                source=DailyIncome.SOURCE_SALES_SUMMARY,
+            )
+        )
+
+    db.session.commit()
+
+
 @bp.route("/list", methods=["GET", "POST"])
 def business_list():
     flash("El acceso principal ahora es por clientes.", "info")
@@ -96,6 +175,15 @@ def detail_or_edit(business_id):
     business = Business.query.get_or_404(business_id)
     edit = request.args.get("edit", False)
     form = BusinessForm(obj=business)
+
+    if request.method == "GET":
+        default_mode, default_activity = _resolve_business_income_defaults(
+            business.client, business
+        )
+        if not business.income_entry_mode:
+            form.income_entry_mode.data = default_mode
+        if not business.default_income_activity:
+            form.default_income_activity.data = default_activity
 
     if edit and form.validate_on_submit():
         previous_parent_state = None
@@ -148,6 +236,11 @@ def detail_or_edit(business_id):
                     business=business,
                     name=form.name.data,
                     description=form.description.data,
+                    business_activity=_normalize_optional_text(
+                        form.business_activity.data
+                    ),
+                    income_entry_mode=form.income_entry_mode.data,
+                    default_income_activity=form.default_income_activity.data,
                     fiscal_street=fiscal_street,
                     fiscal_number=fiscal_number,
                     fiscal_between_streets=fiscal_between_streets,
@@ -170,6 +263,9 @@ def detail_or_edit(business_id):
                 business=business,
                 name=form.name.data,
                 description=form.description.data,
+                business_activity=_normalize_optional_text(form.business_activity.data),
+                income_entry_mode=form.income_entry_mode.data,
+                default_income_activity=form.default_income_activity.data,
                 fiscal_street=fiscal_street,
                 fiscal_number=fiscal_number,
                 fiscal_between_streets=fiscal_between_streets,
@@ -185,139 +281,12 @@ def detail_or_edit(business_id):
         if previous_parent_state is not None:
             _sync_children_inherited_fields(business, previous_parent_state)
 
+        _sync_sales_summary_daily_income(business)
+
         return redirect(url_for("business.detail_or_edit", business_id=business.id))
 
     return render_template(
         "business/detail_or_edit.html", business=business, form=form, edit=edit
-    )
-
-
-@bp.route("/<int:business_id>/dashboard")
-def dashboard(business_id):
-    """
-    Muestra el dashboard de ingresos del contexto seleccionado (negocio principal o subnegocio).
-    """
-    business = Business.query.get_or_404(business_id)
-    client = business.client
-
-    primary_business = None
-    if client:
-        primary_business = client.businesses.filter_by(is_general=True).first()
-
-    if primary_business is None:
-        primary_business = business if business.is_general else business.parent_business
-
-    business_filters = business_service.get_parent_filters(business)
-
-    monthly_totals_raw = sale_service.generate_monthly_totals_sales(
-        business_id=business_filters["business_id"],
-        specific_business_id=business_filters.get("specific_business_id"),
-    )
-
-    # monthly_totals_raw comes sorted DESC by month (latest first)
-    monthly_totals_desc = [
-        (month, float(total or 0)) for month, total in monthly_totals_raw
-    ]
-
-    month_abbr = {
-        1: "ENE",
-        2: "FEB",
-        3: "MAR",
-        4: "ABR",
-        5: "MAY",
-        6: "JUN",
-        7: "JUL",
-        8: "AGO",
-        9: "SEP",
-        10: "OCT",
-        11: "NOV",
-        12: "DIC",
-    }
-
-    def _format_month(month_value):
-        try:
-            parsed = datetime.strptime(month_value, "%Y-%m")
-            return f"{month_abbr.get(parsed.month, 'N/D')}/{parsed.year}"
-        except Exception:
-            return month_value
-
-    monthly_totals_ordered = list(reversed(monthly_totals_desc))
-    monthly_totals_display = [
-        (_format_month(month), total) for month, total in monthly_totals_ordered
-    ]
-    monthly_totals_last_12 = monthly_totals_display[-12:]
-    chart_months = [month for month, _ in monthly_totals_last_12]
-    chart_totals = [total for _, total in monthly_totals_last_12]
-
-    if monthly_totals_last_12:
-        best_month_label, best_month_total = max(
-            monthly_totals_last_12, key=lambda item: item[1]
-        )
-        lowest_month_label, lowest_month_total = min(
-            monthly_totals_last_12, key=lambda item: item[1]
-        )
-    else:
-        best_month_label, best_month_total = "N/D", 0
-        lowest_month_label, lowest_month_total = "N/D", 0
-
-    month_count = len(monthly_totals_desc)
-    total_general = sum(total for _, total in monthly_totals_desc)
-    average_monthly = (total_general / month_count) if month_count > 0 else 0
-
-    latest_month = (
-        _format_month(monthly_totals_desc[0][0]) if month_count > 0 else "N/D"
-    )
-    latest_total = monthly_totals_desc[0][1] if month_count > 0 else 0
-
-    previous_total = monthly_totals_desc[1][1] if month_count > 1 else None
-    if previous_total in (None, 0):
-        trend_delta = 0
-        trend_percent = None
-        trend_direction = "neutral"
-    else:
-        trend_delta = latest_total - previous_total
-        trend_percent = (trend_delta / previous_total) * 100
-        trend_direction = (
-            "up" if trend_delta > 0 else "down" if trend_delta < 0 else "neutral"
-        )
-
-    # Comparación último mes vs promedio
-    latest_vs_avg_delta = latest_total - average_monthly if month_count > 0 else 0
-    if average_monthly > 0:
-        latest_vs_avg_percent = (latest_vs_avg_delta / average_monthly) * 100
-        latest_vs_avg_direction = (
-            "up"
-            if latest_vs_avg_delta > 0
-            else "down" if latest_vs_avg_delta < 0 else "neutral"
-        )
-    else:
-        latest_vs_avg_percent = None
-        latest_vs_avg_direction = "neutral"
-
-    return render_template(
-        "business/dashboard.html",
-        business=business,
-        client=client,
-        primary_business=primary_business,
-        monthly_totals=dict(monthly_totals_display),
-        monthly_totals_last_12=dict(monthly_totals_last_12),
-        chart_months=chart_months,
-        chart_totals=chart_totals,
-        best_month_label=best_month_label,
-        best_month_total=best_month_total,
-        lowest_month_label=lowest_month_label,
-        lowest_month_total=lowest_month_total,
-        total_general=total_general,
-        month_count=month_count,
-        average_monthly=average_monthly,
-        latest_month=latest_month,
-        latest_total=latest_total,
-        trend_delta=trend_delta,
-        trend_percent=trend_percent,
-        trend_direction=trend_direction,
-        latest_vs_avg_delta=latest_vs_avg_delta,
-        latest_vs_avg_percent=latest_vs_avg_percent,
-        latest_vs_avg_direction=latest_vs_avg_direction,
     )
 
 
@@ -332,6 +301,14 @@ def add_sub_business(business_id):
 
     # Inicializar el formulario
     form = BusinessForm()
+
+    default_mode, default_activity = _resolve_business_income_defaults(
+        business.client, business
+    )
+    if request.method == "GET":
+        form.business_activity.data = business.business_activity
+        form.income_entry_mode.data = default_mode
+        form.default_income_activity.data = default_activity
 
     if form.validate_on_submit():
         fiscal_street = (
@@ -369,6 +346,11 @@ def add_sub_business(business_id):
         new_sub_business = Business(
             name=form.name.data,
             description=business.description,
+            business_activity=_normalize_optional_text(form.business_activity.data)
+            or business.business_activity,
+            income_entry_mode=form.income_entry_mode.data or default_mode,
+            default_income_activity=form.default_income_activity.data
+            or default_activity,
             is_general=False,  # Es un negocio específico
             parent_business_id=business.id,  # Asociarlo al negocio general
             client_id=business.client_id,
@@ -385,9 +367,24 @@ def add_sub_business(business_id):
         db.session.add(new_sub_business)
         db.session.commit()
 
+        _sync_sales_summary_daily_income(new_sub_business)
+
         flash("Negocio específico agregado correctamente.", "success")
-        return redirect(url_for("business.dashboard", business_id=business.id))
+        if business.client:
+            return redirect(
+                url_for(
+                    "main.client_dashboard",
+                    client_slug=business.client.slug,
+                    business_id=business.id,
+                )
+            )
+        return redirect(url_for("client.list_clients"))
 
     return render_template(
         "business/add_sub_business.html", business=business, form=form
     )
+
+
+@bp.route("/<int:business_id>/daily-income", methods=["GET", "POST"])
+def daily_income(business_id):
+    return redirect(url_for("sale.sales", business_id=business_id))

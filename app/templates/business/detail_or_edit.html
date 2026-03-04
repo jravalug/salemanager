@@ -20,7 +20,13 @@
         </div>
         <div class="flex flex-wrap gap-2">
           <a
-            href="{{ url_for('business.dashboard', business_id=business.id) }}"
+            href="{{ url_for('sale.sales', business_id=business.id) }}"
+            class="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+          >
+            Ventas / Ingresos
+          </a>
+          <a
+            href="{{ url_for('main.client_dashboard', client_slug=business.client.slug, business_id=business.id) }}"
             class="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
           >
             Ir a ingresos
@@ -91,6 +97,30 @@
                   {{ business.description or 'Sin descripción' }}
                 </p>
               </div>
+              <div
+                class="rounded-lg border border-gray-200 p-4 dark:border-gray-700"
+              >
+                <p
+                  class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                >
+                  Actividad del negocio
+                </p>
+                <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">
+                  {{ business.business_activity or 'Sin especificar' }}
+                </p>
+              </div>
+              <div
+                class="rounded-lg border border-gray-200 p-4 dark:border-gray-700"
+              >
+                <p
+                  class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                >
+                  Modo de registro
+                </p>
+                <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">
+                  {{ 'Ventas detalladas' if business.income_entry_mode == 'detailed_sales' else 'Ingreso diario' }}
+                </p>
+              </div>
             </div>
 
             <div
@@ -104,18 +134,24 @@
               <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
                 {{ business.fiscal_street or 'N/D' }}
                 {% if business.fiscal_number %}No. {{ business.fiscal_number }}{% endif %}
-                {% if business.fiscal_between_streets %},
-                {{ business.fiscal_between_streets }}{% endif %}
-                {% if business.fiscal_apartment %},
-                {{ business.fiscal_apartment }}{% endif %}
-                {% if business.fiscal_district %},
-                {{ business.fiscal_district }}{% endif %}
-                {% if business.fiscal_municipality %},
-                {{ business.fiscal_municipality }}{% endif %}
-                {% if business.fiscal_province %},
-                {{ business.fiscal_province }}{% endif %}
-                {% if business.fiscal_postal_code %}, CP
-                {{ business.fiscal_postal_code }}{% endif %}
+                {% if business.fiscal_between_streets %}
+                  , {{ business.fiscal_between_streets }}
+                {% endif %}
+                {% if business.fiscal_apartment %}
+                  , {{ business.fiscal_apartment }}
+                {% endif %}
+                {% if business.fiscal_district %}
+                  , {{ business.fiscal_district }}
+                {% endif %}
+                {% if business.fiscal_municipality %}
+                  , {{ business.fiscal_municipality }}
+                {% endif %}
+                {% if business.fiscal_province %}
+                  , {{ business.fiscal_province }}
+                {% endif %}
+                {% if business.fiscal_postal_code %}
+                  , CP {{ business.fiscal_postal_code }}
+                {% endif %}
               </p>
               {% if business.parent_business %}
                 <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
@@ -163,6 +199,33 @@
                   {{ error }}
                 </p>
               {% endfor %}
+            </div>
+
+            <div>
+              <label
+                for="{{ form.business_activity.id }}"
+                class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                >{{ form.business_activity.label }}</label
+              >
+              {{ form.business_activity(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+
+            <div>
+              <label
+                for="{{ form.income_entry_mode.id }}"
+                class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                >{{ form.income_entry_mode.label }}</label
+              >
+              {{ form.income_entry_mode(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
+            </div>
+
+            <div class="md:col-span-2">
+              <label
+                for="{{ form.default_income_activity.id }}"
+                class="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                >{{ form.default_income_activity.label }}</label
+              >
+              {{ form.default_income_activity(class='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:text-white') }}
             </div>
 
             <div>

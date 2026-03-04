@@ -12,6 +12,12 @@ class Business(db.Model):
 
     __tablename__ = "business"
 
+    INCOME_MODE_DAILY = "daily_income"
+    INCOME_MODE_DETAILED = "detailed_sales"
+
+    INCOME_ACTIVITY_SALE = "sale"
+    INCOME_ACTIVITY_SERVICE = "service"
+
     # Campos principales
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(
@@ -22,7 +28,22 @@ class Business(db.Model):
     )
     logo = db.Column(db.String(255), nullable=True, comment="Ruta del archivo del logo")
     category = db.Column(
-        db.String(50), nullable=True, comment="Categoría del negocio (opcional)"
+        db.String(50), nullable=True, comment="Campo legado (usar business_activity)"
+    )
+    business_activity = db.Column(
+        db.String(120), nullable=True, comment="Actividad del negocio"
+    )
+    income_entry_mode = db.Column(
+        db.String(30),
+        nullable=False,
+        default=INCOME_MODE_DAILY,
+        comment="Modo de registro de ingresos del negocio",
+    )
+    default_income_activity = db.Column(
+        db.String(20),
+        nullable=False,
+        default=INCOME_ACTIVITY_SALE,
+        comment="Actividad por defecto para Daily Income",
     )
     address = db.Column(db.String(255), nullable=True, comment="Dirección del negocio")
     phone_number = db.Column(
@@ -102,6 +123,17 @@ class Business(db.Model):
     def __repr__(self):
         return f"<Business {self.name}>"
 
+    __table_args__ = (
+        db.CheckConstraint(
+            "income_entry_mode IN ('daily_income', 'detailed_sales')",
+            name="business_income_entry_mode_allowed_values",
+        ),
+        db.CheckConstraint(
+            "default_income_activity IN ('sale', 'service')",
+            name="business_default_income_activity_allowed_values",
+        ),
+    )
+
     def to_dict(self):
         """
         Convierte el objeto Business en un diccionario para facilitar la serialización.
@@ -112,6 +144,9 @@ class Business(db.Model):
             "description": self.description,
             "logo": self.logo,
             "category": self.category,
+            "business_activity": self.business_activity,
+            "income_entry_mode": self.income_entry_mode,
+            "default_income_activity": self.default_income_activity,
             "address": self.address,
             "phone_number": self.phone_number,
             "email": self.email,

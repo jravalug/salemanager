@@ -19,10 +19,11 @@ from app.forms import (
     SaleDetailForm,
     UpdateSaleDetailForm,
     RemoveSaleDetailForm,
+    DailyIncomeForm,
 )
 
 from app.services import SalesService, BusinessService
-from app.models import Business, Product, Sale, SaleDetail
+from app.models import Business, DailyIncome, Product, Sale, SaleDetail
 from app.utils.sale_utils import calculate_month_totals, group_sales_by_month
 import logging
 
@@ -51,17 +52,11 @@ def sales(business_id):
         flash(str(e), "error")
         return redirect(url_for("business.business_list"))
 
-    # Obtener todas las ventas con sus productos cargados (sin filtrar por mes) para construir opciones de filtro
-    all_sales_unfiltered = (
-        Sale.query.options(joinedload(Sale.products))
-        .filter_by(**filters)
-        .order_by(Sale.date.desc())
-        .all()
-    )
+    is_daily_mode = business.income_entry_mode == Business.INCOME_MODE_DAILY
 
-    # Lista de meses disponibles (YYYY-MM) a partir de las ventas sin filtrar
-    sales_by_months_unfiltered = group_sales_by_month(all_sales_unfiltered)
-    months = sorted(list(sales_by_months_unfiltered.keys()), reverse=True)
+    all_sales_unfiltered = []
+    all_daily_income_unfiltered = []
+    months = []
 
     # Preparar etiqueta legible para cada mes (ej: 'Noviembre 2025')
     month_names = [
@@ -79,123 +74,216 @@ def sales(business_id):
         "Diciembre",
     ]
     months_display = []
-    for m in months:
-        try:
-            dt = datetime.strptime(m, "%Y-%m").date()
-            label = f"{month_names[dt.month - 1]} {dt.year}"
-        except Exception:
-            label = m
-        months_display.append((m, label))
 
     # Si el usuario envía un parámetro de mes, filtrar las ventas por ese mes
     month_param = request.args.get("month")
     selected_month = month_param if month_param else None
+    all_sales = []
+    all_daily_income = []
+    date_range = None
     if month_param:
         try:
             selected = datetime.strptime(month_param, "%Y-%m").date()
             start_date = selected.replace(day=1)
             end_date = start_date + relativedelta(months=1, days=-1)
+            date_range = (start_date, end_date)
+        except ValueError:
+            flash("Formato de mes inválido. Usa YYYY-MM.", "error")
+            selected_month = None
 
+    if is_daily_mode:
+        daily_query = DailyIncome.query.filter_by(business_id=business.id)
+        all_daily_income_unfiltered = daily_query.order_by(
+            DailyIncome.date.desc(), DailyIncome.id.desc()
+        ).all()
+        months = sorted(
+            {
+                income.date.strftime("%Y-%m")
+                for income in all_daily_income_unfiltered
+                if income.date
+            },
+            reverse=True,
+        )
+        for m in months:
+            try:
+                dt = datetime.strptime(m, "%Y-%m").date()
+                label = f"{month_names[dt.month - 1]} {dt.year}"
+            except Exception:
+                label = m
+            months_display.append((m, label))
+
+        if date_range:
+            all_daily_income = (
+                daily_query.filter(
+                    DailyIncome.date.between(date_range[0], date_range[1])
+                )
+                .order_by(DailyIncome.date.desc(), DailyIncome.id.desc())
+                .all()
+            )
+        else:
+            all_daily_income = all_daily_income_unfiltered
+    else:
+        all_sales_unfiltered = (
+            Sale.query.options(joinedload(Sale.products))
+            .filter_by(**filters)
+            .order_by(Sale.date.desc())
+            .all()
+        )
+        sales_by_months_unfiltered = group_sales_by_month(all_sales_unfiltered)
+        months = sorted(list(sales_by_months_unfiltered.keys()), reverse=True)
+        for m in months:
+            try:
+                dt = datetime.strptime(m, "%Y-%m").date()
+                label = f"{month_names[dt.month - 1]} {dt.year}"
+            except Exception:
+                label = m
+            months_display.append((m, label))
+
+        if date_range:
             all_sales = (
                 Sale.query.options(joinedload(Sale.products))
                 .filter_by(**filters)
-                .filter(Sale.date.between(start_date, end_date))
+                .filter(Sale.date.between(date_range[0], date_range[1]))
                 .order_by(Sale.date.desc())
                 .all()
             )
-        except ValueError:
-            flash("Formato de mes inválido. Usa YYYY-MM.", "error")
+        else:
             all_sales = all_sales_unfiltered
-            selected_month = None
-    else:
-        all_sales = all_sales_unfiltered
-    print(f"Los filtros son: {business.is_general}")
 
-    # Crear una instancia del formulario
     add_sale_form = SaleForm(
         parent_business_id=filters["business_id"], prefix="add_sale"
     )
+    add_income_form = DailyIncomeForm(prefix="add_income")
+    if not add_income_form.date.data:
+        add_income_form.date.data = datetime.today().date()
+    if not add_income_form.activity.data:
+        add_income_form.activity.data = (
+            business.default_income_activity or DailyIncome.ACTIVITY_SALE
+        )
 
     # Manejar la validación y creación de nuevas ventas
-    if add_sale_form.validate_on_submit():
-        try:
-            new_sale = sale_service.add_sale(
-                business=business,
-                form=add_sale_form,
-            )
-            flash("Venta creada correctamente", "success")
-            return redirect(
-                url_for(
-                    "sale.details",
-                    business_id=business.id,
-                    sale_id=new_sale.id,
+    if is_daily_mode:
+        if add_income_form.validate_on_submit():
+            try:
+                income_type = (
+                    DailyIncome.TYPE_NON_TAXABLE
+                    if add_income_form.mark_non_taxable.data
+                    else DailyIncome.TYPE_INCOME_OBTAINED
                 )
-            )
-        except IntegrityError as e:
-            db.session.rollback()
-            current_app.logger.error(f"Error de integridad al crear la venta: {str(e)}")
-            flash("Error: Ya existe una venta con estos datos.", "error")
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f"Error inesperado al crear la venta: {str(e)}")
-            flash(f"Error inesperado: {str(e)}", "error")
-            return redirect(url_for("sale.sales", business_id=business.id))
+                db.session.add(
+                    DailyIncome(
+                        business_id=business.id,
+                        date=add_income_form.date.data,
+                        income_type=income_type,
+                        activity=add_income_form.activity.data,
+                        amount=float(add_income_form.amount.data or 0),
+                        description=(add_income_form.description.data or "").strip()
+                        or None,
+                        cash_location=add_income_form.cash_location.data,
+                        source=DailyIncome.SOURCE_MANUAL,
+                    )
+                )
+                db.session.commit()
+                flash("Ingreso diario creado correctamente", "success")
+                return redirect(url_for("sale.sales", business_id=business.id))
+            except Exception as e:
+                db.session.rollback()
+                current_app.logger.error(
+                    f"Error inesperado al crear ingreso diario: {str(e)}"
+                )
+                flash(f"Error inesperado: {str(e)}", "error")
+    else:
+        if add_sale_form.validate_on_submit():
+            try:
+                new_sale = sale_service.add_sale(
+                    business=business,
+                    form=add_sale_form,
+                )
+                flash("Ingreso detallado creado correctamente", "success")
+                return redirect(
+                    url_for(
+                        "sale.details",
+                        business_id=business.id,
+                        sale_id=new_sale.id,
+                    )
+                )
+            except IntegrityError as e:
+                db.session.rollback()
+                current_app.logger.error(
+                    f"Error de integridad al crear la venta: {str(e)}"
+                )
+                flash("Error: Ya existe un ingreso con estos datos.", "error")
+            except Exception as e:
+                db.session.rollback()
+                current_app.logger.error(
+                    f"Error inesperado al crear la venta: {str(e)}"
+                )
+                flash(f"Error inesperado: {str(e)}", "error")
+                return redirect(url_for("sale.sales", business_id=business.id))
 
     # Agrupar ventas por mes y calcular totales (para compatibilidad)
-    sales_by_months = group_sales_by_month(all_sales)
-    month_totals = calculate_month_totals(sales_by_months)
+    sales_by_months = group_sales_by_month(all_sales) if not is_daily_mode else {}
+    month_totals = calculate_month_totals(sales_by_months) if not is_daily_mode else {}
+    daily_income_by_month = defaultdict(float)
+    if is_daily_mode:
+        for income in all_daily_income_unfiltered:
+            if income.date:
+                daily_income_by_month[income.date.strftime("%Y-%m")] += float(
+                    income.amount or 0
+                )
 
     # Construir una lista plana de ventas por día (fecha -> datos) a partir de sales_by_months
     # Esto preserva el comportamiento anterior: una fila por día con totales y enlaces a ventas
     daily_sales = {}
-    for month_key, dates in sales_by_months.items():
-        for date_key, data in dates.items():
-            # Si la fecha ya existe (no debería en condiciones normales), acumulamos
-            if date_key in daily_sales:
-                daily_sales[date_key]["total_products"] += data.get("total_products", 0)
-                daily_sales[date_key]["total_income"] += data.get("total_income", 0)
-                daily_sales[date_key]["sales"].extend(data.get("sales", []))
-            else:
-                daily_sales[date_key] = {
-                    "total_products": data.get("total_products", 0),
-                    "total_income": data.get("total_income", 0),
-                    "sales": list(data.get("sales", [])),
-                }
+    if not is_daily_mode:
+        for month_key, dates in sales_by_months.items():
+            for date_key, data in dates.items():
+                if date_key in daily_sales:
+                    daily_sales[date_key]["total_products"] += data.get(
+                        "total_products", 0
+                    )
+                    daily_sales[date_key]["total_income"] += data.get("total_income", 0)
+                    daily_sales[date_key]["sales"].extend(data.get("sales", []))
+                else:
+                    daily_sales[date_key] = {
+                        "total_products": data.get("total_products", 0),
+                        "total_income": data.get("total_income", 0),
+                        "sales": list(data.get("sales", [])),
+                    }
 
     # Ordenar fechas descendente
     daily_sales_sorted = sorted(daily_sales.items(), key=lambda x: x[0], reverse=True)
     # Resumir productos por cada venta (cantidad total y total por producto)
     sale_summaries = {}
-    for date_key, data in daily_sales.items():
-        for sale in data.get("sales", []):
-            summary = {}
-            for sd in getattr(sale, "products", []):
-                # Nombre legible del producto
-                try:
-                    pname = sd.product.name if sd.product else f"#{sd.product_id}"
-                except Exception:
-                    pname = f"#{sd.product_id}"
+    if not is_daily_mode:
+        for date_key, data in daily_sales.items():
+            for sale in data.get("sales", []):
+                summary = {}
+                for sd in getattr(sale, "products", []):
+                    try:
+                        pname = sd.product.name if sd.product else f"#{sd.product_id}"
+                    except Exception:
+                        pname = f"#{sd.product_id}"
 
-                if pname in summary:
-                    summary[pname]["quantity"] += sd.quantity or 0
-                    summary[pname]["total_price"] += sd.total_price or 0
-                else:
-                    summary[pname] = {
-                        "quantity": sd.quantity or 0,
-                        "total_price": sd.total_price or 0,
-                        "unit_price": sd.unit_price or 0,
+                    if pname in summary:
+                        summary[pname]["quantity"] += sd.quantity or 0
+                        summary[pname]["total_price"] += sd.total_price or 0
+                    else:
+                        summary[pname] = {
+                            "quantity": sd.quantity or 0,
+                            "total_price": sd.total_price or 0,
+                            "unit_price": sd.unit_price or 0,
+                        }
+
+                sale_summaries[sale.id] = [
+                    {
+                        "name": k,
+                        "quantity": v["quantity"],
+                        "total_price": v["total_price"],
+                        "unit_price": v["unit_price"],
                     }
-
-            # Convertir a lista para el template
-            sale_summaries[sale.id] = [
-                {
-                    "name": k,
-                    "quantity": v["quantity"],
-                    "total_price": v["total_price"],
-                    "unit_price": v["unit_price"],
-                }
-                for k, v in summary.items()
-            ]
+                    for k, v in summary.items()
+                ]
     # Determinar mes anterior/siguiente para la paginación por mes y nombre mostrable
     prev_month = None
     next_month = None
@@ -232,16 +320,30 @@ def sales(business_id):
     else:
         display_month_name = "Todos"
 
-    # Renderizar la plantilla con los datos y opciones de filtro
+    current_total = (
+        sum(float(item.amount or 0) for item in all_daily_income)
+        if is_daily_mode
+        else (
+            month_totals.get(selected_month, 0)
+            if selected_month
+            else sum(month_totals.values())
+        )
+    )
+
     return render_template(
         "sale/list.html",
         business=business,
+        is_daily_mode=is_daily_mode,
         sales_by_months=sales_by_months,
         month_totals=month_totals,
+        daily_income_by_month=daily_income_by_month,
+        all_daily_income=all_daily_income,
         add_sale_form=add_sale_form,
+        add_income_form=add_income_form,
         months=months,
         months_display=months_display,
         all_sales=all_sales,
+        current_total=current_total,
         selected_month=selected_month,
         daily_sales_sorted=daily_sales_sorted,
         prev_month=prev_month,
@@ -348,7 +450,7 @@ def details(business_id, sale_id):
                 business=business,
                 form=add_sale_form,
             )
-            flash("Venta creada correctamente", "success")
+            flash("Ingreso detallado creado correctamente", "success")
             return redirect(
                 url_for(
                     "sale.details",
@@ -359,7 +461,7 @@ def details(business_id, sale_id):
         except IntegrityError as e:
             db.session.rollback()
             current_app.logger.error(f"Error de integridad al crear la venta: {str(e)}")
-            flash("Error: Ya existe una venta con estos datos.", "error")
+            flash("Error: Ya existe un ingreso con estos datos.", "error")
         except Exception as e:
             db.session.rollback()
             current_app.logger.error(f"Error inesperado al crear la venta: {str(e)}")

@@ -8,24 +8,25 @@
     <div class="">
       <div class="bg-white shadow-md dark:bg-gray-800 sm:rounded-lg">
         <h3 class="text-2xl font-bold text-gray-800 dark:text-white p-6">
-          Gestión de Ventas - {{ business.name }}
+          {{ 'Gestión de Ingresos Diarios' if is_daily_mode else 'Gestión de Ingresos Detallados' }}
+          - {{ business.name }}
         </h3>
         <div
           class="flex flex-col px-4 py-3 space-y-3 lg:flex-row lg:items-center lg:justify-between lg:space-y-0 lg:space-x-4"
         >
           <div class="flex items-center flex-1 space-x-4">
             <h5>
-              <span class="text-gray-500">Ventas:</span>
-              <span class="dark:text-white">{{ all_sales|length }}</span>
+              <span class="text-gray-500"
+                >{{ 'Ingresos:' if is_daily_mode else 'Ingresos detallados:' }}</span
+              >
+              <span class="dark:text-white"
+                >{{ all_daily_income|length if is_daily_mode else all_sales|length }}</span
+              >
             </h5>
             <h5>
-              <span class="text-gray-500">Total ventas:</span>
+              <span class="text-gray-500">Total ingresos:</span>
               <span class="dark:text-white">
-                {% if selected_month %}
-                  {{ month_totals.get(selected_month, 0) | currency }}
-                {% else %}
-                  {{ month_totals.values() | sum | currency }}
-                {% endif %}
+                {{ current_total | currency }}
               </span>
             </h5>
           </div>
@@ -51,7 +52,7 @@
                   d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
                 />
               </svg>
-              Agregar venta
+              {{ 'Agregar ingreso' if is_daily_mode else 'Agregar ingreso detallado' }}
             </button>
             <form
               method="get"
@@ -107,16 +108,56 @@
             <thead
               class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
             >
-              <tr>
-                <th scope="col" class="px-4 py-3 text-left">Día</th>
-                <th scope="col" class="px-4 py-3 text-center">Órdenes</th>
-                <th scope="col" class="px-4 py-3 text-center">Productos</th>
-                <th scope="col" class="px-4 py-3 text-left">Ventas</th>
-                <th scope="col" class="px-4 py-3 text-right">Ingresos</th>
-              </tr>
+              {% if is_daily_mode %}
+                <tr>
+                  <th scope="col" class="px-4 py-3 text-left">Fecha</th>
+                  <th scope="col" class="px-4 py-3 text-left">Tipo</th>
+                  <th scope="col" class="px-4 py-3 text-left">Actividad</th>
+                  <th scope="col" class="px-4 py-3 text-left">Caja/Banco</th>
+                  <th scope="col" class="px-4 py-3 text-left">Origen</th>
+                  <th scope="col" class="px-4 py-3 text-left">Detalles</th>
+                  <th scope="col" class="px-4 py-3 text-right">Monto</th>
+                </tr>
+              {% else %}
+                <tr>
+                  <th scope="col" class="px-4 py-3 text-left">Día</th>
+                  <th scope="col" class="px-4 py-3 text-center">Órdenes</th>
+                  <th scope="col" class="px-4 py-3 text-center">Productos</th>
+                  <th scope="col" class="px-4 py-3 text-left">Registros</th>
+                  <th scope="col" class="px-4 py-3 text-right">Ingresos</th>
+                </tr>
+              {% endif %}
             </thead>
             <tbody>
-              {% if daily_sales_sorted and daily_sales_sorted|length > 0 %}
+              {% if is_daily_mode and all_daily_income and all_daily_income|length > 0 %}
+                {% for item in all_daily_income %}
+                  <tr
+                    class="border-b dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/60"
+                  >
+                    <td
+                      class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                    >
+                      {{ item.date.strftime('%d/%m/%Y') if item.date else '-' }}
+                    </td>
+                    <td class="px-4 py-2">
+                      {{ 'No considerado a efectos de impuestos' if item.income_type == 'non_taxable' else 'Ingresos obtenidos' }}
+                    </td>
+                    <td class="px-4 py-2">
+                      {{ 'Servicio' if item.activity == 'service' else 'Venta' }}
+                    </td>
+                    <td class="px-4 py-2">
+                      {{ 'Banco' if item.cash_location == 'bank_cash' else 'Caja' }}
+                    </td>
+                    <td class="px-4 py-2">
+                      {{ 'Resumen ventas' if item.source == 'sales_summary' else 'Manual' }}
+                    </td>
+                    <td class="px-4 py-2">{{ item.description or '-' }}</td>
+                    <td class="px-4 py-2 text-right">
+                      {{ item.amount | currency }}
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% elif (not is_daily_mode) and daily_sales_sorted and daily_sales_sorted|length > 0 %}
                 {% for date, data in daily_sales_sorted %}
                   {% set parts = date.split('-') %}
                   {% set formatted_date = parts[2] ~ '/' ~ parts[1] ~ '/' ~ parts[0] %}
@@ -296,7 +337,7 @@
                     colspan="6"
                     class="px-4 py-4 text-center text-gray-600 dark:text-gray-300"
                   >
-                    No hay ventas registradas.
+                    {{ 'No hay ingresos diarios registrados.' if is_daily_mode else 'No hay ingresos detallados registrados.' }}
                   </td>
                 </tr>
               {% endif %}
@@ -350,47 +391,49 @@
             </div>
           </div>
         </nav>
-        <script>
-          (function () {
-            function toggleDetails(row) {
-              var next = row.nextElementSibling;
-              if (!next || !next.classList.contains("details-row")) return;
-              var isHidden = next.classList.contains("hidden");
-              if (isHidden) {
-                next.classList.remove("hidden");
-                row.setAttribute("aria-expanded", "true");
-              } else {
-                next.classList.add("hidden");
-                row.setAttribute("aria-expanded", "false");
+        {% if not is_daily_mode %}
+          <script>
+            (function () {
+              function toggleDetails(row) {
+                var next = row.nextElementSibling;
+                if (!next || !next.classList.contains("details-row")) return;
+                var isHidden = next.classList.contains("hidden");
+                if (isHidden) {
+                  next.classList.remove("hidden");
+                  row.setAttribute("aria-expanded", "true");
+                } else {
+                  next.classList.add("hidden");
+                  row.setAttribute("aria-expanded", "false");
+                }
               }
-            }
 
-            document.addEventListener("DOMContentLoaded", function () {
-              var rows = document.querySelectorAll(".clickable-row");
-              rows.forEach(function (r) {
-                r.addEventListener("click", function (e) {
-                  if (e.target.closest("a")) return; // don't toggle when clicking a link
-                  toggleDetails(r);
-                });
-                r.addEventListener("keydown", function (e) {
-                  if (
-                    e.key === "Enter" ||
-                    e.key === " " ||
-                    e.key === "Spacebar"
-                  ) {
-                    e.preventDefault();
+              document.addEventListener("DOMContentLoaded", function () {
+                var rows = document.querySelectorAll(".clickable-row");
+                rows.forEach(function (r) {
+                  r.addEventListener("click", function (e) {
+                    if (e.target.closest("a")) return;
                     toggleDetails(r);
-                  }
+                  });
+                  r.addEventListener("keydown", function (e) {
+                    if (
+                      e.key === "Enter" ||
+                      e.key === " " ||
+                      e.key === "Spacebar"
+                    ) {
+                      e.preventDefault();
+                      toggleDetails(r);
+                    }
+                  });
                 });
               });
-            });
-          })();
-        </script>
+            })();
+          </script>
+        {% endif %}
       </div>
     </div>
   </section>
 
-  {# Modal Agregar Venta #}
+  {# Modal Agregar Ingreso #}
   <div
     id="add_sale_modal"
     tabindex="-1"
@@ -405,7 +448,7 @@
           class="flex items-center justify-between rounded-t border-b border-gray-200 p-4 dark:border-gray-700 md:p-5"
         >
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-            Actualizar Venta
+            {{ 'Agregar ingreso diario' if is_daily_mode else 'Agregar ingreso detallado' }}
           </h3>
           <button
             type="button"
@@ -436,169 +479,241 @@
           class="p-4 md:p-5"
           action="{{ url_for('sale.sales', business_id=business.id) }}"
         >
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-5">
-            <!-- Campo Oculto CSRF -->
-            {{ add_sale_form.hidden_tag() }}
+          {% if is_daily_mode %}
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-5">
+              {{ add_income_form.hidden_tag() }}
 
-            <!-- Campo de Negocio Específico -->
-            {% if business.is_general and business.sub_businesses.count() > 0 %}
-              <div class="sm:col-span-4">
-                {{ add_sale_form.specific_business_id.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+              <div class="sm:col-span-2">
+                {{ add_income_form.date.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
                 {{
-                  add_sale_form.specific_business_id(
+                  add_income_form.date(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                    type="date",
+                    required=True
+                  )
+                }}
+              </div>
+
+              <div class="sm:col-span-2">
+                {{ add_income_form.activity.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                {{
+                  add_income_form.activity(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                  )
+                }}
+              </div>
+
+              <div class="sm:col-span-2">
+                {{ add_income_form.amount.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                {{
+                  add_income_form.amount(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                    step="0.01",
+                    type="number"
+                  )
+                }}
+              </div>
+
+              <div class="sm:col-span-2">
+                {{ add_income_form.cash_location.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                {{
+                  add_income_form.cash_location(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                  )
+                }}
+              </div>
+
+              <div class="sm:col-span-4">
+                {{ add_income_form.description.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                {{
+                  add_income_form.description(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                    placeholder="Detalles o descripción ..."
+                  )
+                }}
+              </div>
+
+              <div class="sm:col-span-4">
+                <div class="flex items-center mb-2">
+                  {{
+                    add_income_form.mark_non_taxable(
+                      class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                      type="checkbox"
+                    )
+                  }}
+                  <div
+                    class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                  >
+                    {{ add_income_form.mark_non_taxable.label.text }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% else %}
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-5">
+              <!-- Campo Oculto CSRF -->
+              {{ add_sale_form.hidden_tag() }}
+
+              <!-- Campo de Negocio Específico -->
+              {% if business.is_general and business.sub_businesses.count() > 0 %}
+                <div class="sm:col-span-4">
+                  {{ add_sale_form.specific_business_id.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                  {{
+                    add_sale_form.specific_business_id(
+                      class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                      placeholder="Número de venta ..."
+                    )
+                  }}
+                  {% for error in add_sale_form.specific_business_id.errors %}
+                    <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                      >{{ error }}</span
+                    >
+                  {% endfor %}
+                </div>
+              {% endif %}
+
+              <!-- Campo de Numero de venta -->
+              <div class="sm:col-span-2">
+                {{ add_sale_form.sale_number.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                {{
+                  add_sale_form.sale_number(
                     class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
                     placeholder="Número de venta ..."
                   )
                 }}
-                {% for error in add_sale_form.specific_business_id.errors %}
+                {% for error in add_sale_form.sale_number.errors %}
                   <span class="mt-2 text-sm text-red-600 dark:text-red-500"
                     >{{ error }}</span
                   >
                 {% endfor %}
               </div>
-            {% endif %}
 
-            <!-- Campo de Numero de venta -->
-            <div class="sm:col-span-2">
-              {{ add_sale_form.sale_number.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
-              {{
-                add_sale_form.sale_number(
-                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
-                  placeholder="Número de venta ..."
-                )
-              }}
-              {% for error in add_sale_form.sale_number.errors %}
-                <span class="mt-2 text-sm text-red-600 dark:text-red-500"
-                  >{{ error }}</span
-                >
-              {% endfor %}
-            </div>
-
-            <!-- Campo de Fecha -->
-            <div class="sm:col-span-2">
-              {{ add_sale_form.date.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
-              {{
-                add_sale_form.date(
-                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
-                  placeholder="Fecha de venta ...",
-                  type="date",
-                  required=True
-                )
-              }}
-              {% for error in add_sale_form.date.errors %}
-                <span class="mt-2 text-sm text-red-600 dark:text-red-500"
-                  >{{ error }}</span
-                >
-              {% endfor %}
-            </div>
-
-            <!-- Selector de Metodo de Pago -->
-            <div class="sm:col-span-2">
-              {{ add_sale_form.payment_method.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
-              {{
-                add_sale_form.payment_method(
-                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
-                  placeholder="Método de pago ..."
-                )
-              }}
-              {% for error in add_sale_form.payment_method.errors %}
-                <span class="mt-2 text-sm text-red-600 dark:text-red-500"
-                  >{{ error }}</span
-                >
-              {% endfor %}
-            </div>
-
-            <!-- Selector de Estado -->
-            <div class="sm:col-span-2">
-              {{ add_sale_form.status.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
-              {{
-                add_sale_form.status(
-                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
-                  placeholder="Estado ..."
-                )
-              }}
-              {% for error in add_sale_form.status.errors %}
-                <span class="mt-2 text-sm text-red-600 dark:text-red-500"
-                  >{{ error }}</span
-                >
-              {% endfor %}
-            </div>
-
-            <!-- Campo de Nombre del cliente -->
-            <div class="sm:col-span-4">
-              {{ add_sale_form.customer_name.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
-              {{
-                add_sale_form.customer_name(
-                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
-                  placeholder="Nombre del cliente ..."
-                )
-              }}
-              {% for error in add_sale_form.customer_name.errors %}
-                <span class="mt-2 text-sm text-red-600 dark:text-red-500"
-                  >{{ error }}</span
-                >
-              {% endfor %}
-            </div>
-
-            <!-- Campo de Descuento -->
-            <div class="sm:col-span-2">
-              {{ add_sale_form.discount.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
-              {{
-                add_sale_form.discount(
-                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
-                  placeholder="Descuento ...",
-                  step="0.01",
-                  type="number"
-                )
-              }}
-              {% for error in add_sale_form.discount.errors %}
-                <span class="mt-2 text-sm text-red-600 dark:text-red-500"
-                  >{{ error }}</span
-                >
-              {% endfor %}
-            </div>
-
-            <!-- Campo de Impuesto -->
-            <div class="sm:col-span-2">
-              {{ add_sale_form.tax.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
-              {{
-                add_sale_form.tax(
-                  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
-                  placeholder="IVA ...",
-                  step="0.01",
-                  type="number"
-                )
-              }}
-              {% for error in add_sale_form.tax.errors %}
-                <span class="mt-2 text-sm text-red-600 dark:text-red-500"
-                  >{{ error }}</span
-                >
-              {% endfor %}
-            </div>
-
-            <!-- Campo de Venta excluida -->
-            <div class="sm:col-span-4">
-              {{ add_sale_form.excluded.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
-              <div class="flex items-center mb-4">
+              <!-- Campo de Fecha -->
+              <div class="sm:col-span-2">
+                {{ add_sale_form.date.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
                 {{
-                  add_sale_form.excluded(
-                    class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
-                    type="checkbox"
+                  add_sale_form.date(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                    placeholder="Fecha de venta ...",
+                    type="date",
+                    required=True
                   )
                 }}
-                <div
-                  class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                >
-                  {{ add_sale_form.excluded.description }}
-                </div>
-                {% for error in add_sale_form.excluded.errors %}
+                {% for error in add_sale_form.date.errors %}
                   <span class="mt-2 text-sm text-red-600 dark:text-red-500"
                     >{{ error }}</span
                   >
                 {% endfor %}
               </div>
+
+              <!-- Selector de Metodo de Pago -->
+              <div class="sm:col-span-2">
+                {{ add_sale_form.payment_method.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                {{
+                  add_sale_form.payment_method(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                    placeholder="Método de pago ..."
+                  )
+                }}
+                {% for error in add_sale_form.payment_method.errors %}
+                  <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                    >{{ error }}</span
+                  >
+                {% endfor %}
+              </div>
+
+              <!-- Selector de Estado -->
+              <div class="sm:col-span-2">
+                {{ add_sale_form.status.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                {{
+                  add_sale_form.status(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                    placeholder="Estado ..."
+                  )
+                }}
+                {% for error in add_sale_form.status.errors %}
+                  <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                    >{{ error }}</span
+                  >
+                {% endfor %}
+              </div>
+
+              <!-- Campo de Nombre del cliente -->
+              <div class="sm:col-span-4">
+                {{ add_sale_form.customer_name.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                {{
+                  add_sale_form.customer_name(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                    placeholder="Nombre del cliente ..."
+                  )
+                }}
+                {% for error in add_sale_form.customer_name.errors %}
+                  <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                    >{{ error }}</span
+                  >
+                {% endfor %}
+              </div>
+
+              <!-- Campo de Descuento -->
+              <div class="sm:col-span-2">
+                {{ add_sale_form.discount.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                {{
+                  add_sale_form.discount(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                    placeholder="Descuento ...",
+                    step="0.01",
+                    type="number"
+                  )
+                }}
+                {% for error in add_sale_form.discount.errors %}
+                  <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                    >{{ error }}</span
+                  >
+                {% endfor %}
+              </div>
+
+              <!-- Campo de Impuesto -->
+              <div class="sm:col-span-2">
+                {{ add_sale_form.tax.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                {{
+                  add_sale_form.tax(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                    placeholder="IVA ...",
+                    step="0.01",
+                    type="number"
+                  )
+                }}
+                {% for error in add_sale_form.tax.errors %}
+                  <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                    >{{ error }}</span
+                  >
+                {% endfor %}
+              </div>
+
+              <!-- Campo de Venta excluida -->
+              <div class="sm:col-span-4">
+                {{ add_sale_form.excluded.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                <div class="flex items-center mb-4">
+                  {{
+                    add_sale_form.excluded(
+                      class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                      type="checkbox"
+                    )
+                  }}
+                  <div
+                    class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                  >
+                    {{ add_sale_form.excluded.description }}
+                  </div>
+                  {% for error in add_sale_form.excluded.errors %}
+                    <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                      >{{ error }}</span
+                    >
+                  {% endfor %}
+                </div>
+              </div>
             </div>
-          </div>
+          {% endif %}
           <div
             class="border-t border-gray-200 pt-4 dark:border-gray-700 md:pt-5"
           >
@@ -606,7 +721,7 @@
               type="submit"
               class="me-2 inline-flex items-center rounded-lg bg-primary-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-primary-800 focus:outline-none focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
             >
-              Agregar Venta
+              {{ 'Agregar ingreso diario' if is_daily_mode else 'Agregar ingreso detallado' }}
             </button>
             <button
               type="button"

@@ -5,3 +5,4 @@ from .product import Product, ProductDetail
 from .inventory import InventoryItem
 from .account_classifier import ACAccount, ACSubAccount, ACElement
 from .invoice import Invoice, InvoicePurchaseDetail, InvoiceServiceDetail
+from .daily_income import DailyIncome

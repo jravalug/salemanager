@@ -1,3 +1,6 @@
+import re
+import unicodedata
+
 from app.extensions import db
 
 
@@ -70,6 +73,20 @@ class Client(db.Model):
 
     def __repr__(self):
         return f"<Client {self.name}>"
+
+    @staticmethod
+    def slugify(value: str | None) -> str:
+        if not value:
+            return ""
+        normalized = unicodedata.normalize("NFKD", value)
+        ascii_value = normalized.encode("ascii", "ignore").decode("ascii")
+        lowered = ascii_value.lower().strip()
+        slug = re.sub(r"[^a-z0-9]+", "-", lowered).strip("-")
+        return slug
+
+    @property
+    def slug(self) -> str:
+        return self.slugify(self.name)
 
     @property
     def is_financial_regime(self) -> bool:

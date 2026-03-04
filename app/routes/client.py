@@ -1,4 +1,4 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from datetime import date
 
 from sqlalchemy import func, or_
@@ -35,6 +35,11 @@ def _build_default_business_name(client_name: str) -> str:
         if not found:
             return candidate
         index += 1
+
+
+def _get_client_by_slug(client_slug: str) -> Client | None:
+    clients = Client.query.order_by(Client.id.asc()).all()
+    return next((item for item in clients if item.slug == client_slug), None)
 
 
 @bp.route("/list", methods=["GET", "POST"])
@@ -209,9 +214,11 @@ def list_clients():
     )
 
 
-@bp.route("/<int:client_id>", methods=["GET", "POST"])
-def detail_or_edit(client_id):
-    client = Client.query.get_or_404(client_id)
+@bp.route("/<string:client_slug>", methods=["GET", "POST"])
+def detail_or_edit(client_slug):
+    client = _get_client_by_slug(client_slug)
+    if not client:
+        abort(404)
     form = ClientForm(obj=client)
 
     if request.method == "GET":
@@ -257,7 +264,7 @@ def detail_or_edit(client_id):
 
             db.session.commit()
             flash("Cliente actualizado correctamente.", "success")
-            return redirect(url_for("client.detail_or_edit", client_id=client.id))
+            return redirect(url_for("client.detail_or_edit", client_slug=client.slug))
         except SQLAlchemyError as exc:
             db.session.rollback()
             flash(f"Error al actualizar cliente: {exc}", "error")
@@ -306,3 +313,17 @@ def evaluate_regime():
         flash(f"Error al evaluar régimen: {exc}", "error")
 
     return redirect(url_for("client.list_clients"))
+
+
+@bp.route("/<client_slug>/dashboard")
+def client_dashboard(client_slug):
+    selected_business_id = request.args.get("business_id", type=int)
+    if selected_business_id:
+        return redirect(
+            url_for(
+                "main.client_dashboard",
+                client_slug=client_slug,
+                business_id=selected_business_id,
+            )
+        )
+    return redirect(url_for("main.client_dashboard", client_slug=client_slug))
