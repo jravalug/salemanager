@@ -19,7 +19,7 @@
             </p>
           </div>
           <a
-            href="{{ url_for('client.client_dashboard', client_slug=business.client.slug, business_id=business.id) }}"
+            href="{{ url_for('client.client_dashboard', client_slug=business.client.slug, business_slug=business.slug) }}"
             class="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
           >
             Volver al dashboard
@@ -161,7 +161,7 @@
               Guardar subnegocio
             </button>
             <a
-              href="{{ url_for('client.client_dashboard', client_slug=business.client.slug, business_id=business.id) }}"
+              href="{{ url_for('client.client_dashboard', client_slug=business.client.slug, business_slug=business.slug) }}"
               class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
             >
               Cancelar

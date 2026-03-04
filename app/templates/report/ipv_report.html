@@ -29,7 +29,7 @@
         <!-- Botón de Exportación -->
         <form
           method="POST"
-          action="{{ url_for('report.export_ipv', business_id=business.id) }}"
+          action="{{ url_for('report.export_ipv', client_slug=business.client.slug, business_slug=business.slug) }}"
         >
           <input type="hidden" name="ipv_data" value="{{ daily_sales_json }}" />
           <input

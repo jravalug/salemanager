@@ -1,6 +1,5 @@
 from flask import (
     Blueprint,
-    current_app,
     render_template,
     redirect,
     url_for,
@@ -8,147 +7,53 @@ from flask import (
     request,
 )
 
-from matplotlib.dates import relativedelta
-from sqlalchemy.orm import joinedload
-from collections import defaultdict
 from datetime import datetime
-from sqlite3 import IntegrityError
-from app.extensions import db
 from app.forms import (
     SaleForm,
-    SaleDetailForm,
-    UpdateSaleDetailForm,
-    RemoveSaleDetailForm,
     DailyIncomeForm,
 )
 
-from app.services import SalesService, BusinessService
-from app.models import Business, DailyIncome, Product, Sale, SaleDetail
-from app.utils.sale_utils import calculate_month_totals, group_sales_by_month
-import logging
+from app.services import SalesService
+from app.models import DailyIncome
 
-bp = Blueprint("sale", __name__, url_prefix="/business/<int:business_id>/sale")
-
-# Obtener el logger de la aplicación
-logger = logging.getLogger(__name__)
-
+bp = Blueprint(
+    "sale",
+    __name__,
+    url_prefix="/clients/<string:client_slug>/business/<string:business_slug>/sale",
+)
 
 @bp.route("/list", methods=["GET", "POST"])
-def sales(business_id):
+def sales(client_slug, business_slug):
     """
     Muestra la lista de ventas y maneja la creación de nuevas ventas.
     """
     sale_service = SalesService()
-    business_service = BusinessService()
 
-    # Obtener el negocio
     try:
-        business = Business.query.get_or_404(business_id)
-
-        # Determinar los filtros para las ventas
-        filters = business_service.get_parent_filters(business=business)
-
+        business, filters = sale_service.resolve_business_and_filters(
+            client_slug=client_slug,
+            business_slug=business_slug,
+        )
     except Exception as e:
         flash(str(e), "error")
         return redirect(url_for("client.list_clients"))
 
-    is_daily_mode = business.income_entry_mode == Business.INCOME_MODE_DAILY
-
-    all_sales_unfiltered = []
-    all_daily_income_unfiltered = []
-    months = []
-
-    # Preparar etiqueta legible para cada mes (ej: 'Noviembre 2025')
-    month_names = [
-        "Enero",
-        "Febrero",
-        "Marzo",
-        "Abril",
-        "Mayo",
-        "Junio",
-        "Julio",
-        "Agosto",
-        "Septiembre",
-        "Octubre",
-        "Noviembre",
-        "Diciembre",
-    ]
-    months_display = []
-
-    # Si el usuario envía un parámetro de mes, filtrar las ventas por ese mes
     month_param = request.args.get("month")
-    selected_month = month_param if month_param else None
-    all_sales = []
-    all_daily_income = []
-    date_range = None
-    if month_param:
-        try:
-            selected = datetime.strptime(month_param, "%Y-%m").date()
-            start_date = selected.replace(day=1)
-            end_date = start_date + relativedelta(months=1, days=-1)
-            date_range = (start_date, end_date)
-        except ValueError:
-            flash("Formato de mes inválido. Usa YYYY-MM.", "error")
-            selected_month = None
-
-    if is_daily_mode:
-        daily_query = DailyIncome.query.filter_by(business_id=business.id)
-        all_daily_income_unfiltered = daily_query.order_by(
-            DailyIncome.date.desc(), DailyIncome.id.desc()
-        ).all()
-        months = sorted(
-            {
-                income.date.strftime("%Y-%m")
-                for income in all_daily_income_unfiltered
-                if income.date
-            },
-            reverse=True,
+    try:
+        list_context = sale_service.build_sales_list_context(
+            business=business,
+            filters=filters,
+            month_param=month_param,
         )
-        for m in months:
-            try:
-                dt = datetime.strptime(m, "%Y-%m").date()
-                label = f"{month_names[dt.month - 1]} {dt.year}"
-            except Exception:
-                label = m
-            months_display.append((m, label))
-
-        if date_range:
-            all_daily_income = (
-                daily_query.filter(
-                    DailyIncome.date.between(date_range[0], date_range[1])
-                )
-                .order_by(DailyIncome.date.desc(), DailyIncome.id.desc())
-                .all()
-            )
-        else:
-            all_daily_income = all_daily_income_unfiltered
-    else:
-        all_sales_unfiltered = (
-            Sale.query.options(joinedload(Sale.products))
-            .filter_by(**filters)
-            .order_by(Sale.date.desc())
-            .all()
+    except ValueError:
+        flash("Formato de mes inválido. Usa YYYY-MM.", "error")
+        list_context = sale_service.build_sales_list_context(
+            business=business,
+            filters=filters,
+            month_param=None,
         )
-        sales_by_months_unfiltered = group_sales_by_month(all_sales_unfiltered)
-        months = sorted(list(sales_by_months_unfiltered.keys()), reverse=True)
-        for m in months:
-            try:
-                dt = datetime.strptime(m, "%Y-%m").date()
-                label = f"{month_names[dt.month - 1]} {dt.year}"
-            except Exception:
-                label = m
-            months_display.append((m, label))
 
-        if date_range:
-            all_sales = (
-                Sale.query.options(joinedload(Sale.products))
-                .filter_by(**filters)
-                .filter(Sale.date.between(date_range[0], date_range[1]))
-                .order_by(Sale.date.desc())
-                .all()
-            )
-        else:
-            all_sales = all_sales_unfiltered
+    is_daily_mode = list_context["is_daily_mode"]
 
     add_sale_form = SaleForm(
         parent_business_id=filters["business_id"], prefix="add_sale"
@@ -165,32 +70,16 @@ def sales(business_id):
     if is_daily_mode:
         if add_income_form.validate_on_submit():
             try:
-                income_type = (
-                    DailyIncome.TYPE_NON_TAXABLE
-                    if add_income_form.mark_non_taxable.data
-                    else DailyIncome.TYPE_INCOME_OBTAINED
-                )
-                db.session.add(
-                    DailyIncome(
-                        business_id=business.id,
-                        date=add_income_form.date.data,
-                        income_type=income_type,
-                        activity=add_income_form.activity.data,
-                        amount=float(add_income_form.amount.data or 0),
-                        description=(add_income_form.description.data or "").strip()
-                        or None,
-                        cash_location=add_income_form.cash_location.data,
-                        source=DailyIncome.SOURCE_MANUAL,
+                sale_service.create_daily_income(business=business, form=add_income_form)
+                flash("Ingreso diario creado correctamente", "success")
+                return redirect(
+                    url_for(
+                        "sale.sales",
+                        client_slug=business.client.slug,
+                        business_slug=business.slug,
                     )
                 )
-                db.session.commit()
-                flash("Ingreso diario creado correctamente", "success")
-                return redirect(url_for("sale.sales", business_id=business.id))
             except Exception as e:
-                db.session.rollback()
-                current_app.logger.error(
-                    f"Error inesperado al crear ingreso diario: {str(e)}"
-                )
                 flash(f"Error inesperado: {str(e)}", "error")
     else:
         if add_sale_form.validate_on_submit():
@@ -203,213 +92,86 @@ def sales(business_id):
                 return redirect(
                     url_for(
                         "sale.details",
-                        business_id=business.id,
+                        client_slug=business.client.slug,
+                        business_slug=business.slug,
                         sale_id=new_sale.id,
                     )
                 )
-            except IntegrityError as e:
-                db.session.rollback()
-                current_app.logger.error(
-                    f"Error de integridad al crear la venta: {str(e)}"
-                )
-                flash("Error: Ya existe un ingreso con estos datos.", "error")
             except Exception as e:
-                db.session.rollback()
-                current_app.logger.error(
-                    f"Error inesperado al crear la venta: {str(e)}"
-                )
                 flash(f"Error inesperado: {str(e)}", "error")
-                return redirect(url_for("sale.sales", business_id=business.id))
-
-    # Agrupar ventas por mes y calcular totales (para compatibilidad)
-    sales_by_months = group_sales_by_month(all_sales) if not is_daily_mode else {}
-    month_totals = calculate_month_totals(sales_by_months) if not is_daily_mode else {}
-    daily_income_by_month = defaultdict(float)
-    if is_daily_mode:
-        for income in all_daily_income_unfiltered:
-            if income.date:
-                daily_income_by_month[income.date.strftime("%Y-%m")] += float(
-                    income.amount or 0
-                )
-
-    # Construir una lista plana de ventas por día (fecha -> datos) a partir de sales_by_months
-    # Esto preserva el comportamiento anterior: una fila por día con totales y enlaces a ventas
-    daily_sales = {}
-    if not is_daily_mode:
-        for month_key, dates in sales_by_months.items():
-            for date_key, data in dates.items():
-                if date_key in daily_sales:
-                    daily_sales[date_key]["total_products"] += data.get(
-                        "total_products", 0
+                return redirect(
+                    url_for(
+                        "sale.sales",
+                        client_slug=business.client.slug,
+                        business_slug=business.slug,
                     )
-                    daily_sales[date_key]["total_income"] += data.get("total_income", 0)
-                    daily_sales[date_key]["sales"].extend(data.get("sales", []))
-                else:
-                    daily_sales[date_key] = {
-                        "total_products": data.get("total_products", 0),
-                        "total_income": data.get("total_income", 0),
-                        "sales": list(data.get("sales", [])),
-                    }
-
-    # Ordenar fechas descendente
-    daily_sales_sorted = sorted(daily_sales.items(), key=lambda x: x[0], reverse=True)
-    # Resumir productos por cada venta (cantidad total y total por producto)
-    sale_summaries = {}
-    if not is_daily_mode:
-        for date_key, data in daily_sales.items():
-            for sale in data.get("sales", []):
-                summary = {}
-                for sd in getattr(sale, "products", []):
-                    try:
-                        pname = sd.product.name if sd.product else f"#{sd.product_id}"
-                    except Exception:
-                        pname = f"#{sd.product_id}"
-
-                    if pname in summary:
-                        summary[pname]["quantity"] += sd.quantity or 0
-                        summary[pname]["total_price"] += sd.total_price or 0
-                    else:
-                        summary[pname] = {
-                            "quantity": sd.quantity or 0,
-                            "total_price": sd.total_price or 0,
-                            "unit_price": sd.unit_price or 0,
-                        }
-
-                sale_summaries[sale.id] = [
-                    {
-                        "name": k,
-                        "quantity": v["quantity"],
-                        "total_price": v["total_price"],
-                        "unit_price": v["unit_price"],
-                    }
-                    for k, v in summary.items()
-                ]
-    # Determinar mes anterior/siguiente para la paginación por mes y nombre mostrable
-    prev_month = None
-    next_month = None
-    display_month_name = None
-    if selected_month and selected_month in months:
-        try:
-            idx = months.index(selected_month)
-            # months está ordenado en orden descendente (más reciente primero)
-            if idx + 1 < len(months):
-                prev_month = months[idx + 1]
-            if idx - 1 >= 0:
-                next_month = months[idx - 1]
-
-            # Formatear nombre del mes en español (ej: 'Marzo 2025')
-            dt = datetime.strptime(selected_month, "%Y-%m").date()
-            month_names = [
-                "Enero",
-                "Febrero",
-                "Marzo",
-                "Abril",
-                "Mayo",
-                "Junio",
-                "Julio",
-                "Agosto",
-                "Septiembre",
-                "Octubre",
-                "Noviembre",
-                "Diciembre",
-            ]
-            display_month_name = f"{month_names[dt.month - 1]} {dt.year}"
-        except Exception:
-            # En caso de cualquier error de parseo/índice, caemos a mostrar el raw
-            display_month_name = selected_month
-    else:
-        display_month_name = "Todos"
-
-    current_total = (
-        sum(float(item.amount or 0) for item in all_daily_income)
-        if is_daily_mode
-        else (
-            month_totals.get(selected_month, 0)
-            if selected_month
-            else sum(month_totals.values())
-        )
-    )
+                )
 
     return render_template(
         "sale/list.html",
         business=business,
-        is_daily_mode=is_daily_mode,
-        sales_by_months=sales_by_months,
-        month_totals=month_totals,
-        daily_income_by_month=daily_income_by_month,
-        all_daily_income=all_daily_income,
         add_sale_form=add_sale_form,
         add_income_form=add_income_form,
-        months=months,
-        months_display=months_display,
-        all_sales=all_sales,
-        current_total=current_total,
-        selected_month=selected_month,
-        daily_sales_sorted=daily_sales_sorted,
-        prev_month=prev_month,
-        next_month=next_month,
-        display_month_name=display_month_name,
-        sale_summaries=sale_summaries,
+        **list_context,
     )
 
 
 @bp.route("/<int:sale_id>", methods=["GET", "POST"])
-def details(business_id, sale_id):
+def details(client_slug, business_slug, sale_id):
     """
     Muestra los detalles de una venta específica y maneja las operaciones relacionadas.
     """
-    print(f"El negocio es: {business_id}. La venta es: {sale_id}")
     sale_service = SalesService()
-    business_service = BusinessService()
 
-    # Obtener el negocio
     try:
-        business = Business.query.get_or_404(business_id)
-
-        # Determinar los filtros según el tipo de negocio
-        filters = business_service.get_parent_filters(business=business)
-
-        sale = sale_service.get_sale(sale_id, filters["business_id"])
+        business, filters, sale = sale_service.resolve_sale_scope(
+            client_slug=client_slug,
+            business_slug=business_slug,
+            sale_id=sale_id,
+        )
     except Exception as e:
         flash(str(e), "error")
-        return redirect(url_for("sale.sales", business_id=business_id))
+        return redirect(
+            url_for(
+                "sale.sales",
+                client_slug=client_slug,
+                business_slug=business_slug,
+            )
+        )
 
-    # Inicialización de formularios
-    add_product_form = SaleDetailForm(prefix="add_product")
-    update_product_form = UpdateSaleDetailForm(prefix="update_product")
-    remove_product_form = RemoveSaleDetailForm(prefix="remove_product")
-    update_sale_form = SaleForm(
-        parent_business_id=filters["business_id"], obj=sale, prefix="update_sale"
+    details_context = sale_service.build_sale_details_context(
+        sale=sale,
+        filters=filters,
     )
-    add_sale_form = SaleForm(
-        parent_business_id=filters["business_id"], prefix="add_sale"
-    )
-
-    # Cargar opciones de productos disponibles
-    add_product_form.set_product_choices(
-        sale_service.get_available_products(filters["business_id"])
-    )
+    add_product_form = details_context["add_product_form"]
+    update_product_form = details_context["update_product_form"]
+    remove_product_form = details_context["remove_product_form"]
+    update_sale_form = details_context["update_sale_form"]
+    add_sale_form = details_context["add_sale_form"]
 
     # Función auxiliar para redirigir a los detalles de la venta
     def redirect_to_sale():
         return redirect(
-            url_for("sale.details", business_id=business.id, sale_id=sale.id)
+            url_for(
+                "sale.details",
+                client_slug=business.client.slug,
+                business_slug=business.slug,
+                sale_id=sale.id,
+            )
         )
 
     # Procesar formularios
     try:
         if remove_product_form.validate_on_submit():
-            sale_detail = SaleDetail.query.get_or_404(
-                remove_product_form.sale_detail_id.data
-            )
-            removed_product = sale_service.remove_product_from_sale(
-                sale=sale, sale_detail=sale_detail
+            removed_product = sale_service.handle_remove_product_form(
+                sale=sale,
+                sale_detail_id=remove_product_form.sale_detail_id.data,
             )
             flash(f"Producto '{removed_product.name}' eliminado", "success")
             return redirect_to_sale()
 
         if add_product_form.validate_on_submit():
-            new_sale_detail = sale_service.add_product_to_sale(
+            new_sale_detail = sale_service.handle_add_product_form(
                 sale=sale,
                 product_id=add_product_form.product_id.data,
                 quantity=add_product_form.quantity.data,
@@ -419,13 +181,9 @@ def details(business_id, sale_id):
             return redirect_to_sale()
 
         if update_product_form.validate_on_submit():
-            sale_detail = SaleDetail.query.get_or_404(
-                update_product_form.sale_detail_id.data
-            )
-
-            sale_service.update_sale_detail(
+            sale_service.handle_update_product_form(
                 sale=sale,
-                sale_detail=sale_detail,
+                sale_detail_id=update_product_form.sale_detail_id.data,
                 quantity=update_product_form.quantity.data,
                 discount=update_product_form.discount.data,
             )
@@ -438,8 +196,6 @@ def details(business_id, sale_id):
             return redirect_to_sale()
 
     except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f"Error en venta {sale_id}: {str(e)}")
         flash(f"Error: {str(e)}", "error")
         return redirect_to_sale()
 
@@ -454,28 +210,26 @@ def details(business_id, sale_id):
             return redirect(
                 url_for(
                     "sale.details",
-                    business_id=business.id,
+                    client_slug=business.client.slug,
+                    business_slug=business.slug,
                     sale_id=new_sale.id,
                 )
             )
-        except IntegrityError as e:
-            db.session.rollback()
-            current_app.logger.error(f"Error de integridad al crear la venta: {str(e)}")
-            flash("Error: Ya existe un ingreso con estos datos.", "error")
         except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f"Error inesperado al crear la venta: {str(e)}")
             flash(f"Error inesperado: {str(e)}", "error")
-            return redirect(url_for("sale.sales", business_id=business.id))
-
-    # Obtener productos para mostrar
-    sale_details = sale_service.get_sale_details(sale.id)
+            return redirect(
+                url_for(
+                    "sale.sales",
+                    client_slug=business.client.slug,
+                    business_slug=business.slug,
+                )
+            )
 
     return render_template(
         "sale/details.html",
         business=business,
         sale=sale,
-        products=sale_details,
+        products=details_context["sale_details"],
         add_product_form=add_product_form,
         remove_product_form=remove_product_form,
         update_product_form=update_product_form,
@@ -484,271 +238,3 @@ def details(business_id, sale_id):
     )
 
 
-@bp.route("/test", methods=["GET", "POST"])
-def test(business_id):
-    business = Business.query.get_or_404(business_id)
-    sorted_sales = []
-    selected_month = None
-
-    if request.method == "POST":
-        month_str = request.form.get("month")
-        if not month_str:
-            flash("Por favor, selecciona un mes.", "error")
-            return redirect(url_for("sale.test", business_id=business_id))
-
-        try:
-            selected_month = datetime.strptime(month_str, "%Y-%m").date()
-            start_date = selected_month.replace(day=1)
-            end_date = start_date + relativedelta(months=1, days=-1)
-
-            # Consultar ventas del mes
-            monthly_sales = (
-                Sale.query.filter(
-                    Sale.business_id == business.id,
-                    Sale.date.between(start_date, end_date),
-                    Sale.discount != 0,
-                )
-                .join(Sale.products)
-                .join(SaleDetail.product)
-                .all()
-            )
-
-            # Procesar cada venta
-            sorted_sales = []
-            for sale in monthly_sales:
-                sorted_sales.append(
-                    {
-                        "importe": round(sale.total_amount, 2),
-                        "fecha": sale.date.strftime("%d/%m/%Y"),  # Formato DD/MM/YYYY
-                        "numero_venta": sale.sale_number,
-                    }
-                )
-
-            # Ordenar por importe descendente
-            sorted_sales.sort(key=lambda x: x["importe"], reverse=True)
-
-        except ValueError:
-            flash("Formato de mes inválido. Usa YYYY-MM.", "error")
-
-    return render_template(
-        "sale/test.html",
-        business=business,
-        sorted_sales=sorted_sales,
-        selected_month=selected_month,
-    )
-
-
-@bp.route("/test1", methods=["GET", "POST"])
-def test1(business_id):
-    business = Business.query.get_or_404(business_id)
-    grouped_sales = []
-    selected_month = None
-    print(f"Testing amount: {business.id}")
-
-    if request.method == "POST":
-        month_str = request.form.get("month")
-        if not month_str:
-            flash("Selecciona un mes válido.", "error")
-            return redirect(url_for("sale.sales", business_id=business.id))
-
-        try:
-            selected_month = datetime.strptime(month_str, "%Y-%m").date()
-            start_date = selected_month.replace(day=1)
-            end_date = start_date + relativedelta(months=1, days=-1)
-
-            # Obtener ventas del mes
-            monthly_sales = (
-                Sale.query.filter(
-                    Sale.business_id == business.id,
-                    Sale.date.between(start_date, end_date),
-                )
-                .join(Sale.products)
-                .join(SaleDetail.product)
-                .filter(
-                    SaleDetail.unit_price != Product.price,
-                    Product.category != "cocteleria",
-                )
-                .order_by(Sale.date.asc())
-                .all()
-            )
-
-            # Agrupar por importe total de la venta
-            importe_groups = defaultdict(lambda: [])
-            for sale in monthly_sales:
-                print(f"Testing amount: {sale.total_amount}")
-                importe_groups[str(sale.total_amount)].append(
-                    {
-                        "date": sale.date.strftime("%d/%m/%Y"),
-                        "sale_number": sale.sale_number,
-                        "sale_id": sale.id,
-                        "excluded": sale.excluded,
-                    }
-                )
-
-            # Ordenar por importe descendente
-            grouped_sales = sorted(
-                importe_groups.items(), key=lambda x: x[0], reverse=True
-            )
-
-        except ValueError:
-            flash("Formato de mes inválido. Usa YYYY-MM.", "error")
-
-    return render_template(
-        "sale/test1.html",
-        business=business,
-        grouped_sales=grouped_sales,
-        selected_month=selected_month,
-    )
-
-
-@bp.route("/test2", methods=["GET", "POST"])
-def categorized_report(business_id):
-    business = Business.query.get_or_404(business_id)
-    categorized_sales = defaultdict(lambda: [])
-    selected_month = None
-
-    if request.method == "POST":
-        month_str = request.form.get("month")
-        if not month_str:
-            flash("Selecciona un mes válido.", "error")
-            return redirect(url_for("sale.categorized_report", business_id=business_id))
-
-        try:
-            selected_month = datetime.strptime(month_str, "%Y-%m").date()
-            start_date = selected_month.replace(day=1)
-            end_date = start_date + relativedelta(months=1, days=-1)
-
-            # Consultar ventas del mes
-            monthly_sales = (
-                Sale.query.filter(
-                    Sale.business_id == business.id,
-                    Sale.date.between(start_date, end_date),
-                )
-                .join(Sale.products)
-                .order_by(Sale.date.asc())
-                .all()
-            )
-
-            # Clasificar ventas por rango de productos
-            for sale in monthly_sales:
-                total_products = sum(sp.quantity for sp in sale.products)
-                total_income = sale.total_amount
-
-                if total_products <= 2:
-                    category = "1-2 productos"
-                elif 3 <= total_products <= 5:
-                    category = "3-5 productos"
-                elif 6 <= total_products <= 10:
-                    category = "6-10 productos"
-                elif 11 <= total_products <= 15:
-                    category = "11-15 productos"
-                elif 16 <= total_products <= 20:
-                    category = "16-20 productos"
-                else:
-                    category = "21+ productos"
-
-                categorized_sales[category].append(
-                    {
-                        "date": sale.date.strftime("%d/%m/%Y"),
-                        "sale_id": sale.id,
-                        "sale_number": sale.sale_number,
-                        "total_products": total_products,
-                        "total_income": round(total_income, 2),
-                    }
-                )
-
-            # Ordenar categorías y ventas internas
-            ordered_categories = [
-                "1-2 productos",
-                "3-5 productos",
-                "6-10 productos",
-                "11-15 productos",
-                "16-20 productos",
-                "21+ productos",
-            ]
-            categorized_sales = {
-                cat: sorted(sales_list, key=lambda x: x["date"])
-                for cat, sales_list in categorized_sales.items()
-                if cat in ordered_categories
-            }
-
-        except ValueError:
-            flash("Formato de mes inválido. Usa YYYY-MM.", "error")
-
-    return render_template(
-        "sale/test2.html",
-        business=business,
-        categorized_sales=categorized_sales,
-        selected_month=selected_month,
-    )
-
-
-@bp.route("/coctel", methods=["GET", "POST"])
-def coctel_report(business_id):
-    business = Business.query.get_or_404(business_id)
-    coctel_sales = defaultdict(lambda: [])
-    selected_month = None
-
-    if request.method == "POST":
-        month_str = request.form.get("month")
-        if not month_str:
-            flash("Selecciona un mes válido.", "error")
-            return redirect(url_for("sale.categorized_report", business_id=business_id))
-
-        try:
-            selected_month = datetime.strptime(month_str, "%Y-%m").date()
-            start_date = selected_month.replace(day=1)
-            end_date = start_date + relativedelta(months=1, days=-1)
-
-            # Consultar ventas del mes
-            monthly_sales = (
-                Sale.query.filter(
-                    Sale.business_id == business.id,
-                    Sale.date.between(start_date, end_date),
-                )
-                .join(Sale.products)
-                .join(SaleDetail.product)
-                .filter(Product.category == "cocteleria")
-                .order_by(Sale.date.asc())
-                .all()
-            )
-
-            # Clasificar ventas por rango de productos
-            for sale in monthly_sales:
-                total_products = sum(sp.quantity for sp in sale.products)
-                total_income = sale.total_amount
-
-                categorized_sales[category].append(
-                    {
-                        "date": sale.date.strftime("%d/%m/%Y"),
-                        "sale_id": sale.id,
-                        "sale_number": sale.sale_number,
-                        "total_products": total_products,
-                        "total_income": round(total_income, 2),
-                    }
-                )
-
-            # Ordenar categorías y ventas internas
-            ordered_categories = [
-                "1-2 productos",
-                "3-5 productos",
-                "6-10 productos",
-                "11-15 productos",
-                "16-20 productos",
-                "21+ productos",
-            ]
-            categorized_sales = {
-                cat: sorted(sales_list, key=lambda x: x["date"])
-                for cat, sales_list in categorized_sales.items()
-                if cat in ordered_categories
-            }
-
-        except ValueError:
-            flash("Formato de mes inválido. Usa YYYY-MM.", "error")
-
-    return render_template(
-        "sale/test2.html",
-        business=business,
-        categorized_sales=categorized_sales,
-        selected_month=selected_month,
-    )

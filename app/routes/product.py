@@ -1,6 +1,5 @@
 from flask import (
     Blueprint,
-    current_app,
     render_template,
     redirect,
     url_for,
@@ -8,26 +7,29 @@ from flask import (
     request,
 )
 
-from app.extensions import db
 from app.forms import ProductForm, ProductDetailForm, DeleteProductDetailForm
-from app.models import Business, InventoryItem
-from app.models import Business, InventoryItem, Sale, SaleDetail, ProductDetail
-from sqlalchemy import func
 from app.services import BusinessService, ProductService
+from app.utils.slug_utils import get_business_by_slugs
 
 
-bp = Blueprint("product", __name__, url_prefix="/business/<int:business_id>/product")
+bp = Blueprint(
+    "product",
+    __name__,
+    url_prefix="/clients/<string:client_slug>/business/<string:business_slug>/product",
+)
 product_service = ProductService()
 business_service = BusinessService()
 
 
 @bp.route("/list", methods=["GET", "POST"])
-def list(business_id):
+def list(client_slug, business_slug):
     """
     Lista los productos de un negocio y permite agregar nuevos productos.
     """
     # Obtener el negocio y sus filtros
-    business = Business.query.get_or_404(business_id)
+    business = get_business_by_slugs(client_slug, business_slug)
+    if not business:
+        return redirect(url_for("client.list_clients"))
     business_filter = business_service.get_parent_filters(business=business)
 
     # Inicializar el formulario para agregar productos
@@ -45,7 +47,8 @@ def list(business_id):
             return redirect(
                 url_for(
                     "product.technical_card",
-                    business_id=business.id,
+                    client_slug=business.client.slug,
+                    business_slug=business.slug,
                     product_id=new_product.id,
                 )
             )
@@ -54,96 +57,18 @@ def list(business_id):
             return redirect(
                 url_for(
                     "product.list",
-                    business_id=business.id,
+                    client_slug=business.client.slug,
+                    business_slug=business.slug,
                 )
             )
 
     products_list = product_service.get_all_products(
         business_id=business_filter["business_id"]
     )
-    # Obtener lista de categorías únicas para el filtro
-    categories = sorted(
-        {p.category for p in products_list if getattr(p, "category", None)}
+    categories, sale_stats = product_service.get_product_list_stats(
+        business_id=business_filter["business_id"],
+        products_list=products_list,
     )
-    # Calcular estadísticas de ventas por producto: total cantidad vendida y fecha de última venta
-    sale_stats = {}
-    product_ids = [p.id for p in products_list]
-    if product_ids:
-        rows = (
-            db.session.query(
-                SaleDetail.product_id,
-                func.coalesce(func.sum(SaleDetail.quantity), 0).label("total_sold"),
-                func.count(func.distinct(SaleDetail.sale_id)).label("orders_count"),
-                func.max(Sale.date).label("last_sale_date"),
-            )
-            .join(Sale, Sale.id == SaleDetail.sale_id)
-            .filter(Sale.business_id == business_filter["business_id"])
-            .filter(SaleDetail.product_id.in_(product_ids))
-            .group_by(SaleDetail.product_id)
-            .all()
-        )
-        for pid, total_sold, orders_count, last_date in rows:
-            sale_stats[pid] = {
-                "total_sold": int(total_sold) if total_sold is not None else 0,
-                "orders_count": int(orders_count) if orders_count is not None else 0,
-                "last_sale_date": last_date,
-            }
-
-        # Fetch product -> raw materials (ProductDetail) and compute used quantities
-        pd_rows = (
-            db.session.query(
-                ProductDetail.product_id,
-                ProductDetail.raw_material_id,
-                ProductDetail.quantity.label("qty_per_product"),
-                InventoryItem.name.label("raw_name"),
-                InventoryItem.unit.label("raw_unit"),
-            )
-            .join(InventoryItem, InventoryItem.id == ProductDetail.raw_material_id)
-            .filter(ProductDetail.product_id.in_(product_ids))
-            .all()
-        )
-        raw_map = {}
-        for prod_id, raw_id, qty_per_product, raw_name, raw_unit in pd_rows:
-            raw_map.setdefault(prod_id, []).append(
-                {
-                    "raw_id": raw_id,
-                    "raw_name": raw_name,
-                    "raw_unit": raw_unit,
-                    "qty_per_product": qty_per_product,
-                }
-            )
-
-        # attach raw materials usage to sale_stats
-        for pid in product_ids:
-            stats = sale_stats.get(
-                pid, {"total_sold": 0, "orders_count": 0, "last_sale_date": None}
-            )
-            total_sold = stats.get("total_sold", 0)
-            materials = []
-            for m in raw_map.get(pid, []):
-                used_total = None
-                try:
-                    used_total = float(m["qty_per_product"]) * float(total_sold)
-                except Exception:
-                    used_total = 0
-                materials.append(
-                    {
-                        "raw_id": m["raw_id"],
-                        "raw_name": m["raw_name"],
-                        "raw_unit": m["raw_unit"],
-                        "qty_per_product": m["qty_per_product"],
-                        "used_total": used_total,
-                    }
-                )
-            if pid in sale_stats:
-                sale_stats[pid]["raw_materials"] = materials
-            else:
-                sale_stats[pid] = {
-                    "total_sold": 0,
-                    "orders_count": 0,
-                    "last_sale_date": None,
-                    "raw_materials": materials,
-                }
     return render_template(
         "product/list.html",
         business=business,
@@ -158,7 +83,7 @@ def list(business_id):
     "/<int:product_id>/technical-card",
     methods=["GET", "POST"],
 )
-def technical_card(business_id, product_id):
+def technical_card(client_slug, business_slug, product_id):
     """
     Gestiona la ficha técnica de un producto, incluyendo la edición del producto
     y la asociación de materias primas.
@@ -167,7 +92,9 @@ def technical_card(business_id, product_id):
 
     # Obtener el negocio y el producto
     try:
-        business = Business.query.get_or_404(business_id)
+        business = get_business_by_slugs(client_slug, business_slug)
+        if not business:
+            raise ValueError("Negocio no encontrado")
         # Determinar los filtros según el tipo de negocio
         business_filter = business_service.get_parent_filters(business=business)
 
@@ -176,7 +103,13 @@ def technical_card(business_id, product_id):
         )
     except Exception as e:
         flash(str(e), "error")
-        return redirect(url_for("product.list", business_id=business_id))
+        return redirect(
+            url_for(
+                "product.list",
+                client_slug=client_slug,
+                business_slug=business_slug,
+            )
+        )
 
     # Formularios
     add_raw_material_form = ProductDetailForm(prefix="add_raw_material")
@@ -190,23 +123,21 @@ def technical_card(business_id, product_id):
     def redirect_to_technical_card():
         return redirect(
             url_for(
-                "product.technical_card", business_id=business.id, product_id=product.id
+                "product.technical_card",
+                client_slug=business.client.slug,
+                business_slug=business.slug,
+                product_id=product.id,
             )
         )
 
     try:
         if remove_raw_material_form.validate_on_submit():
-            raw_material_id = remove_raw_material_form.raw_material_id.data
-            removed_raw_material = InventoryItem.query.get(raw_material_id)
-            if not removed_raw_material:
-                flash("La materia prima seleccionada no existe.", "error")
-                return redirect_to_technical_card()
-            product_service.remove_raw_material(
+            removed_name = product_service.remove_raw_material_with_name(
                 product_id=product.id,
-                raw_material_id=removed_raw_material.id,
+                raw_material_id=remove_raw_material_form.raw_material_id.data,
             )
             flash(
-                f"Materia prima {removed_raw_material.name} eliminada.",
+                f"Materia prima {removed_name} eliminada.",
                 "success",
             )
             return redirect_to_technical_card()
@@ -222,7 +153,6 @@ def technical_card(business_id, product_id):
             )
             return redirect_to_technical_card()
         if update_raw_material_form.validate_on_submit():
-            print(update_product_form)
             updated_raw_material = product_service.update_raw_material(
                 product_id=product.id,
                 raw_material_id=update_raw_material_form.raw_material_id.data,
@@ -243,8 +173,6 @@ def technical_card(business_id, product_id):
             )
             return redirect_to_technical_card()
     except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f"Error en el producto {product_id}: {str(e)}")
         flash(f"Error: {str(e)}", "error")
         return redirect_to_technical_card()
 

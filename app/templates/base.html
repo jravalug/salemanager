@@ -143,16 +143,16 @@
           {% set current_business_logo = current_business.logo if current_business and current_business.logo else (current_business.parent_business.logo if current_business and current_business.parent_business and current_business.parent_business.logo else None) %}
           {% set href_dashboard = url_for('client.client_dashboard', client_slug=active_client.slug) %}
           {% if current_business %}
-            {% set href_dashboard_selected = url_for('client.client_dashboard', client_slug=active_client.slug, business_id=current_business.id) %}
-            {% set href_sales = url_for('sale.sales', business_id=current_business.id) %}
-            {% set href_products = url_for('product.list', business_id=current_business.id) %}
-            {% set href_inventory = url_for('inventory.item_list', business_id=current_business.id) %}
-            {% set href_monthly_sales_by_date = url_for('report.monthly_sales_by_date', business_id=current_business.id) %}
-            {% set href_monthly_sales_by_product = url_for('report.monthly_sales_by_produc', business_id=current_business.id) %}
-            {% set href_inventory_consumption = url_for('report.inventory_consumption_view', business_id=current_business.id) %}
-            {% set href_ipv_report = url_for('report.ipv_report', business_id=current_business.id) %}
-            {% set href_business_detail = url_for('business.detail_or_edit', client_slug=active_client.slug, business_id=current_business.id) %}
-            {% set href_add_sub_business = url_for('business.add_sub_business', client_slug=active_client.slug, business_id=current_business.id) if current_business.is_general else None %}
+            {% set href_dashboard_selected = url_for('client.client_dashboard', client_slug=active_client.slug, business_slug=current_business.slug) %}
+            {% set href_sales = url_for('sale.sales', client_slug=active_client.slug, business_slug=current_business.slug) %}
+            {% set href_products = url_for('product.list', client_slug=active_client.slug, business_slug=current_business.slug) %}
+            {% set href_inventory = url_for('inventory.item_list', client_slug=active_client.slug, business_slug=current_business.slug) %}
+            {% set href_monthly_sales_by_date = url_for('report.monthly_sales_by_date', client_slug=active_client.slug, business_slug=current_business.slug) %}
+            {% set href_monthly_sales_by_product = url_for('report.monthly_sales_by_produc', client_slug=active_client.slug, business_slug=current_business.slug) %}
+            {% set href_inventory_consumption = url_for('report.inventory_consumption_view', client_slug=active_client.slug, business_slug=current_business.slug) %}
+            {% set href_ipv_report = url_for('report.ipv_report', client_slug=active_client.slug, business_slug=current_business.slug) %}
+            {% set href_business_detail = url_for('business.detail_or_edit', client_slug=active_client.slug, business_slug=current_business.slug) %}
+            {% set href_add_sub_business = url_for('business.add_sub_business', client_slug=active_client.slug, business_slug=current_business.slug) if current_business.is_general else None %}
           {% endif %}
           {% set href_clients = url_for('client.list_clients') %}
           {% set href_client_detail = url_for('client.detail_or_edit', client_slug=active_client.slug) %}
@@ -267,7 +267,7 @@
                     <li class="space-y-1">
                       {% set is_parent_active = current_business and current_business.id == parent.id %}
                       <a
-                        href="{{ url_for('client.client_dashboard', client_slug=active_client.slug, business_id=parent.id) }}"
+                        href="{{ url_for('client.client_dashboard', client_slug=active_client.slug, business_slug=parent.slug) }}"
                         class="flex items-center justify-between gap-2 w-full p-2 rounded pl-11 hover:bg-gray-100 dark:hover:bg-gray-700 {{ 'text-blue-600 dark:text-blue-400' if is_parent_active else 'text-gray-700 dark:text-gray-200' }}"
                       >
                         <span class="text-xs uppercase tracking-wide"
@@ -286,7 +286,7 @@
                             {% set is_child_active = current_business and current_business.id == child.id %}
                             <li>
                               <a
-                                href="{{ url_for('client.client_dashboard', client_slug=active_client.slug, business_id=child.id) }}"
+                                href="{{ url_for('client.client_dashboard', client_slug=active_client.slug, business_slug=child.slug) }}"
                                 class="flex items-center justify-between gap-2 w-full p-2 rounded pl-16 hover:bg-gray-100 dark:hover:bg-gray-700 {{ 'text-blue-600 dark:text-blue-400' if is_child_active else 'text-gray-700 dark:text-gray-300' }}"
                               >
                                 <span class="text-xs">↳ Subnegocio</span>
@@ -544,16 +544,16 @@
       {% if active_client %}
         {% set href_dashboard = url_for('client.client_dashboard', client_slug=active_client.slug) %}
         {% if current_business %}
-          {% set href_dashboard_selected = url_for('client.client_dashboard', client_slug=active_client.slug, business_id=current_business.id) %}
-          {% set href_sales = url_for('sale.sales', business_id=current_business.id) %}
-          {% set href_products = url_for('product.list', business_id=current_business.id) %}
-          {% set href_inventory = url_for('inventory.item_list', business_id=current_business.id) %}
-          {% set href_monthly_sales_by_date = url_for('report.monthly_sales_by_date', business_id=current_business.id) %}
-          {% set href_monthly_sales_by_product = url_for('report.monthly_sales_by_produc', business_id=current_business.id) %}
-          {% set href_inventory_consumption = url_for('report.inventory_consumption_view', business_id=current_business.id) %}
-          {% set href_ipv_report = url_for('report.ipv_report', business_id=current_business.id) %}
-          {% set href_business_detail = url_for('business.detail_or_edit', client_slug=active_client.slug, business_id=current_business.id) %}
-          {% set href_add_sub_business = url_for('business.add_sub_business', client_slug=active_client.slug, business_id=current_business.id) if current_business.is_general else None %}
+          {% set href_dashboard_selected = url_for('client.client_dashboard', client_slug=active_client.slug, business_slug=current_business.slug) %}
+          {% set href_sales = url_for('sale.sales', client_slug=active_client.slug, business_slug=current_business.slug) %}
+          {% set href_products = url_for('product.list', client_slug=active_client.slug, business_slug=current_business.slug) %}
+          {% set href_inventory = url_for('inventory.item_list', client_slug=active_client.slug, business_slug=current_business.slug) %}
+          {% set href_monthly_sales_by_date = url_for('report.monthly_sales_by_date', client_slug=active_client.slug, business_slug=current_business.slug) %}
+          {% set href_monthly_sales_by_product = url_for('report.monthly_sales_by_produc', client_slug=active_client.slug, business_slug=current_business.slug) %}
+          {% set href_inventory_consumption = url_for('report.inventory_consumption_view', client_slug=active_client.slug, business_slug=current_business.slug) %}
+          {% set href_ipv_report = url_for('report.ipv_report', client_slug=active_client.slug, business_slug=current_business.slug) %}
+          {% set href_business_detail = url_for('business.detail_or_edit', client_slug=active_client.slug, business_slug=current_business.slug) %}
+          {% set href_add_sub_business = url_for('business.add_sub_business', client_slug=active_client.slug, business_slug=current_business.slug) if current_business.is_general else None %}
         {% endif %}
         {% set href_clients = url_for('client.list_clients') %}
         {% set href_client_detail = url_for('client.detail_or_edit', client_slug=active_client.slug) %}
@@ -660,7 +660,7 @@
                 <li class="space-y-1">
                   {% set is_parent_active = current_business and current_business.id == parent.id %}
                   <a
-                    href="{{ url_for('client.client_dashboard', client_slug=active_client.slug, business_id=parent.id) }}"
+                    href="{{ url_for('client.client_dashboard', client_slug=active_client.slug, business_slug=parent.slug) }}"
                     class="flex items-center justify-between gap-2 w-full p-2 rounded pl-11 hover:bg-gray-700 {{ 'text-blue-400' if is_parent_active else 'text-gray-200' }}"
                   >
                     <span class="text-xs uppercase tracking-wide"
@@ -679,7 +679,7 @@
                         {% set is_child_active = current_business and current_business.id == child.id %}
                         <li>
                           <a
-                            href="{{ url_for('client.client_dashboard', client_slug=active_client.slug, business_id=child.id) }}"
+                            href="{{ url_for('client.client_dashboard', client_slug=active_client.slug, business_slug=child.slug) }}"
                             class="flex items-center justify-between gap-2 w-full p-2 rounded pl-16 hover:bg-gray-700 {{ 'text-blue-400' if is_child_active else 'text-gray-300' }}"
                           >
                             <span class="text-xs">↳ Subnegocio</span>

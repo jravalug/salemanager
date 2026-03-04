@@ -54,7 +54,7 @@
         <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">Resultados para {{ selected_month }}</h3>
 
         <div class="mb-6 flex justify-end">
-          <form id="export-form" action="{{ url_for('report.export_to_excel_inventory_consumption', business_id=business.id) }}" method="post">
+          <form id="export-form" action="{{ url_for('report.export_to_excel_inventory_consumption', client_slug=business.client.slug, business_slug=business.slug) }}" method="post">
             <input type="hidden" name="consumption_export" id="consumption_export_input" />
             <input type="hidden" name="selected_month" value="{{ selected_month }}" />
             <button type="submit" id="export-button" class="text-white bg-green-500 hover:bg-green-600 font-medium rounded-lg text-sm px-5 py-2.5">Exportar a Excel</button>

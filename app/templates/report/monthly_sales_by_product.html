@@ -65,7 +65,7 @@
         <!-- Botones para Exportar a Excel -->
         <div class="flex space-x-4 mb-6">
           <form
-            action="{{ url_for('report.export_to_excel_sales_by_product', business_id=business.id) }}"
+            action="{{ url_for('report.export_to_excel_sales_by_product', client_slug=business.client.slug, business_slug=business.slug) }}"
             method="post"
           >
             <input
@@ -86,7 +86,7 @@
             </button>
           </form>
           <form
-            action="{{ url_for('report.export_to_excel_sales_by_product_by_date', business_id=business.id) }}"
+            action="{{ url_for('report.export_to_excel_sales_by_product_by_date', client_slug=business.client.slug, business_slug=business.slug) }}"
             method="post"
           >
             <input
@@ -145,7 +145,7 @@
                     <td class="py-4 px-6">
                       {% for sale_id, sale_number in product.orders %}
                         <a
-                          href="{{ url_for('sale.details', business_id=business.id, sale_id=sale_id) }}"
+                          href="{{ url_for('sale.details', client_slug=business.client.slug, business_slug=business.slug, sale_id=sale_id) }}"
                           class="text-blue-500 hover:underline dark:text-blue-400"
                           >[{{ sale_number }}]</a
                         >

@@ -1,9 +1,11 @@
 from typing import List
+from sqlalchemy import func
 
 from app.forms import ProductForm
-from app.models import Product, ProductDetail, InventoryItem
+from app.models import Product, ProductDetail, InventoryItem, Sale, SaleDetail
 from app.extensions import db
 from app.repositories.product_repository import ProductRepository
+from app.utils.slug_utils import get_business_by_slugs
 
 
 class ProductService:
@@ -125,3 +127,124 @@ class ProductService:
         :param raw_material_id: Id de la materia prima.
         """
         return self.repository.remove_product_detail(product_id, raw_material_id)
+
+    def remove_raw_material_with_name(
+        self, product_id: int, raw_material_id: int
+    ) -> str:
+        raw_material = InventoryItem.query.get(raw_material_id)
+        if not raw_material:
+            raise ValueError("La materia prima seleccionada no existe.")
+
+        self.remove_raw_material(product_id=product_id, raw_material_id=raw_material.id)
+        return raw_material.name
+
+    def get_products_api_data(self, client_slug: str, business_slug: str):
+        business = get_business_by_slugs(client_slug, business_slug)
+        if not business:
+            return []
+
+        products = Product.query.filter(Product.business_id == business.id).all()
+        return [
+            {
+                "id": product.id,
+                "name": product.name,
+                "price": product.price,
+                "category": product.category,
+            }
+            for product in products
+        ]
+
+    def get_product_list_stats(self, business_id: int, products_list: List[Product]):
+        categories = sorted(
+            {
+                product.category
+                for product in products_list
+                if getattr(product, "category", None)
+            }
+        )
+
+        sale_stats = {}
+        product_ids = [product.id for product in products_list]
+        if not product_ids:
+            return categories, sale_stats
+
+        rows = (
+            db.session.query(
+                SaleDetail.product_id,
+                func.coalesce(func.sum(SaleDetail.quantity), 0).label("total_sold"),
+                func.count(func.distinct(SaleDetail.sale_id)).label("orders_count"),
+                func.max(Sale.date).label("last_sale_date"),
+            )
+            .join(Sale, Sale.id == SaleDetail.sale_id)
+            .filter(Sale.business_id == business_id)
+            .filter(SaleDetail.product_id.in_(product_ids))
+            .group_by(SaleDetail.product_id)
+            .all()
+        )
+
+        for product_id, total_sold, orders_count, last_date in rows:
+            sale_stats[product_id] = {
+                "total_sold": int(total_sold) if total_sold is not None else 0,
+                "orders_count": int(orders_count) if orders_count is not None else 0,
+                "last_sale_date": last_date,
+            }
+
+        pd_rows = (
+            db.session.query(
+                ProductDetail.product_id,
+                ProductDetail.raw_material_id,
+                ProductDetail.quantity.label("qty_per_product"),
+                InventoryItem.name.label("raw_name"),
+                InventoryItem.unit.label("raw_unit"),
+            )
+            .join(InventoryItem, InventoryItem.id == ProductDetail.raw_material_id)
+            .filter(ProductDetail.product_id.in_(product_ids))
+            .all()
+        )
+
+        raw_map = {}
+        for product_id, raw_id, qty_per_product, raw_name, raw_unit in pd_rows:
+            raw_map.setdefault(product_id, []).append(
+                {
+                    "raw_id": raw_id,
+                    "raw_name": raw_name,
+                    "raw_unit": raw_unit,
+                    "qty_per_product": qty_per_product,
+                }
+            )
+
+        for product_id in product_ids:
+            stats = sale_stats.get(
+                product_id,
+                {"total_sold": 0, "orders_count": 0, "last_sale_date": None},
+            )
+            total_sold = stats.get("total_sold", 0)
+            materials = []
+
+            for material in raw_map.get(product_id, []):
+                try:
+                    used_total = float(material["qty_per_product"]) * float(total_sold)
+                except Exception:
+                    used_total = 0
+
+                materials.append(
+                    {
+                        "raw_id": material["raw_id"],
+                        "raw_name": material["raw_name"],
+                        "raw_unit": material["raw_unit"],
+                        "qty_per_product": material["qty_per_product"],
+                        "used_total": used_total,
+                    }
+                )
+
+            if product_id in sale_stats:
+                sale_stats[product_id]["raw_materials"] = materials
+            else:
+                sale_stats[product_id] = {
+                    "total_sold": 0,
+                    "orders_count": 0,
+                    "last_sale_date": None,
+                    "raw_materials": materials,
+                }
+
+        return categories, sale_stats

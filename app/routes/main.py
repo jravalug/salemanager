@@ -1,17 +1,9 @@
-from datetime import datetime
-
 from flask import (
     Blueprint,
-    abort,
     redirect,
-    render_template,
-    request,
     send_from_directory,
     url_for,
 )
-from sqlalchemy import func
-
-from app.models import Business, Client, DailyIncome
 
 bp = Blueprint("main", __name__)
 

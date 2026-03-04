@@ -150,7 +150,7 @@
 
             <div class="gap-4 sm:flex sm:items-center">
               <a
-                href="{{ url_for('product.list', business_id=business.id) }}"
+                href="{{ url_for('product.list', client_slug=business.client.slug, business_slug=business.slug) }}"
                 class="w-full rounded-lg  border text-center border-gray-200 bg-white px-5  py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700"
               >
                 Regresar al Listado de Productos
@@ -316,7 +316,7 @@
         <!-- Modal body -->
         <form
           method="post"
-          action="{{ url_for('product.technical_card', business_id=business.id, product_id=product.id) }}"
+          action="{{ url_for('product.technical_card', client_slug=business.client.slug, business_slug=business.slug, product_id=product.id) }}"
           class="p-4 md:p-5"
         >
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-5">

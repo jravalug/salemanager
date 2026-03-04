@@ -73,3 +73,15 @@ class BusinessService:
         if not business.is_general:
             filters["specific_business_id"] = business.id
         return filters
+
+    @staticmethod
+    def get_businesses_api_data():
+        businesses = Business.query.all()
+        return [
+            {
+                "id": business.id,
+                "name": business.name,
+                "description": business.description,
+            }
+            for business in businesses
+        ]

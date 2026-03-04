@@ -1,3 +1,6 @@
+import re
+import unicodedata
+
 from app.extensions import db
 
 
@@ -122,6 +125,20 @@ class Business(db.Model):
 
     def __repr__(self):
         return f"<Business {self.name}>"
+
+    @staticmethod
+    def slugify(value: str | None) -> str:
+        if not value:
+            return ""
+        normalized = unicodedata.normalize("NFKD", value)
+        ascii_value = normalized.encode("ascii", "ignore").decode("ascii")
+        lowered = ascii_value.lower().strip()
+        slug = re.sub(r"[^a-z0-9]+", "-", lowered).strip("-")
+        return slug
+
+    @property
+    def slug(self) -> str:
+        return self.slugify(self.name)
 
     __table_args__ = (
         db.CheckConstraint(

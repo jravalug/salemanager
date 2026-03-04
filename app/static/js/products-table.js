@@ -1,8 +1,9 @@
 import { DataTable } from "../../../node_modules/simple-datatables/dist/module.js";
 
-const businessId = document.getElementById("business-id").value;
+const clientSlug = document.getElementById("client-slug").value;
+const businessSlug = document.getElementById("business-slug").value;
 
-fetch(`/api/business/${businessId}/product/products`)
+fetch(`/api/clients/${clientSlug}/business/${businessSlug}/product/products`)
   .then((response) => response.json())
   .then((data) => {
     window.dt = new DataTable("#demo-table", {

@@ -1,12 +1,24 @@
 from typing import Dict, Optional
+from datetime import datetime
+from collections import defaultdict
+
 from sqlalchemy import desc, func
+from sqlalchemy.orm import joinedload
+from dateutil.relativedelta import relativedelta
 
 from app import db
-from app.forms import SaleForm
-from app.models import Sale, Product, SaleDetail
+from app.forms import (
+    SaleForm,
+    SaleDetailForm,
+    UpdateSaleDetailForm,
+    RemoveSaleDetailForm,
+)
+from app.models import Sale, Product, SaleDetail, DailyIncome
 from app.models.business import Business
 from app.repositories.sales_repository import SalesRepository
 from app.services.business_service import BusinessService
+from app.utils.slug_utils import get_business_by_slugs
+from app.utils.sale_utils import calculate_month_totals, group_sales_by_month
 
 
 class SalesService:
@@ -40,6 +52,36 @@ class SalesService:
             .first_or_404()
         )
 
+    def resolve_business_and_filters(self, client_slug: str, business_slug: str):
+        business = get_business_by_slugs(client_slug, business_slug)
+        if not business:
+            raise ValueError("Negocio no encontrado")
+
+        filters = self.business.get_parent_filters(business=business)
+        return business, filters
+
+    def resolve_sale_scope(self, client_slug: str, business_slug: str, sale_id: int):
+        business, filters = self.resolve_business_and_filters(
+            client_slug, business_slug
+        )
+        sale = self.get_sale(sale_id, filters["business_id"])
+        return business, filters, sale
+
+    @staticmethod
+    def get_sales_api_data(business_id: int):
+        sales = Sale.query.filter_by(business_id=business_id).all()
+        return [
+            {
+                "id": sale.id,
+                "date": sale.date.strftime("%Y-%m-%d"),
+                "total": sum(
+                    sale_product.quantity * sale_product.product.price
+                    for sale_product in sale.products
+                ),
+            }
+            for sale in sales
+        ]
+
     def get_available_products(self, business_id):
         """Obtiene los productos disponibles para un negocio"""
         return (
@@ -51,6 +93,321 @@ class SalesService:
     def get_sale_details(self, sale_id):
         """Obtiene los productos de una venta específica"""
         return SaleDetail.query.filter_by(sale_id=sale_id).join(Product).all()
+
+    def get_sale_detail_for_sale(self, sale_id: int, sale_detail_id: int) -> SaleDetail:
+        """Obtiene un detalle de venta validando que pertenezca a la venta indicada."""
+        return SaleDetail.query.filter_by(
+            id=sale_detail_id, sale_id=sale_id
+        ).first_or_404()
+
+    def handle_remove_product_form(self, sale: Sale, sale_detail_id: int) -> Product:
+        sale_detail = self.get_sale_detail_for_sale(
+            sale_id=sale.id,
+            sale_detail_id=sale_detail_id,
+        )
+        return self.remove_product_from_sale(sale=sale, sale_detail=sale_detail)
+
+    def handle_add_product_form(
+        self,
+        sale: Sale,
+        product_id: int,
+        quantity: int,
+        discount: float,
+    ) -> SaleDetail:
+        return self.add_product_to_sale(
+            sale=sale,
+            product_id=product_id,
+            quantity=quantity,
+            discount=discount,
+        )
+
+    def handle_update_product_form(
+        self,
+        sale: Sale,
+        sale_detail_id: int,
+        quantity: int,
+        discount: float,
+    ) -> SaleDetail:
+        sale_detail = self.get_sale_detail_for_sale(
+            sale_id=sale.id,
+            sale_detail_id=sale_detail_id,
+        )
+        return self.update_sale_detail(
+            sale=sale,
+            sale_detail=sale_detail,
+            quantity=quantity,
+            discount=discount,
+        )
+
+    @staticmethod
+    def parse_month_range(month_param: str | None):
+        selected_month = month_param if month_param else None
+        date_range = None
+        if not month_param:
+            return selected_month, date_range
+
+        selected = datetime.strptime(month_param, "%Y-%m").date()
+        start_date = selected.replace(day=1)
+        end_date = start_date + relativedelta(months=1, days=-1)
+        return selected_month, (start_date, end_date)
+
+    @staticmethod
+    def build_months_display(months: list[str]):
+        month_names = [
+            "Enero",
+            "Febrero",
+            "Marzo",
+            "Abril",
+            "Mayo",
+            "Junio",
+            "Julio",
+            "Agosto",
+            "Septiembre",
+            "Octubre",
+            "Noviembre",
+            "Diciembre",
+        ]
+        months_display = []
+        for month in months:
+            try:
+                dt = datetime.strptime(month, "%Y-%m").date()
+                label = f"{month_names[dt.month - 1]} {dt.year}"
+            except Exception:
+                label = month
+            months_display.append((month, label))
+        return months_display
+
+    def create_daily_income(self, business: Business, form) -> DailyIncome:
+        income_type = (
+            DailyIncome.TYPE_NON_TAXABLE
+            if form.mark_non_taxable.data
+            else DailyIncome.TYPE_INCOME_OBTAINED
+        )
+        new_income = DailyIncome(
+            business_id=business.id,
+            date=form.date.data,
+            income_type=income_type,
+            activity=form.activity.data,
+            amount=float(form.amount.data or 0),
+            description=(form.description.data or "").strip() or None,
+            cash_location=form.cash_location.data,
+            source=DailyIncome.SOURCE_MANUAL,
+        )
+        db.session.add(new_income)
+        db.session.commit()
+        return new_income
+
+    @staticmethod
+    def build_sale_summaries(daily_sales: dict):
+        sale_summaries = {}
+        for _, data in daily_sales.items():
+            for sale in data.get("sales", []):
+                summary = {}
+                for sale_detail in getattr(sale, "products", []):
+                    try:
+                        product_name = (
+                            sale_detail.product.name
+                            if sale_detail.product
+                            else f"#{sale_detail.product_id}"
+                        )
+                    except Exception:
+                        product_name = f"#{sale_detail.product_id}"
+
+                    if product_name in summary:
+                        summary[product_name]["quantity"] += sale_detail.quantity or 0
+                        summary[product_name]["total_price"] += (
+                            sale_detail.total_price or 0
+                        )
+                    else:
+                        summary[product_name] = {
+                            "quantity": sale_detail.quantity or 0,
+                            "total_price": sale_detail.total_price or 0,
+                            "unit_price": sale_detail.unit_price or 0,
+                        }
+
+                sale_summaries[sale.id] = [
+                    {
+                        "name": key,
+                        "quantity": value["quantity"],
+                        "total_price": value["total_price"],
+                        "unit_price": value["unit_price"],
+                    }
+                    for key, value in summary.items()
+                ]
+        return sale_summaries
+
+    def build_sales_list_context(
+        self,
+        business: Business,
+        filters: dict,
+        month_param: str | None,
+    ):
+        is_daily_mode = business.income_entry_mode == Business.INCOME_MODE_DAILY
+        all_sales_unfiltered = []
+        all_daily_income_unfiltered = []
+        months = []
+
+        selected_month, date_range = self.parse_month_range(month_param)
+        all_sales = []
+        all_daily_income = []
+
+        if is_daily_mode:
+            daily_query = DailyIncome.query.filter_by(business_id=business.id)
+            all_daily_income_unfiltered = daily_query.order_by(
+                DailyIncome.date.desc(), DailyIncome.id.desc()
+            ).all()
+            months = sorted(
+                {
+                    income.date.strftime("%Y-%m")
+                    for income in all_daily_income_unfiltered
+                    if income.date
+                },
+                reverse=True,
+            )
+            if date_range:
+                all_daily_income = (
+                    daily_query.filter(
+                        DailyIncome.date.between(date_range[0], date_range[1])
+                    )
+                    .order_by(DailyIncome.date.desc(), DailyIncome.id.desc())
+                    .all()
+                )
+            else:
+                all_daily_income = all_daily_income_unfiltered
+        else:
+            all_sales_unfiltered = (
+                Sale.query.options(joinedload(Sale.products))
+                .filter_by(**filters)
+                .order_by(Sale.date.desc())
+                .all()
+            )
+            sales_by_months_unfiltered = group_sales_by_month(all_sales_unfiltered)
+            months = sorted(list(sales_by_months_unfiltered.keys()), reverse=True)
+
+            if date_range:
+                all_sales = (
+                    Sale.query.options(joinedload(Sale.products))
+                    .filter_by(**filters)
+                    .filter(Sale.date.between(date_range[0], date_range[1]))
+                    .order_by(Sale.date.desc())
+                    .all()
+                )
+            else:
+                all_sales = all_sales_unfiltered
+
+        months_display = self.build_months_display(months)
+
+        sales_by_months = group_sales_by_month(all_sales) if not is_daily_mode else {}
+        month_totals = (
+            calculate_month_totals(sales_by_months) if not is_daily_mode else {}
+        )
+
+        daily_income_by_month = defaultdict(float)
+        if is_daily_mode:
+            for income in all_daily_income_unfiltered:
+                if income.date:
+                    daily_income_by_month[income.date.strftime("%Y-%m")] += float(
+                        income.amount or 0
+                    )
+
+        daily_sales = {}
+        if not is_daily_mode:
+            for _, dates in sales_by_months.items():
+                for date_key, data in dates.items():
+                    if date_key in daily_sales:
+                        daily_sales[date_key]["total_products"] += data.get(
+                            "total_products", 0
+                        )
+                        daily_sales[date_key]["total_income"] += data.get(
+                            "total_income", 0
+                        )
+                        daily_sales[date_key]["sales"].extend(data.get("sales", []))
+                    else:
+                        daily_sales[date_key] = {
+                            "total_products": data.get("total_products", 0),
+                            "total_income": data.get("total_income", 0),
+                            "sales": list(data.get("sales", [])),
+                        }
+
+        daily_sales_sorted = sorted(
+            daily_sales.items(), key=lambda item: item[0], reverse=True
+        )
+        sale_summaries = (
+            self.build_sale_summaries(daily_sales) if not is_daily_mode else {}
+        )
+
+        prev_month = None
+        next_month = None
+        display_month_name = None
+        if selected_month and selected_month in months:
+            try:
+                idx = months.index(selected_month)
+                if idx + 1 < len(months):
+                    prev_month = months[idx + 1]
+                if idx - 1 >= 0:
+                    next_month = months[idx - 1]
+                display_month_name = self.build_months_display([selected_month])[0][1]
+            except Exception:
+                display_month_name = selected_month
+        else:
+            display_month_name = "Todos"
+
+        current_total = (
+            sum(float(item.amount or 0) for item in all_daily_income)
+            if is_daily_mode
+            else (
+                month_totals.get(selected_month, 0)
+                if selected_month
+                else sum(month_totals.values())
+            )
+        )
+
+        return {
+            "is_daily_mode": is_daily_mode,
+            "sales_by_months": sales_by_months,
+            "month_totals": month_totals,
+            "daily_income_by_month": daily_income_by_month,
+            "all_daily_income": all_daily_income,
+            "months": months,
+            "months_display": months_display,
+            "all_sales": all_sales,
+            "current_total": current_total,
+            "selected_month": selected_month,
+            "daily_sales_sorted": daily_sales_sorted,
+            "prev_month": prev_month,
+            "next_month": next_month,
+            "display_month_name": display_month_name,
+            "sale_summaries": sale_summaries,
+        }
+
+    def build_sale_details_context(self, sale: Sale, filters: dict):
+        add_product_form = SaleDetailForm(prefix="add_product")
+        update_product_form = UpdateSaleDetailForm(prefix="update_product")
+        remove_product_form = RemoveSaleDetailForm(prefix="remove_product")
+        update_sale_form = SaleForm(
+            parent_business_id=filters["business_id"],
+            obj=sale,
+            prefix="update_sale",
+        )
+        add_sale_form = SaleForm(
+            parent_business_id=filters["business_id"],
+            prefix="add_sale",
+        )
+
+        add_product_form.set_product_choices(
+            self.get_available_products(filters["business_id"])
+        )
+
+        sale_details = self.get_sale_details(sale.id)
+
+        return {
+            "add_product_form": add_product_form,
+            "update_product_form": update_product_form,
+            "remove_product_form": remove_product_form,
+            "update_sale_form": update_sale_form,
+            "add_sale_form": add_sale_form,
+            "sale_details": sale_details,
+        }
 
     def add_sale(self, business: Business, form: SaleForm) -> Sale:
         """
@@ -183,7 +540,7 @@ class SalesService:
         Returns:
             Product: El objeto Product que se eliminó de la venta.
         """
-        removed_product = Product.query.first_or_404(sale_detail.product_id)
+        removed_product = Product.query.get_or_404(sale_detail.product_id)
         self.repository.remove_sale_detail(sale.id, sale_detail.id)
         return removed_product
 
@@ -202,7 +559,6 @@ class SalesService:
         Returns:
             float: Total por producto
         """
-        print(f"La cantidad es: {discount}")
         return round(unit_price * quantity * (1 - (discount or 0.0)), 2)
 
     @staticmethod

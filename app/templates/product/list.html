@@ -377,7 +377,7 @@
                       class="px-4 py-2 font-medium text-gray-900 dark:text-white"
                     >
                       <a
-                        href="{{ url_for('product.technical_card', business_id=business.id, product_id=product.id ) }}"
+                        href="{{ url_for('product.technical_card', client_slug=business.client.slug, business_slug=business.slug, product_id=product.id ) }}"
                         >{{ product.name }}</a
                       >
                     </td>
@@ -590,7 +590,8 @@
     </div>
   </section>
   <!-- Campo oculto para almacenar el business_id -->
-  <input type="hidden" id="business-id" value="{{ business.id }}" />
+  <input type="hidden" id="client-slug" value="{{ business.client.slug }}" />
+  <input type="hidden" id="business-slug" value="{{ business.slug }}" />
 {% endblock %}
 
 {% block custom_javascript %}

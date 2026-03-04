@@ -75,9 +75,6 @@ class SalesRepository:
         total = (sale.subtotal_amount * (1 - sale.discount)) + (
             sale.subtotal_amount * sale.tax
         )
-        print(
-            f"El subtotal es: {sale.subtotal_amount}, \n El descuento es: {sale.subtotal_amount * (1 - sale.discount)}, \n El impuesto es: {sale.subtotal_amount * sale.tax} \n El total es: {total}"
-        )
         try:
             sale.total_amount = round(total, 2)
             db.session.commit()

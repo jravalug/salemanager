@@ -97,7 +97,7 @@
                   <!-- Formulario para Modificar un Artículo de Inventario -->
                   <form
                     method="post"
-                    action="{{ url_for('inventory.item_update', business_id=business.id, inventory_item_id=inventory_item.id) }}"
+                    action="{{ url_for('inventory.item_update', client_slug=business.client.slug, business_slug=business.slug, inventory_item_id=inventory_item.id) }}"
                     class="flex space-x-2"
                   >
                     <input

@@ -1,6 +1,3 @@
-from collections import defaultdict
-from datetime import datetime
-from io import BytesIO
 import json
 from flask import (
     Blueprint,
@@ -11,13 +8,8 @@ from flask import (
     send_file,
     url_for,
 )
-from openpyxl import Workbook
-
-from dateutil.relativedelta import relativedelta
-
 from app.forms import MonthForm
-from app.models import Business, Sale, SaleDetail
-from app.services import SalesReportService, BusinessService
+from app.services import SalesReportService
 from app.utils import (
     generate_excel_sales_by_date,
     generate_excel_ipv,
@@ -26,23 +18,51 @@ from app.utils import (
 from flask import jsonify
 
 
-bp = Blueprint("report", __name__, url_prefix="/business/<int:business_id>/report")
+bp = Blueprint(
+    "report",
+    __name__,
+    url_prefix="/clients/<string:client_slug>/business/<string:business_slug>/report",
+)
 
 sales_service = SalesReportService()
-business_service = BusinessService()
+
+
+def _redirect_clients_list():
+    return redirect(url_for("client.list_clients"))
+
+
+def _resolve_business_scope_or_redirect(client_slug, business_slug):
+    try:
+        business, business_filters = sales_service.resolve_business_scope(
+            client_slug,
+            business_slug,
+        )
+        return business, business_filters, None
+    except ValueError:
+        return None, None, _redirect_clients_list()
+
+
+def _redirect_report(endpoint, business):
+    return redirect(
+        url_for(
+            endpoint,
+            client_slug=business.client.slug,
+            business_slug=business.slug,
+        )
+    )
 
 
 @bp.route("/monthly-sales-by-product", methods=["GET", "POST"])
-def monthly_sales_by_produc(business_id):
-    # Obtener el negocio (asegúrate de que exista)
-    business = Business.query.get_or_404(business_id)
-    business_filters = business_service.get_parent_filters(business)
+def monthly_sales_by_produc(client_slug, business_slug):
+    business, business_filters, redirect_response = _resolve_business_scope_or_redirect(
+        client_slug,
+        business_slug,
+    )
+    if redirect_response:
+        return redirect_response
 
-    # Inicializar variables
     daily_sales = []
     selected_month = None
-    excluded_sales = []
-    excluded_products = []
 
     if request.method == "POST":
         # Obtener el mes seleccionado desde el formulario
@@ -58,87 +78,11 @@ def monthly_sales_by_produc(business_id):
             )
 
         try:
-
-            sales, formated_daily_sales = sales_service.get_daily_sales(
+            daily_sales = sales_service.get_monthly_sales_by_product_data(
                 selected_month,
                 business_filters["business_id"],
                 business_filters.get("specific_business_id"),
             )
-
-            # Procesar los datos
-            sales_by_day = {}
-            for sale in sales:
-                date_key = sale.date.strftime("%Y-%m-%d")
-                if date_key not in sales_by_day:
-                    sales_by_day[date_key] = {
-                        "total_products": 0,
-                        "total_income": 0,
-                        "products": {},
-                    }
-
-                # Ordenar los productos dentro de la venta por nombre
-                sorted_products = sorted(
-                    sale.products, key=lambda sale_detail: sale_detail.product.name
-                )
-                # logging.debug("Datos generados para el reporte: %s", sale.products)
-
-                for sale_detail in sorted_products:
-                    product_key = sale_detail.product.name
-                    if product_key not in sales_by_day[date_key]["products"]:
-                        sales_by_day[date_key]["products"][product_key] = {
-                            "quantity": 0,
-                            "total_amount": 0,
-                            "orders": set(),  # Usamos un conjunto para evitar duplicados,
-                        }
-
-                    sales_by_day[date_key]["products"][product_key][
-                        "quantity"
-                    ] += sale_detail.quantity
-                    sales_by_day[date_key]["products"][product_key][
-                        "total_amount"
-                    ] += sale_detail.total_price
-
-                    # Añadir la tupla (sale_id, sale_number) al conjunto
-                    sales_by_day[date_key]["products"][product_key]["orders"].add(
-                        (sale.id, sale.sale_number)
-                    )
-
-                # Actualizar totales
-                sales_by_day[date_key]["total_products"] += sum(
-                    sale_detail.quantity for sale_detail in sale.products
-                )
-                sales_by_day[date_key]["total_income"] += sum(
-                    sale_detail.total_price for sale_detail in sale.products
-                )
-
-            # Formatear los datos para la plantilla
-            for date, data in sales_by_day.items():
-                # Ordenar los productos por nombre
-                sorted_products = sorted(
-                    data["products"].items(),
-                    key=lambda item: item[
-                        0
-                    ],  # Ordenar por el nombre del producto (item[0])
-                )
-
-                daily_sales.append(
-                    {
-                        "date": date,
-                        "total_products": data["total_products"],
-                        "total_income": data["total_income"],
-                        "products": [
-                            {
-                                "name": name,
-                                "quantity": product["quantity"],
-                                "total_amount": product["total_amount"],
-                                "orders": sorted(
-                                    list(product["orders"]), key=lambda order: order[1]
-                                ),
-                            }
-                            for name, product in sorted_products  # Usar los productos ordenados
-                        ],
-                    }
-                )
 
         except ValueError:
             # Manejar errores si el formato del mes es incorrecto
@@ -157,12 +101,15 @@ def monthly_sales_by_produc(business_id):
 
 
 @bp.route("/monthly-sales-by-date", methods=["GET", "POST"])
-def monthly_sales_by_date(business_id):
+def monthly_sales_by_date(client_slug, business_slug):
     """Endpoint para obtener las ventas mensuales agrupadas por día."""
 
-    #     # Obtener el negocio
-    business = Business.query.get_or_404(business_id)
-    business_filters = business_service.get_parent_filters(business)
+    business, business_filters, redirect_response = _resolve_business_scope_or_redirect(
+        client_slug,
+        business_slug,
+    )
+    if redirect_response:
+        return redirect_response
 
     form = MonthForm()
 
@@ -173,7 +120,7 @@ def monthly_sales_by_date(business_id):
     selected_month = None
 
     def redirect_to_monthly_sales_by_date():
-        return redirect(url_for("report.monthly_sales_by_date", business=business))
+        return _redirect_report("report.monthly_sales_by_date", business)
 
     if form.validate_on_submit():
         month_str = form.month.data
@@ -187,11 +134,11 @@ def monthly_sales_by_date(business_id):
 
         except ValueError as e:
             flash(f"Error en el formato del mes: {e}", "error")
-            redirect_to_monthly_sales_by_date()
+            return redirect_to_monthly_sales_by_date()
 
         except Exception as e:
             flash("Ocurrió un error inesperado.", "error")
-            redirect_to_monthly_sales_by_date()
+            return redirect_to_monthly_sales_by_date()
 
         month_totals = sales_service.get_monthly_totals(daily_sales)
 
@@ -215,34 +162,31 @@ def monthly_sales_by_date(business_id):
 
 
 @bp.route("/export-to-excel/sales-by-date", methods=["POST"])
-def export_to_excel_sales_by_day(business_id):
-    # Obtener el negocio
-    business = Business.query.get_or_404(business_id)
+def export_to_excel_sales_by_day(client_slug, business_slug):
+    business, _, redirect_response = _resolve_business_scope_or_redirect(
+        client_slug,
+        business_slug,
+    )
+    if redirect_response:
+        return redirect_response
     # Recuperar los datos del reporte mensual
     month = request.form.get("selected_month")
     daily_sales_json = request.form.get("daily_sales_export")
-    if not daily_sales_json:
-        flash("No hay datos disponibles para exportar.", "error")
-        return redirect(
-            url_for("report.monthly_sales_by_date", business_id=business.id)
-        )
     try:
-        # Convertir los datos JSON a una estructura de Python
-        data = json.loads(daily_sales_json)
-    except json.JSONDecodeError:
-        flash("Los datos recibidos no son válidos.", "error")
-        return redirect(
-            url_for("report.monthly_sales_by_date", business_id=business.id)
+        data = sales_service.parse_json_payload(
+            daily_sales_json,
+            require_non_empty=True,
         )
+    except ValueError as e:
+        flash(str(e), "error")
+        return _redirect_report("report.monthly_sales_by_date", business)
 
     try:
         # Generar el reporte en MS Excel
         excel_file = generate_excel_sales_by_date(business, data, month)
     except Exception as e:
         flash("Ocurrio un error al tratar de generar el reporte en MS Excel.", "error")
-        return redirect(
-            url_for("report.monthly_sales_by_date", business_id=business.id)
-        )
+        return _redirect_report("report.monthly_sales_by_date", business)
 
     # Enviar el archivo como respuesta
     return send_file(
@@ -254,102 +198,28 @@ def export_to_excel_sales_by_day(business_id):
 
 
 @bp.route("/export-to-excel/sales-by-product", methods=["POST"])
-def export_to_excel_sales_by_product(business_id):
-    # Obtener el negocio
-    business = Business.query.get_or_404(business_id)
+def export_to_excel_sales_by_product(client_slug, business_slug):
+    business, _, redirect_response = _resolve_business_scope_or_redirect(
+        client_slug,
+        business_slug,
+    )
+    if redirect_response:
+        return redirect_response
 
     try:
-        # Recuperar los datos del reporte mensual
-        data = json.loads(request.form.get("daily_sales_export", "[]"))
-        month = request.form.get("selected_month", "_")
-        print(f"En export_to_excel_sales_by_product:{month}")
-        if not data:
-            flash("No hay datos disponibles para exportar.", "error")
-            return redirect(
-                url_for("report.monthly_sales_by_produc", business_id=business_id)
-            )
-    except json.JSONDecodeError:
-        flash("Los datos recibidos no son válidos.", "error")
-        return redirect(
-            url_for("report.monthly_sales_by_produc", business_id=business_id)
+        data = sales_service.parse_json_payload(
+            request.form.get("daily_sales_export", "[]"),
+            require_non_empty=True,
         )
-
-    print("Datos generados para el reporte: %s", data)
-
-    # Procesar los datos para agrupar por producto
-    product_summary = defaultdict(
-        lambda: {"quantity": 0, "total_amount": 0, "orders": defaultdict(set)}
-    )
-
-    for day in data:
-        if "date" not in day or "products" not in day:
-            flash("Los datos recibidos no tienen el formato esperado.", "error")
-            return redirect(
-                url_for("report.monthly_sales_by_produc", business_id=business_id)
-            )
-
-        # Extraer el día de la fecha
-        date_str = day["date"]
-        try:
-            day_number = datetime.strptime(date_str, "%Y-%m-%d").strftime(
-                "%d"
-            )  # Formato "01", "02", etc.
-        except ValueError:
-            flash("El formato de fecha en los datos no es válido.", "error")
-            return redirect(
-                url_for("report.monthly_sales_by_produc", business_id=business_id)
-            )
-
-        for product in day["products"]:
-            if (
-                "name" not in product
-                or "quantity" not in product
-                or "total_amount" not in product
-                or "orders" not in product
-            ):
-                flash("Los datos recibidos no tienen el formato esperado.", "error")
-                return redirect(
-                    url_for("report.monthly_sales_by_produc", business_id=business_id)
-                )
-
-            product_name = product["name"]
-            product_summary[product_name]["quantity"] += product["quantity"]
-            product_summary[product_name]["total_amount"] += product["total_amount"]
-
-            # Agregar los números de orden al conjunto correspondiente al día
-            for order in product["orders"]:
-                product_summary[product_name]["orders"][day_number].add(order[1])
-
-    # Crear un archivo Excel
-    workbook = Workbook()
-    sheet = workbook.active
-    sheet.title = "Reporte Mensual"
-
-    # Encabezados
-    headers = ["PRODUCTO", "CANTIDAD", "IMPORTE", "ORDENES"]
-    sheet.append(headers)
-
-    # Rellenar el archivo con los datos
-    for product_name, details in product_summary.items():
-        # Formatear las órdenes en el nuevo formato "01[1,2,3], 02[4,5], ..."
-        orders_formatted = []
-        for day_number, orders_set in details["orders"].items():
-            orders_list = sorted(list(orders_set))
-            orders_formatted.append(f"{day_number}[{','.join(map(str, orders_list))}]")
-        orders_column = ", ".join(orders_formatted)
-
-        row = [
-            product_name,
-            details["quantity"],
-            details["total_amount"],
-            orders_column,  # Columna ORDENES con el nuevo formato
-        ]
-        sheet.append(row)
-
-    # Guardar el archivo en memoria
-    excel_file = BytesIO()
-    workbook.save(excel_file)
-    excel_file.seek(0)
+        month = request.form.get("selected_month", "_")
+    except ValueError as e:
+        flash(str(e), "error")
+        return _redirect_report("report.monthly_sales_by_produc", business)
+    try:
+        excel_file = sales_service.generate_excel_sales_by_product(data)
+    except Exception:
+        flash("No se pudo generar el archivo de exportación.", "error")
+        return _redirect_report("report.monthly_sales_by_produc", business)
 
     # Enviar el archivo como respuesta
     return send_file(
@@ -361,110 +231,28 @@ def export_to_excel_sales_by_product(business_id):
 
 
 @bp.route("/export-to-excel/sales-by-product-by-date", methods=["POST"])
-def export_to_excel_sales_by_product_by_date(business_id):
-    # Obtener el negocio
-    business = Business.query.get_or_404(business_id)
+def export_to_excel_sales_by_product_by_date(client_slug, business_slug):
+    business, _, redirect_response = _resolve_business_scope_or_redirect(
+        client_slug,
+        business_slug,
+    )
+    if redirect_response:
+        return redirect_response
 
     try:
-        # Recuperar los datos del reporte mensual
-        data = json.loads(request.form.get("daily_sales_export", "[]"))
-        month = request.form.get("selected_month", "_")
-        print(f"En export_to_excel_sales_by_product_by_date:{month}")
-        if not data:
-            flash("No hay datos disponibles para exportar.", "error")
-            return redirect(
-                url_for("report.monthly_sales_by_produc", business_id=business_id)
-            )
-    except json.JSONDecodeError:
-        flash("Los datos recibidos no son válidos.", "error")
-        return redirect(
-            url_for("report.monthly_sales_by_produc", business_id=business_id)
+        data = sales_service.parse_json_payload(
+            request.form.get("daily_sales_export", "[]"),
+            require_non_empty=True,
         )
-
-    # Procesar los datos para organizarlos por día
-    sales_by_day = defaultdict(list)
-
-    for day in data:
-        if "date" not in day or "products" not in day:
-            flash("Los datos recibidos no tienen el formato esperado.", "error")
-            return redirect(
-                url_for("report.monthly_sales_by_produc", business_id=business_id)
-            )
-
-        date_str = day["date"]
-        try:
-            formatted_date = datetime.strptime(date_str, "%Y-%m-%d").strftime(
-                "%d/%m/%y"
-            )  # Formato "DD/MM/YY"
-        except ValueError:
-            flash("El formato de fecha en los datos no es válido.", "error")
-            return redirect(
-                url_for("report.monthly_sales_by_produc", business_id=business_id)
-            )
-
-        for product in day["products"]:
-            if (
-                "name" not in product
-                or "quantity" not in product
-                or "total_amount" not in product
-            ):
-                flash("Los datos recibidos no tienen el formato esperado.", "error")
-                return redirect(
-                    url_for("report.monthly_sales_by_produc", business_id=business_id)
-                )
-
-            product_name = product["name"]
-            quantity = product["quantity"]
-            price_per_unit = product["total_amount"] / quantity if quantity > 0 else 0
-            total_amount = product["total_amount"]
-
-            sales_by_day[formatted_date].append(
-                {
-                    "product": product_name,
-                    "quantity": quantity,
-                    "price_per_unit": price_per_unit,
-                    "total_amount": total_amount,
-                }
-            )
-
-    # Crear un archivo Excel
-    workbook = Workbook()
-    sheet = workbook.active
-    sheet.title = "Reporte Mensual"
-
-    # Rellenar el archivo con los datos
-    row_offset = 1  # Para manejar múltiples días
-    for date, products in sales_by_day.items():
-        # Agregar la cabecera del día
-        sheet.cell(row=row_offset, column=1, value="DIA")
-        sheet.cell(row=row_offset, column=2, value=date)
-        row_offset += 1
-
-        # Agregar los encabezados de las columnas
-        headers = ["PRODUCTO", "CANTIDAD", "PRECIO UNITARIO", "IMPORTE"]
-        for col_idx, header in enumerate(headers, start=1):
-            sheet.cell(row=row_offset, column=col_idx, value=header)
-        row_offset += 1
-
-        # Agregar los productos del día
-        for product in products:
-            sheet.cell(row=row_offset, column=1, value=product["product"])
-            sheet.cell(row=row_offset, column=2, value=product["quantity"])
-            sheet.cell(
-                row=row_offset, column=3, value=round(product["price_per_unit"], 2)
-            )
-            sheet.cell(
-                row=row_offset, column=4, value=round(product["total_amount"], 2)
-            )
-            row_offset += 1
-
-        # Agregar una fila en blanco entre días
-        row_offset += 1
-
-    # Guardar el archivo en memoria
-    excel_file = BytesIO()
-    workbook.save(excel_file)
-    excel_file.seek(0)
+        month = request.form.get("selected_month", "_")
+    except ValueError as e:
+        flash(str(e), "error")
+        return _redirect_report("report.monthly_sales_by_produc", business)
+    try:
+        excel_file = sales_service.generate_excel_sales_by_product_by_date(data)
+    except Exception:
+        flash("No se pudo generar el archivo de exportación.", "error")
+        return _redirect_report("report.monthly_sales_by_produc", business)
 
     # Enviar el archivo como respuesta
     return send_file(
@@ -476,9 +264,13 @@ def export_to_excel_sales_by_product_by_date(business_id):
 
 
 @bp.route("/ipv-report", methods=["GET", "POST"])
-def ipv_report(business_id):
-    business = Business.query.get_or_404(business_id)
-    business_filters = business_service.get_parent_filters(business)
+def ipv_report(client_slug, business_slug):
+    business, business_filters, redirect_response = _resolve_business_scope_or_redirect(
+        client_slug,
+        business_slug,
+    )
+    if redirect_response:
+        return redirect_response
 
     daily_sales = []
     selected_month = None
@@ -487,133 +279,20 @@ def ipv_report(business_id):
         month_str = request.form.get("month")
         if not month_str:
             flash("Selecciona un mes válido.", "error")
-            return redirect(url_for("report.ipv_report", business_id=business_id))
-
-        try:
-            selected_month = datetime.strptime(month_str, "%Y-%m").date()
-            start_date = selected_month.replace(day=1)
-            end_date = start_date + relativedelta(months=1, days=-1)
-
-            # Consultar ventas del mes
-            if business.is_general:
-                sales = (
-                    Sale.query.filter(
-                        Sale.business_id == business_filters["business_id"],
-                        Sale.date.between(start_date, end_date),
-                    )
-                    .join(Sale.products)  # Relación entre Sale y SaleDetail
-                    .join(SaleDetail.product)  # Relación entre SaleDetail y Product
-                    .order_by(Sale.date.asc())
-                    .all()
+            return redirect(
+                url_for(
+                    "report.ipv_report",
+                    client_slug=client_slug,
+                    business_slug=business_slug,
                 )
-            else:
-                sales = (
-                    Sale.query.filter(
-                        Sale.business_id == business_filters["business_id"],
-                        Sale.specific_business_id
-                        == business_filters["specific_business_id"],
-                        Sale.date.between(start_date, end_date),
-                    )
-                    .join(Sale.products)  # Relación entre Sale y SaleDetail
-                    .join(SaleDetail.product)  # Relación entre SaleDetail y Product
-                    .order_by(Sale.date.asc())
-                    .all()
-                )
-            print(f"sales: {sales}")
-
-            # Obtener todos los productos non_food involucrados en las ventas del mes
-            non_food_products = {}
-            for sale in sales:
-                for sale_product in sale.products:
-                    product = sale_product.product
-                    if product.category not in [
-                        "comida",
-                        "postre",
-                        "trago",
-                        "cocteleria",
-                    ]:
-                        # Almacenar el producto con su precio (si no está ya en el diccionario)
-                        if product.name not in non_food_products:
-                            non_food_products[product.name] = product.price
-
-            # Procesar datos por día y categoría
-            sales_by_day = defaultdict(
-                lambda: {
-                    "non_food": {
-                        name: {
-                            "quantity": 0,
-                            "unit_price": price,
-                            "total_price": 0,
-                            "orders": set(),
-                        }
-                        for name, price in non_food_products.items()
-                    },
-                    "food": defaultdict(
-                        lambda: {
-                            "quantity": 0,
-                            "unit_price": 0,
-                            "total_price": 0,
-                            "orders": set(),
-                        }
-                    ),
-                }
             )
 
-            for sale in sales:
-                date_key = sale.date.strftime("%d-%m-%Y")
-                for sale_product in sale.products:
-                    product = sale_product.product
-                    if product.category == "cocteleria":
-                        continue
-
-                    category_key = (
-                        "food"
-                        if product.category in ["comida", "postre", "trago"]
-                        else "non_food"
-                    )
-
-                    # Agregar producto al día y categoría correspondiente
-                    product_entry = sales_by_day[date_key][category_key][product.name]
-                    product_entry["quantity"] += sale_product.quantity
-                    if sale_product.unit_price:
-                        product_entry["unit_price"] = sale_product.unit_price
-                    product_entry["total_price"] += sale_product.total_price
-                    product_entry["orders"].add(sale.sale_number)
-
-            # Formatear para la plantilla
-            daily_sales = []
-            for date, categories in sales_by_day.items():
-                non_food_list = [
-                    {
-                        "name": name,
-                        "quantity": data["quantity"],
-                        "unit_price": round(data["unit_price"], 2),
-                        "total_price": round(data["total_price"], 2),
-                        "orders": sorted(data["orders"]),
-                    }
-                    for name, data in categories["non_food"].items()
-                ]
-                non_food_list.sort(key=lambda x: x["name"])  # Ordenar por nombre
-
-                food_list = [
-                    {
-                        "name": name,
-                        "quantity": data["quantity"],
-                        "unit_price": round(data["unit_price"], 2),
-                        "total_price": round(data["total_price"], 2),
-                        "orders": sorted(data["orders"]),
-                    }
-                    for name, data in categories["food"].items()
-                ]
-                food_list.sort(key=lambda x: x["name"])  # Ordenar por nombre
-
-                daily_sales.append(
-                    {
-                        "date": date,
-                        "non_food": non_food_list,
-                        "food": food_list,
-                    }
-                )
+        try:
+            daily_sales, selected_month = sales_service.get_ipv_daily_sales(
+                month_str,
+                business,
+                business_filters,
+            )
 
         except ValueError:
             flash("Formato de mes inválido. Usa YYYY-MM.", "error")
@@ -628,24 +307,28 @@ def ipv_report(business_id):
 
 
 @bp.route("/export-ipv", methods=["POST"])
-def export_ipv(business_id):
-    business = Business.query.get_or_404(business_id)
+def export_ipv(client_slug, business_slug):
+    business, _, redirect_response = _resolve_business_scope_or_redirect(
+        client_slug,
+        business_slug,
+    )
+    if redirect_response:
+        return redirect_response
     business_name = business.name if business.is_general else business.parent_name()
     month = request.form.get("selected_month", "_")
 
     try:
-        # Convertir los datos JSON a una estructura de Python
-        data = json.loads(request.form.get("ipv_data", "[]"))
-    except json.JSONDecodeError:
-        flash("Los datos recibidos no son válidos.", "error")
-        return redirect(url_for("report.ipv_report", business_id=business.id))
+        data = sales_service.parse_json_payload(request.form.get("ipv_data", "[]"))
+    except ValueError as e:
+        flash(str(e), "error")
+        return _redirect_report("report.ipv_report", business)
 
     try:
         # Generar el reporte en MS Excel
         excel_file = generate_excel_ipv(business_name, data, month)
     except Exception as e:
         flash("Ocurrio un error al tratar de generar el reporte en MS Excel.", "error")
-        return redirect(url_for("report.ipv_report", business_id=business.id))
+        return _redirect_report("report.ipv_report", business)
 
     return send_file(
         excel_file,
@@ -656,32 +339,29 @@ def export_ipv(business_id):
 
 
 @bp.route("/export-to-excel/inventory-consumption", methods=["POST"])
-def export_to_excel_inventory_consumption(business_id):
-    # Exporta el consumo de inventario a un archivo Excel
-    business = Business.query.get_or_404(business_id)
+def export_to_excel_inventory_consumption(client_slug, business_slug):
+    business, _, redirect_response = _resolve_business_scope_or_redirect(
+        client_slug,
+        business_slug,
+    )
+    if redirect_response:
+        return redirect_response
     month = request.form.get("selected_month", "_")
 
     try:
-        data = json.loads(request.form.get("consumption_export", "[]"))
-    except json.JSONDecodeError:
-        flash("Los datos recibidos no son válidos.", "error")
-        return redirect(
-            url_for("report.inventory_consumption_view", business_id=business.id)
+        data = sales_service.parse_json_payload(
+            request.form.get("consumption_export", "[]"),
+            require_non_empty=True,
         )
-
-    if not data:
-        flash("No hay datos disponibles para exportar.", "error")
-        return redirect(
-            url_for("report.inventory_consumption_view", business_id=business.id)
-        )
+    except ValueError as e:
+        flash(str(e), "error")
+        return _redirect_report("report.inventory_consumption_view", business)
 
     try:
         excel_file = generate_excel_inventory_consumption(business, data, month)
     except Exception as e:
         flash("Ocurrió un error al generar el archivo Excel.", "error")
-        return redirect(
-            url_for("report.inventory_consumption_view", business_id=business.id)
-        )
+        return _redirect_report("report.inventory_consumption_view", business)
 
     return send_file(
         excel_file,
@@ -692,16 +372,16 @@ def export_to_excel_inventory_consumption(business_id):
 
 
 @bp.route("/monthly-sales-cocteleria", methods=["GET", "POST"])
-def monthly_sales_coctelera(business_id):
-    # Obtener el negocio (asegúrate de que exista)
-    business = Business.query.get_or_404(business_id)
-    business_filters = business_service.get_parent_filters(business)
+def monthly_sales_coctelera(client_slug, business_slug):
+    business, business_filters, redirect_response = _resolve_business_scope_or_redirect(
+        client_slug,
+        business_slug,
+    )
+    if redirect_response:
+        return redirect_response
 
-    # Inicializar variables
     daily_sales = []
     selected_month = None
-    excluded_sales = []
-    excluded_products = []
 
     if request.method == "POST":
         # Obtener el mes seleccionado desde el formulario
@@ -717,89 +397,12 @@ def monthly_sales_coctelera(business_id):
             )
 
         try:
-
-            sales, formated_daily_sales = sales_service.get_daily_sales(
+            daily_sales = sales_service.get_monthly_sales_by_product_data(
                 selected_month,
                 business_filters["business_id"],
                 business_filters.get("specific_business_id"),
+                category_filter="cocteleria",
             )
-
-            # Procesar los datos
-            sales_by_day = {}
-            for sale in sales:
-                date_key = sale.date.strftime("%Y-%m-%d")
-                if date_key not in sales_by_day:
-                    sales_by_day[date_key] = {
-                        "total_products": 0,
-                        "total_income": 0,
-                        "products": {},
-                    }
-
-                # Ordenar los productos dentro de la venta por nombre
-                sorted_products = sorted(
-                    sale.products, key=lambda sale_detail: sale_detail.product.name
-                )
-                # logging.debug("Datos generados para el reporte: %s", sale.products)
-
-                for sale_detail in sorted_products:
-                    product = sale_detail.product
-                    if product.category != "cocteleria":
-                        continue
-                    product_key = product.name
-                    if product_key not in sales_by_day[date_key]["products"]:
-                        sales_by_day[date_key]["products"][product_key] = {
-                            "quantity": 0,
-                            "total_amount": 0,
-                            "orders": set(),  # Usamos un conjunto para evitar duplicados,
-                        }
-
-                    sales_by_day[date_key]["products"][product_key][
-                        "quantity"
-                    ] += sale_detail.quantity
-                    sales_by_day[date_key]["products"][product_key]["total_amount"] += (
-                        sale_detail.quantity * product.price
-                    )
-
-                    # Añadir la tupla (sale_id, sale_number) al conjunto
-                    sales_by_day[date_key]["products"][product_key]["orders"].add(
-                        (sale.id, sale.sale_number)
-                    )
-
-                    # Actualizar totales
-                    sales_by_day[date_key]["total_products"] += sale_detail.quantity
-
-                    sales_by_day[date_key]["total_income"] += (
-                        sale_detail.quantity * product.price
-                    )
-
-            # Formatear los datos para la plantilla
-            for date, data in sales_by_day.items():
-                # Ordenar los productos por nombre
-                sorted_products = sorted(
-                    data["products"].items(),
-                    key=lambda item: item[
-                        0
-                    ],  # Ordenar por el nombre del producto (item[0])
-                )
-
-                daily_sales.append(
-                    {
-                        "date": date,
-                        "total_products": data["total_products"],
-                        "total_income": data["total_income"],
-                        "products": [
-                            {
-                                "name": name,
-                                "quantity": product["quantity"],
-                                "total_amount": product["total_amount"],
-                                "orders": sorted(
-                                    list(product["orders"]), key=lambda order: order[1]
-                                ),
-                            }
-                            for name, product in sorted_products  # Usar los productos ordenados
-                        ],
-                    }
-                )
 
         except ValueError:
             # Manejar errores si el formato del mes es incorrecto
@@ -818,19 +421,17 @@ def monthly_sales_coctelera(business_id):
 
 
 @bp.route("/inventory-consumption", methods=["POST"])
-def inventory_consumption(business_id):
+def inventory_consumption(client_slug, business_slug):
     """Devuelve el consumo de materias primas (InventoryItem) derivado de las ventas de un mes.
 
     Espera un formulario o JSON con 'month' en formato YYYY-MM.
     """
-    business = None
-    try:
-        from app.models import Business
-
-        business = Business.query.get_or_404(business_id)
-    except Exception:
-        # Si falla, devolvemos 404 implícito por get_or_404 o un error genérico
-        pass
+    business, business_filters, redirect_response = _resolve_business_scope_or_redirect(
+        client_slug,
+        business_slug,
+    )
+    if redirect_response:
+        return jsonify({"error": "Negocio no encontrado."}), 404
 
     month = (
         request.form.get("month") or request.json.get("month")
@@ -841,11 +442,6 @@ def inventory_consumption(business_id):
         return jsonify({"error": "El parámetro 'month' (YYYY-MM) es requerido."}), 400
 
     try:
-        business_filters = (
-            business_service.get_parent_filters(business)
-            if business
-            else {"business_id": business_id}
-        )
         specific_business_id = business_filters.get("specific_business_id")
         data = sales_service.get_inventory_consumption(
             month, business_filters["business_id"], specific_business_id
@@ -863,10 +459,14 @@ def inventory_consumption(business_id):
 
 
 @bp.route("/inventory-consumption/view", methods=["GET", "POST"])
-def inventory_consumption_view(business_id):
+def inventory_consumption_view(client_slug, business_slug):
     """Renderiza una plantilla con el consumo de inventario para el mes seleccionado."""
-    business = Business.query.get_or_404(business_id)
-    business_filters = business_service.get_parent_filters(business)
+    business, business_filters, redirect_response = _resolve_business_scope_or_redirect(
+        client_slug,
+        business_slug,
+    )
+    if redirect_response:
+        return redirect_response
 
     selected_month = None
     consumption_by_day = []
