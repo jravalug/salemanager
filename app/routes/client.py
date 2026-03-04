@@ -98,7 +98,7 @@ def client_dashboard(client_slug):
         return redirect(url_for("client.list_clients"))
 
     return render_template(
-        "business/dashboard.html",
+        "client/dashboard.html",
         client=client,
         **dashboard_context,
     )
