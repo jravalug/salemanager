@@ -8,3 +8,5 @@ from .invoice import Invoice, InvoicePurchaseDetail, InvoiceServiceDetail
 from .daily_income import DailyIncome
 from .income_event import IncomeEvent
 from .app_setting import AppSetting
+from .financial_ledger_entry import FinancialLedgerEntry
+from .fiscal_income_entry import FiscalIncomeEntry

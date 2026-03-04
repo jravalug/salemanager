@@ -8,3 +8,4 @@ from .product_service import *
 from .client_accounting_service import *
 from .inventory_service import *
 from .app_setting_service import *
+from .income_posting_service import *

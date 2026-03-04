@@ -17,6 +17,7 @@ from app.models import Sale, Product, SaleDetail, DailyIncome, IncomeEvent
 from app.models.business import Business
 from app.repositories.income_repository import IncomeRepository
 from app.services.business_service import BusinessService
+from app.services.income_posting_service import IncomePostingService
 from app.utils.slug_utils import get_business_by_slugs
 from app.utils.income_utils import calculate_month_totals, group_sales_by_month
 
@@ -354,6 +355,8 @@ class IncomeManagementService:
                 source_ref=f"daily_income:manual:{form.date.data}",
             )
             db.session.add(income_event)
+            db.session.flush()
+            IncomePostingService().post_event(income_event, commit=False)
         db.session.commit()
         return new_income
 

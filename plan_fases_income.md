@@ -136,12 +136,12 @@ Regla funcional:
 - Transferencia pendiente: financiero en `event_date`; fiscal en `collected_date`.
 
 ### Entregables
-- [ ] Modelo `FinancialLedgerEntry`.
-- [ ] Modelo `FiscalIncomeEntry`.
-- [ ] Migración de ambas tablas con índices por negocio/fecha.
-- [ ] Servicio de posting idempotente desde `IncomeEvent`.
-- [ ] Regla de selección de libro por régimen activo del cliente.
-- [ ] Prueba de regla inmediato vs pendiente.
+- [x] Modelo `FinancialLedgerEntry`.
+- [x] Modelo `FiscalIncomeEntry`.
+- [x] Migración de ambas tablas con índices por negocio/fecha.
+- [x] Servicio de posting idempotente desde `IncomeEvent`.
+- [x] Regla de selección de libro por régimen activo del cliente.
+- [x] Prueba de regla inmediato vs pendiente.
 
 ### Dependencia previa (F0)
 
@@ -208,11 +208,11 @@ Objetivo: convivencia limpia con flujos actuales.
 - [x] F0.2 Migrar `ACCOUNTING_FISCAL_THRESHOLD` a configuración editable en aplicación.
 - [x] F0.3 Ajustar `ClientAccountingService` para leer umbral desde configuración global persistente.
 - [x] F0.4 Crear UI mínima de administración para configuración global (solo umbral 500000 en esta fase).
-- [ ] F2.1 Crear modelos `financial_ledger_entry` y `fiscal_income_entry`.
-- [ ] F2.2 Crear migración Alembic.
-- [ ] F2.3 Implementar `IncomePostingService`.
-- [ ] F2.4 Integrar posting en flujo de `IncomeEvent`.
-- [ ] F2.5 Validar smoke end-to-end en `webdev`.
+- [x] F2.1 Crear modelos `financial_ledger_entry` y `fiscal_income_entry`.
+- [x] F2.2 Crear migración Alembic.
+- [x] F2.3 Implementar `IncomePostingService`.
+- [x] F2.4 Integrar posting en flujo de `IncomeEvent`.
+- [x] F2.5 Validar smoke end-to-end en `webdev`.
 
 ### Bloque siguiente
 
@@ -232,3 +232,5 @@ Objetivo: convivencia limpia con flujos actuales.
 - 2026-03-04: Se cerraron decisiones funcionales: libro por régimen activo, transición anual TCP>500000, conciliación manual y comprobante bancario mínimo.
 - 2026-03-04: Se agregó requisito de configuración global editable desde la aplicación para umbral de 500000 y base para futuras configuraciones globales.
 - 2026-03-04: Se completó F0 (configuración global persistente + UI de umbral) y se validó smoke test funcional en `conda webdev` (`GET /clients/settings` 200, `GET /clients/list` 200, `POST /clients/settings` 302 y persistencia de umbral).
+- 2026-03-04: Se completó F2 técnico inicial en `conda webdev`: modelos `financial_ledger_entry` y `fiscal_income_entry`, migración `9d41e3a2b7f1`, `IncomePostingService` idempotente e integración al crear `IncomeEvent` manual diario.
+- 2026-03-04: Se validaron reglas F2 en smoke: régimen financiero publica en libro financiero, régimen fiscal inmediato publica en libro fiscal y fiscal pendiente no publica hasta cobro.
