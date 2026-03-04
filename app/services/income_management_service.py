@@ -1,5 +1,5 @@
 from typing import Dict, Optional
-from datetime import datetime
+from datetime import date, datetime
 from collections import defaultdict
 
 from sqlalchemy import desc, func, inspect
@@ -13,7 +13,14 @@ from app.forms import (
     UpdateIncomeDetailForm,
     RemoveIncomeDetailForm,
 )
-from app.models import Sale, Product, SaleDetail, DailyIncome, IncomeEvent
+from app.models import (
+    Sale,
+    Product,
+    SaleDetail,
+    DailyIncome,
+    IncomeEvent,
+    CollectionReceipt,
+)
 from app.models.business import Business
 from app.repositories.income_repository import IncomeRepository
 from app.services.business_service import BusinessService
@@ -359,6 +366,83 @@ class IncomeManagementService:
             IncomePostingService().post_event(income_event, commit=False)
         db.session.commit()
         return new_income
+
+    @staticmethod
+    def get_pending_income_events(business_id: int) -> list[IncomeEvent]:
+        """Devuelve ingresos pendientes por acreditar para un negocio."""
+        return (
+            IncomeEvent.query.filter_by(
+                business_id=business_id,
+                collection_status=IncomeEvent.STATUS_PENDING,
+            )
+            .order_by(IncomeEvent.event_date.asc(), IncomeEvent.id.asc())
+            .all()
+        )
+
+    @staticmethod
+    def _parse_collected_date(collected_date_value) -> date:
+        if not collected_date_value:
+            return datetime.today().date()
+
+        if isinstance(collected_date_value, date):
+            return collected_date_value
+
+        return datetime.strptime(str(collected_date_value), "%Y-%m-%d").date()
+
+    def reconcile_income_event(
+        self,
+        business_id: int,
+        income_event_id: int,
+        bank_operation_number: str,
+        collected_date_value=None,
+        reconciled_by: str | None = None,
+        bank_name: str | None = None,
+    ) -> IncomeEvent:
+        """Concilia un ingreso pendiente y aplica posting contable según régimen."""
+        operation_number = (bank_operation_number or "").strip()
+        if not operation_number:
+            raise ValueError("El número de operación bancaria es obligatorio.")
+
+        income_event = IncomeEvent.query.filter_by(
+            id=income_event_id,
+            business_id=business_id,
+        ).first()
+        if not income_event:
+            raise ValueError("Ingreso pendiente no encontrado.")
+
+        if income_event.collection_status != IncomeEvent.STATUS_PENDING:
+            raise ValueError("Solo se pueden conciliar ingresos pendientes.")
+
+        collected_date = self._parse_collected_date(collected_date_value)
+
+        income_event.collection_status = IncomeEvent.STATUS_COLLECTED
+        income_event.collected_date = collected_date
+        income_event.bank_operation_number = operation_number
+        income_event.reconciled_by = (reconciled_by or "").strip() or None
+        income_event.reconciled_at = datetime.utcnow()
+
+        receipt = CollectionReceipt.query.filter_by(
+            income_event_id=income_event.id
+        ).first()
+        if not receipt:
+            receipt = CollectionReceipt(
+                income_event_id=income_event.id,
+                bank_operation_number=operation_number,
+                collected_date=collected_date,
+                bank_name=(bank_name or "").strip() or None,
+                reconciled_by=income_event.reconciled_by,
+            )
+            db.session.add(receipt)
+        else:
+            receipt.bank_operation_number = operation_number
+            receipt.collected_date = collected_date
+            receipt.bank_name = (bank_name or "").strip() or None
+            receipt.reconciled_by = income_event.reconciled_by
+
+        IncomePostingService().post_event(income_event, commit=False)
+        db.session.commit()
+
+        return income_event
 
     @staticmethod
     def build_income_summaries(daily_sales: dict):

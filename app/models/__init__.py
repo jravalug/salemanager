@@ -10,3 +10,4 @@ from .income_event import IncomeEvent
 from .app_setting import AppSetting
 from .financial_ledger_entry import FinancialLedgerEntry
 from .fiscal_income_entry import FiscalIncomeEntry
+from .collection_receipt import CollectionReceipt

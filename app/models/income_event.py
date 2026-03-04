@@ -29,6 +29,9 @@ class IncomeEvent(db.Model):
     payment_channel = db.Column(db.String(20), nullable=False, index=True)
     collection_status = db.Column(db.String(20), nullable=False, index=True)
     collected_date = db.Column(db.Date, nullable=True, index=True)
+    bank_operation_number = db.Column(db.String(80), nullable=True, index=True)
+    reconciled_by = db.Column(db.String(120), nullable=True)
+    reconciled_at = db.Column(db.DateTime, nullable=True)
     description = db.Column(db.String(255), nullable=True)
     source_ref = db.Column(db.String(50), nullable=True, index=True)
     created_at = db.Column(

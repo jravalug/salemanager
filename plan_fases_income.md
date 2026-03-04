@@ -159,19 +159,19 @@ Regla funcional:
 Objetivo: gestionar transitorio bancario y conciliación de cobros pendientes.
 
 ### Entregables
-- [ ] Consulta de pendientes por acreditar.
-- [ ] Operación de transición `pending -> collected`.
-- [ ] Registro de conciliación manual del cobro (usuario + fecha + referencia bancaria).
-- [ ] Actualización automática de impacto fiscal al conciliar.
+- [x] Consulta de pendientes por acreditar.
+- [x] Operación de transición `pending -> collected`.
+- [x] Registro de conciliación manual del cobro (usuario + fecha + referencia bancaria).
+- [x] Actualización automática de impacto fiscal al conciliar.
 
 ## Fase 4 — Documento mínimo de cobro
 
 Objetivo: cerrar pendientes mediante comprobante/confirmación de cobro.
 
 ### Entregables
-- [ ] Entidad `CollectionReceipt` (o equivalente mínima).
-- [ ] Relación con `IncomeEvent`.
-- [ ] Flujo de confirmación y cierre de pendiente por número de operación bancaria.
+- [x] Entidad `CollectionReceipt` (o equivalente mínima).
+- [x] Relación con `IncomeEvent`.
+- [x] Flujo de confirmación y cierre de pendiente por número de operación bancaria.
 
 ## Fase 5 — Reportes esenciales
 
@@ -216,9 +216,9 @@ Objetivo: convivencia limpia con flujos actuales.
 
 ### Bloque siguiente
 
-- [ ] F3.1 Endpoint/servicio de pendientes por acreditar.
-- [ ] F3.2 Endpoint/servicio de conciliación de pendiente.
-- [ ] F4.1 Modelo y migración de comprobante de cobro.
+- [x] F3.1 Endpoint/servicio de pendientes por acreditar.
+- [x] F3.2 Endpoint/servicio de conciliación de pendiente.
+- [x] F4.1 Modelo y migración de comprobante de cobro.
 - [ ] F0.x Agregar nuevas configuraciones globales transversales (por definir).
 
 ---
@@ -234,3 +234,7 @@ Objetivo: convivencia limpia con flujos actuales.
 - 2026-03-04: Se completó F0 (configuración global persistente + UI de umbral) y se validó smoke test funcional en `conda webdev` (`GET /clients/settings` 200, `GET /clients/list` 200, `POST /clients/settings` 302 y persistencia de umbral).
 - 2026-03-04: Se completó F2 técnico inicial en `conda webdev`: modelos `financial_ledger_entry` y `fiscal_income_entry`, migración `9d41e3a2b7f1`, `IncomePostingService` idempotente e integración al crear `IncomeEvent` manual diario.
 - 2026-03-04: Se validaron reglas F2 en smoke: régimen financiero publica en libro financiero, régimen fiscal inmediato publica en libro fiscal y fiscal pendiente no publica hasta cobro.
+- 2026-03-04: Se completó F3 técnico en `conda webdev`: consulta de pendientes, conciliación manual (`pending -> collected`) y registro de conciliación (`reconciled_by`, `reconciled_at`, `bank_operation_number`).
+- 2026-03-04: Se validó impacto fiscal automático al conciliar en smoke de F3 (evento fiscal pendiente conciliado crea `FiscalIncomeEntry` en fecha de cobro).
+- 2026-03-04: Se completó F4 técnico en `conda webdev`: entidad `CollectionReceipt`, relación 1:1 con `IncomeEvent` y generación automática del comprobante mínimo al conciliar (`bank_operation_number`, fecha de cobro y banco opcional).
+- 2026-03-04: Se validó smoke F4 en `webdev` con pendiente conciliado y comprobante asociado (`receipt -> True`, operación `F4-OP-99`).

@@ -228,3 +228,41 @@ def details(client_slug, business_slug, sale_id):
         update_sale_form=update_sale_form,
         add_sale_form=add_sale_form,
     )
+
+
+@bp.route("/events/<int:income_event_id>/reconcile", methods=["POST"])
+def reconcile_income_event(client_slug, business_slug, income_event_id):
+    """Concilia manualmente un ingreso pendiente por acreditar."""
+    income_service = IncomeService()
+
+    try:
+        business, _ = income_service.resolve_business_and_filters(
+            client_slug=client_slug,
+            business_slug=business_slug,
+        )
+    except Exception as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("client.list_clients"))
+
+    try:
+        income_service.reconcile_income_event(
+            business_id=business.id,
+            income_event_id=income_event_id,
+            bank_operation_number=request.form.get("bank_operation_number", ""),
+            collected_date_value=request.form.get("collected_date"),
+            reconciled_by=request.form.get("reconciled_by"),
+            bank_name=request.form.get("bank_name"),
+        )
+        flash("Ingreso pendiente conciliado correctamente.", "success")
+    except ValueError as exc:
+        flash(str(exc), "error")
+    except Exception as exc:
+        flash(f"Error al conciliar ingreso: {exc}", "error")
+
+    return redirect(
+        url_for(
+            "income.sales",
+            client_slug=client_slug,
+            business_slug=business_slug,
+        )
+    )
