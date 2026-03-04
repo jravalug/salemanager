@@ -171,14 +171,6 @@
   {% if current_business %}
     <nav class="{{ nav_container_class }}">
       <div>
-        {% set is_active = request_path is not none and request_path.startswith(href_dashboard_selected) %}
-        <a
-          class="flex items-center gap-3 p-2 rounded {{ nav_hover_class }} {{ 'text-blue-500' if is_active else '' }}"
-          href="{{ href_dashboard_selected }}"
-          >{{ receipt('w-5 h-5') }} Ingresos</a
-        >
-      </div>
-      <div>
         {% set is_active = request_path is not none and request_path.startswith(href_sales) %}
         <a
           class="flex items-center gap-3 p-2 rounded {{ nav_hover_class }} {{ 'text-blue-500' if is_active else '' }}"
@@ -277,17 +269,6 @@
       </div>
     </nav>
   {% endif %}
-
-  <nav class="{{ clients_nav_class }}">
-    <div>
-      {% set is_active = request_path is not none and request_path.startswith(href_clients) %}
-      <a
-        class="flex items-center gap-3 p-2 rounded {{ nav_hover_class }} {{ 'text-blue-500' if is_active else '' }}"
-        href="{{ href_clients }}"
-        >{{ list_icon('w-5 h-5') }} Clientes</a
-      >
-    </div>
-  </nav>
 
   <div class="{{ footer_class }}">
     {% if href_client_detail %}
