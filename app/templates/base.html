@@ -63,7 +63,6 @@
         {% if active_client %}
           {% set all_client_businesses = active_client.businesses.all() %}
           {% set parent_businesses = all_client_businesses | selectattr('is_general') | list %}
-          {% set primary_business = (parent_businesses | first) %}
           {% set current_business = active_business if active_business else None %}
           {% set current_business_logo = current_business.logo if current_business and current_business.logo else (current_business.parent_business.logo if current_business and current_business.parent_business and current_business.parent_business.logo else None) %}
           {% set href_dashboard = url_for('client.client_dashboard', client_slug=active_client.slug) %}
