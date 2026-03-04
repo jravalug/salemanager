@@ -17,6 +17,7 @@ Este archivo es la fuente de control para ejecutar y auditar el plan de fases ac
 8. Movimientos internos y reglas operativas de fondos.
 9. Reproceso histórico y reportes operativos de efectivo.
 10. Configuración dinámica de fondos por negocio.
+11. Consolidación UX/UI de vistas income (auditoría, unificación visual y HTMX).
 
 ## 2) Criterios de ejecución
 
@@ -274,13 +275,29 @@ Objetivo: reconstruir saldos y exponer visibilidad operativa por sub-saldo.
 Objetivo: permitir que cada negocio configure sus fondos operativos y umbrales.
 
 ### Entregables
-- [ ] UI/API para activar/desactivar fondos por negocio.
-- [ ] Permitir crear fondos adicionales personalizados por negocio.
-- [ ] Configurar umbral de `fondo_para_pagos_menores` por negocio (máximo por operación).
-- [ ] Configurar umbral de `fondo_para_compras` por negocio (máximo por operación).
-- [ ] Configurar política documental por fondo (pagos menores obligatorio, compras no obligatorio).
-- [ ] Configurar monto objetivo de fondo para cambios por negocio.
-- [ ] Validaciones y auditoría básica de cambios de configuración.
+- [x] UI/API para activar/desactivar fondos por negocio.
+- [x] Permitir crear fondos adicionales personalizados por negocio.
+- [x] Configurar umbral de `fondo_para_pagos_menores` por negocio (máximo por operación).
+- [x] Configurar umbral de `fondo_para_compras` por negocio (máximo por operación).
+- [x] Configurar política documental por fondo (pagos menores obligatorio, compras no obligatorio).
+- [x] Configurar monto objetivo de fondo para cambios por negocio.
+- [x] Validaciones y auditoría básica de cambios de configuración.
+
+## Fase 11 — Consolidación de vistas income y modelo visual único
+
+Objetivo: auditar y depurar vistas relacionadas con `income`, unificar diseño fiscal/financiera y migrar interacción a HTMX + API con mínimo de vistas.
+
+### Entregables
+- [ ] Levantamiento completo de vistas relacionadas directa/indirectamente con `income` (web + componentes + modales + parciales + endpoints API usados).
+- [ ] Matriz de depuración: identificar elementos/vistas innecesarias, duplicadas o de bajo valor y plan de eliminación/refactor.
+- [ ] Definir y aplicar un modelo visual único para flujo fiscal y financiera (estructura, componentes, jerarquía y patrones de interacción comunes).
+- [ ] Evaluar durante el levantamiento si se requieren vistas nuevas para funcionalidades de F1–F10 y documentar decisión por caso.
+- [ ] Garantizar consistencia visual con el sistema actual (tokens, componentes y estilos existentes) sin introducir diseño paralelo.
+- [ ] Priorizar formularios en modales y reducir navegación a pantallas separadas cuando no aporte valor.
+- [ ] Reutilizar partials/componentes en todas las vistas posibles para evitar duplicación de markup/lógica de UI.
+- [ ] Implementar interacciones con HTMX consumiendo API de `income`/`cash-flow` (alta, edición, conciliación, transferencias, configuración de fondos y reportes operativos).
+- [ ] Definir guía de convenciones para nuevas vistas/parciales HTMX (nombres, rutas, fragmentos, manejo de errores/flash y estados vacíos).
+- [ ] Smoke funcional de UX consolidada (desktop/móvil) y checklist de regresión básica en rutas de ingresos.
 
 ---
 
@@ -316,7 +333,12 @@ Objetivo: permitir que cada negocio configure sus fondos operativos y umbrales.
 - [x] F9.1 Recalcular histórico completo por sub-saldo.
 - [x] F9.2 Validar consistencia de saldos históricos.
 - [x] F9.3 Exponer reporte/API/export de saldos y movimientos.
-- [ ] F10.1 Configuración dinámica de fondos por negocio.
+- [x] F10.1 Configuración dinámica de fondos por negocio.
+- [ ] F11.1 Levantamiento de vistas income y matriz de depuración.
+- [ ] F11.2 Modelo visual único fiscal/financiera.
+- [ ] F11.3 Refactor de vistas con modales + partials.
+- [ ] F11.4 Integración HTMX + API en flujos de income/cash-flow.
+- [ ] F11.5 Limpieza final de vistas innecesarias y smoke UX.
 
 ---
 
@@ -359,3 +381,9 @@ Objetivo: permitir que cada negocio configure sus fondos operativos y umbrales.
 - 2026-03-04: Se completó F9 en `conda webdev`: recálculo histórico por sub-saldo (`POST /cash-flow/rebuild`), validación de consistencia (`GET /cash-flow/consistency`) y reportes de efectivo con exportación (`/cash-flow/reports/current-balance`, `/cash-flow/reports/movements`, `/cash-flow/reports/chronological` + `/export`).
 - 2026-03-04: Se añadió script operativo de reproceso `migrations/migrate_rebuild_cash_subaccount_balances.py` para ejecutar recálculo masivo por negocio.
 - 2026-03-04: Smoke F9 validado en `webdev`: consistencia `True -> False -> True` (antes de alterar, tras alterar saldo manualmente y después de recálculo), `updated_count=1` en rebuild y estado `200` en reportes/exportes de efectivo.
+- 2026-03-04: Se avanzó F10 backend/API en `conda webdev`: modelo/migración `business_cash_fund_config`, endpoints `GET/POST /cash-flow/funds/config` y `POST /cash-flow/funds/custom` para activación, umbrales, política documental, objetivo y fondos personalizados.
+- 2026-03-04: Se integraron reglas dinámicas al flujo de transferencias: bloqueo por umbral excedido, exigencia de `supporting_document_ref` cuando aplica, y bloqueo de movimientos desde sub-cuentas desactivadas.
+- 2026-03-04: Smoke F10 backend validado en `webdev`: fondos personalizados operativos, rebaja bloqueada por umbral, rebaja bloqueada por falta de respaldo documental, operación permitida con respaldo, y bloqueo esperado al desactivar fondo (`status -> 200/400` según caso).
+- 2026-03-04: Se completó UI mínima de F10 en `income`: vista `GET/POST /income/funds/settings` para editar fondos existentes y crear fondos personalizados, con acceso directo desde la pantalla de ingresos.
+- 2026-03-04: Smoke UI F10 validado en `webdev`: `GET` de vista (`200`), `POST` de actualización/creación (`302`) y render de resultados (`200`) con fondo personalizado visible en pantalla.
+- 2026-03-04: Se incorporó F11 en el plan: auditoría integral de vistas relacionadas con `income`, definición de modelo visual único fiscal/financiera, reducción de vistas con uso de modales/partials y estrategia de implementación con HTMX consumiendo API.

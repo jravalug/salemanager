@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}Configuración de fondos - SALEManager{% endblock %}
+
+{% block content %}
+  <section class="py-8 lg:py-10">
+    <div class="container mx-auto px-4 max-w-6xl space-y-6">
+      <div
+        class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+      >
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+          Configuración dinámica de fondos
+        </h1>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+          Negocio: <span class="font-semibold">{{ business.name }}</span>.
+          Activa/desactiva fondos, define umbrales por operación, política
+          documental y objetivos de saldo.
+        </p>
+        <div class="mt-4">
+          <a
+            href="{{ url_for('income.sales', client_slug=business.client.slug, business_slug=business.slug) }}"
+            class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+          >
+            Volver a ingresos
+          </a>
+        </div>
+      </div>
+
+      <div
+        class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+      >
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+          Fondos actuales
+        </h2>
+        <div class="mt-4 overflow-x-auto">
+          <table
+            class="w-full text-sm text-left text-gray-600 dark:text-gray-300"
+          >
+            <thead
+              class="text-xs uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300"
+            >
+              <tr>
+                <th class="px-3 py-2">Fondo</th>
+                <th class="px-3 py-2">Código</th>
+                <th class="px-3 py-2">Ubicación</th>
+                <th class="px-3 py-2">Activo</th>
+                <th class="px-3 py-2">Umbral por operación</th>
+                <th class="px-3 py-2">Requiere respaldo</th>
+                <th class="px-3 py-2">Objetivo</th>
+                <th class="px-3 py-2">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in fund_configs %}
+                <tr
+                  class="border-b border-gray-200 dark:border-gray-700 align-top"
+                >
+                  <form
+                    method="POST"
+                    action="{{ url_for('income.funds_settings', client_slug=business.client.slug, business_slug=business.slug) }}"
+                  >
+                    <input type="hidden" name="action" value="update" />
+                    <input
+                      type="hidden"
+                      name="subaccount_code"
+                      value="{{ row.subaccount_code }}"
+                    />
+                    <td class="px-3 py-2 min-w-[220px]">
+                      <input
+                        type="text"
+                        name="display_name"
+                        value="{{ row.display_name }}"
+                        class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      />
+                      {% if row.is_custom %}
+                        <div
+                          class="mt-1 text-xs text-emerald-600 dark:text-emerald-400"
+                        >
+                          Personalizado
+                        </div>
+                      {% endif %}
+                    </td>
+                    <td class="px-3 py-2">{{ row.subaccount_code }}</td>
+                    <td class="px-3 py-2">{{ row.location }}</td>
+                    <td class="px-3 py-2">
+                      <label class="inline-flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          name="is_active"
+                          class="h-4 w-4 rounded border-gray-300"
+                          {% if row.is_active %}checked{% endif %}
+                        />
+                        <span class="text-xs">Activo</span>
+                      </label>
+                    </td>
+                    <td class="px-3 py-2 min-w-[170px]">
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        name="threshold_max_per_operation"
+                        value="{{ row.threshold_max_per_operation if row.threshold_max_per_operation is not none else '' }}"
+                        class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      />
+                    </td>
+                    <td class="px-3 py-2">
+                      <label class="inline-flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          name="requires_documentation"
+                          class="h-4 w-4 rounded border-gray-300"
+                          {% if row.requires_documentation %}checked{% endif %}
+                        />
+                        <span class="text-xs">Sí</span>
+                      </label>
+                    </td>
+                    <td class="px-3 py-2 min-w-[160px]">
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        name="target_balance"
+                        value="{{ row.target_balance if row.target_balance is not none else '' }}"
+                        class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      />
+                    </td>
+                    <td class="px-3 py-2">
+                      <button
+                        type="submit"
+                        class="inline-flex items-center rounded-lg bg-blue-700 px-3 py-2 text-xs font-medium text-white hover:bg-blue-800"
+                      >
+                        Guardar
+                      </button>
+                    </td>
+                  </form>
+                </tr>
+              {% else %}
+                <tr>
+                  <td
+                    colspan="8"
+                    class="px-3 py-4 text-center text-sm text-gray-500 dark:text-gray-400"
+                  >
+                    No hay fondos configurados para este negocio.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div
+        class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+      >
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+          Crear fondo personalizado
+        </h2>
+        <form
+          method="POST"
+          action="{{ url_for('income.funds_settings', client_slug=business.client.slug, business_slug=business.slug) }}"
+          class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2"
+        >
+          <input type="hidden" name="action" value="create_custom" />
+
+          <div>
+            <label
+              class="mb-1 block text-sm font-medium text-gray-900 dark:text-gray-100"
+              >Código</label
+            >
+            <input
+              type="text"
+              name="new_subaccount_code"
+              required
+              placeholder="ej: promo_fund"
+              class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            />
+          </div>
+
+          <div>
+            <label
+              class="mb-1 block text-sm font-medium text-gray-900 dark:text-gray-100"
+              >Nombre</label
+            >
+            <input
+              type="text"
+              name="new_display_name"
+              required
+              placeholder="Fondo Promoción"
+              class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            />
+          </div>
+
+          <div>
+            <label
+              class="mb-1 block text-sm font-medium text-gray-900 dark:text-gray-100"
+              >Ubicación</label
+            >
+            <select
+              name="new_location"
+              class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            >
+              <option value="cash_box">cash_box</option>
+              <option value="bank_account">bank_account</option>
+            </select>
+          </div>
+
+          <div>
+            <label
+              class="mb-1 block text-sm font-medium text-gray-900 dark:text-gray-100"
+              >Umbral por operación</label
+            >
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              name="new_threshold_max_per_operation"
+              placeholder="Opcional"
+              class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            />
+          </div>
+
+          <div>
+            <label
+              class="mb-1 block text-sm font-medium text-gray-900 dark:text-gray-100"
+              >Monto objetivo</label
+            >
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              name="new_target_balance"
+              placeholder="Opcional"
+              class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            />
+          </div>
+
+          <div class="flex items-center gap-6 pt-6">
+            <label
+              class="inline-flex items-center gap-2 text-sm text-gray-900 dark:text-gray-100"
+            >
+              <input
+                type="checkbox"
+                name="new_is_active"
+                checked
+                class="h-4 w-4 rounded border-gray-300"
+              />
+              Activo
+            </label>
+            <label
+              class="inline-flex items-center gap-2 text-sm text-gray-900 dark:text-gray-100"
+            >
+              <input
+                type="checkbox"
+                name="new_requires_documentation"
+                class="h-4 w-4 rounded border-gray-300"
+              />
+              Requiere respaldo
+            </label>
+          </div>
+
+          <div class="md:col-span-2 flex justify-end">
+            <button
+              type="submit"
+              class="inline-flex items-center rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800"
+            >
+              Crear fondo
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+{% endblock %}

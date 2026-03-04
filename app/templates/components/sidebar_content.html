@@ -179,6 +179,14 @@
         >
       </div>
       <div>
+        {% set is_active = request_path is not none and request_path.startswith(href_funds_settings) %}
+        <a
+          class="flex items-center gap-3 p-2 rounded {{ nav_hover_class }} {{ 'text-blue-500' if is_active else '' }}"
+          href="{{ href_funds_settings }}"
+          >{{ stats('w-5 h-5') }} Fondos</a
+        >
+      </div>
+      <div>
         {% set is_active = request_path is not none and request_path.startswith(href_products) %}
         <a
           class="flex items-center gap-3 p-2 rounded {{ nav_hover_class }} {{ 'text-blue-500' if is_active else '' }}"

@@ -131,6 +131,110 @@ def get_cash_flow_balances(client_slug, business_slug):
     )
 
 
+@bp.route("/cash-flow/funds/config", methods=["GET"])
+def get_cash_fund_configurations(client_slug, business_slug):
+    try:
+        business = _resolve_scoped_business(client_slug, business_slug)
+    except ValueError:
+        return jsonify({"error": "Negocio no encontrado"}), 404
+
+    try:
+        rows = cash_flow_service.list_fund_configurations(business_id=business.id)
+        return jsonify(rows)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+
+@bp.route("/cash-flow/funds/config", methods=["POST"])
+def upsert_cash_fund_configuration(client_slug, business_slug):
+    try:
+        business = _resolve_scoped_business(client_slug, business_slug)
+    except ValueError:
+        return jsonify({"error": "Negocio no encontrado"}), 404
+
+    payload = request.get_json(silent=True) or {}
+    subaccount_code = payload.get(
+        "subaccount_code", request.form.get("subaccount_code")
+    )
+    is_active = payload.get("is_active")
+    threshold_max_per_operation = payload.get(
+        "threshold_max_per_operation",
+        request.form.get("threshold_max_per_operation"),
+    )
+    requires_documentation = payload.get("requires_documentation")
+    target_balance = payload.get("target_balance", request.form.get("target_balance"))
+    display_name = payload.get("display_name", request.form.get("display_name"))
+
+    try:
+        data = cash_flow_service.upsert_fund_configuration(
+            business_id=business.id,
+            subaccount_code=(subaccount_code or "").strip(),
+            is_active=(_parse_bool(is_active) if is_active is not None else None),
+            threshold_max_per_operation=(
+                float(threshold_max_per_operation)
+                if threshold_max_per_operation not in (None, "")
+                else None
+            ),
+            requires_documentation=(
+                _parse_bool(requires_documentation)
+                if requires_documentation is not None
+                else None
+            ),
+            target_balance=(
+                float(target_balance) if target_balance not in (None, "") else None
+            ),
+            display_name=display_name,
+            commit=True,
+        )
+        return jsonify({"status": "ok", "fund": data})
+    except ValueError as exc:
+        return jsonify({"error": str(exc), "alert": str(exc)}), 400
+
+
+@bp.route("/cash-flow/funds/custom", methods=["POST"])
+def create_custom_cash_fund(client_slug, business_slug):
+    try:
+        business = _resolve_scoped_business(client_slug, business_slug)
+    except ValueError:
+        return jsonify({"error": "Negocio no encontrado"}), 404
+
+    payload = request.get_json(silent=True) or {}
+    subaccount_code = payload.get(
+        "subaccount_code", request.form.get("subaccount_code")
+    )
+    display_name = payload.get("display_name", request.form.get("display_name"))
+    location = payload.get("location", request.form.get("location"))
+    is_active = payload.get("is_active", True)
+    threshold_max_per_operation = payload.get(
+        "threshold_max_per_operation",
+        request.form.get("threshold_max_per_operation"),
+    )
+    requires_documentation = payload.get("requires_documentation", False)
+    target_balance = payload.get("target_balance", request.form.get("target_balance"))
+
+    try:
+        data = cash_flow_service.create_custom_fund(
+            business_id=business.id,
+            subaccount_code=(subaccount_code or "").strip(),
+            display_name=(display_name or "").strip(),
+            location=(location or "cash_box").strip(),
+            threshold_max_per_operation=(
+                float(threshold_max_per_operation)
+                if threshold_max_per_operation not in (None, "")
+                else None
+            ),
+            requires_documentation=_parse_bool(requires_documentation),
+            target_balance=(
+                float(target_balance) if target_balance not in (None, "") else None
+            ),
+            is_active=_parse_bool(is_active),
+            commit=True,
+        )
+        return jsonify({"status": "ok", "fund": data})
+    except ValueError as exc:
+        return jsonify({"error": str(exc), "alert": str(exc)}), 400
+
+
 @bp.route("/cash-flow/transfer", methods=["POST"])
 def transfer_cash_flow(client_slug, business_slug):
     try:
@@ -149,6 +253,9 @@ def transfer_cash_flow(client_slug, business_slug):
     amount = payload.get("amount", request.form.get("amount"))
     description = payload.get("description", request.form.get("description"))
     occurred_at = payload.get("occurred_at", request.form.get("occurred_at"))
+    supporting_document_ref = payload.get(
+        "supporting_document_ref", request.form.get("supporting_document_ref")
+    )
 
     try:
         cash_flow_service.transfer_between_subaccounts(
@@ -160,6 +267,7 @@ def transfer_cash_flow(client_slug, business_slug):
             occurred_at_value=occurred_at,
             source_type="manual_transfer",
             source_ref=payload.get("source_ref"),
+            supporting_document_ref=supporting_document_ref,
             commit=True,
         )
         return jsonify(
@@ -173,7 +281,7 @@ def transfer_cash_flow(client_slug, business_slug):
             jsonify(
                 {
                     "error": str(exc),
-                    "alert": "No hay fondo suficiente para la operación.",
+                    "alert": str(exc),
                 }
             ),
             400,
@@ -295,6 +403,9 @@ def transfer_change_fund_cash_flow(client_slug, business_slug):
     description = payload.get("description", request.form.get("description"))
     occurred_at = payload.get("occurred_at", request.form.get("occurred_at"))
     denominations = payload.get("denominations") or []
+    supporting_document_ref = payload.get(
+        "supporting_document_ref", request.form.get("supporting_document_ref")
+    )
 
     try:
         cash_flow_service.transfer_change_fund_with_denominations(
@@ -306,6 +417,7 @@ def transfer_change_fund_cash_flow(client_slug, business_slug):
             description=description,
             occurred_at_value=occurred_at,
             source_ref=payload.get("source_ref"),
+            supporting_document_ref=supporting_document_ref,
             commit=True,
         )
         return jsonify(
@@ -531,6 +643,19 @@ def _resolve_scoped_business(client_slug, business_slug):
         business_slug=business_slug,
     )
     return business
+
+
+def _parse_bool(value, default: bool = False) -> bool:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    normalized = str(value).strip().lower()
+    if normalized in {"1", "true", "yes", "si", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    return default
 
 
 @bp.route("/reports/financial-ledger", methods=["GET"])

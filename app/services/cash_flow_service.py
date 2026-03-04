@@ -11,6 +11,7 @@ from app.models import (
     CashSubaccountBalance,
     CashSubaccountMovement,
     CashChangeDenomination,
+    BusinessCashFundConfig,
 )
 
 
@@ -27,6 +28,24 @@ class CashFlowService:
     SUBACCOUNT_FIN_MINOR = "minor_payments_fund"
     SUBACCOUNT_FIN_PURCHASES = "purchases_fund"
     SUBACCOUNT_FIN_TO_DEPOSIT = "cash_to_deposit"
+
+    OPERATION_SUBACCOUNT_DEFAULTS = {
+        SUBACCOUNT_FIN_MINOR: {
+            "requires_documentation": True,
+            "threshold_max_per_operation": None,
+            "target_balance": None,
+        },
+        SUBACCOUNT_FIN_PURCHASES: {
+            "requires_documentation": False,
+            "threshold_max_per_operation": None,
+            "target_balance": None,
+        },
+        SUBACCOUNT_FIN_CHANGES: {
+            "requires_documentation": False,
+            "threshold_max_per_operation": None,
+            "target_balance": None,
+        },
+    }
 
     DEFAULT_SUBACCOUNTS = {
         Client.REGIME_FISCAL: [
@@ -125,6 +144,34 @@ class CashFlowService:
                 subaccount_name=name,
                 location=location,
             )
+        self.ensure_business_fund_configs(business_id=business_id, regime=regime)
+
+    def ensure_business_fund_configs(self, business_id: int, regime: str) -> None:
+        defaults = self.DEFAULT_SUBACCOUNTS.get(regime, [])
+        for subaccount_code, subaccount_name, location in defaults:
+            config = BusinessCashFundConfig.query.filter_by(
+                business_id=business_id,
+                subaccount_code=subaccount_code,
+            ).first()
+            if config:
+                continue
+
+            policy = self.OPERATION_SUBACCOUNT_DEFAULTS.get(subaccount_code, {})
+            config = BusinessCashFundConfig(
+                business_id=business_id,
+                regime=regime,
+                location=location,
+                subaccount_code=subaccount_code,
+                display_name=subaccount_name,
+                is_active=True,
+                is_custom=False,
+                threshold_max_per_operation=policy.get("threshold_max_per_operation"),
+                requires_documentation=bool(
+                    policy.get("requires_documentation", False)
+                ),
+                target_balance=policy.get("target_balance"),
+            )
+            db.session.add(config)
 
     @staticmethod
     def _get_or_create_balance(
@@ -349,8 +396,9 @@ class CashFlowService:
                 )
             )
 
-    @staticmethod
-    def _validate_financial_transfer_rules(source_code: str, target_code: str) -> None:
+    def _validate_financial_transfer_rules(
+        self, business_id: int, source_code: str, target_code: str
+    ) -> None:
         allowed_from_bank = {
             CashFlowService.SUBACCOUNT_FIN_CARD,
             CashFlowService.SUBACCOUNT_FIN_PAYROLL,
@@ -360,10 +408,23 @@ class CashFlowService:
             CashFlowService.SUBACCOUNT_FIN_TO_DEPOSIT,
         }
         allowed_from_to_deposit = allowed_from_bank | {CashFlowService.SUBACCOUNT_BANK}
+        custom_codes = {
+            row.subaccount_code
+            for row in BusinessCashFundConfig.query.filter_by(
+                business_id=business_id,
+                is_custom=True,
+            ).all()
+        }
 
         if (
             source_code == CashFlowService.SUBACCOUNT_BANK
             and target_code in allowed_from_bank
+        ):
+            return
+
+        if (
+            source_code == CashFlowService.SUBACCOUNT_BANK
+            and target_code in custom_codes
         ):
             return
 
@@ -374,7 +435,19 @@ class CashFlowService:
             return
 
         if (
+            source_code == CashFlowService.SUBACCOUNT_FIN_TO_DEPOSIT
+            and target_code in custom_codes
+        ):
+            return
+
+        if (
             source_code == CashFlowService.SUBACCOUNT_FIN_PAYROLL
+            and target_code == CashFlowService.SUBACCOUNT_BANK
+        ):
+            return
+
+        if (
+            source_code in (allowed_from_bank | custom_codes)
             and target_code == CashFlowService.SUBACCOUNT_BANK
         ):
             return
@@ -458,6 +531,7 @@ class CashFlowService:
         source_ref: str | None = None,
         occurred_at_value=None,
         denominations: list[dict] | None = None,
+        supporting_document_ref: str | None = None,
         commit: bool = True,
     ) -> bool:
         if source_subaccount_code == target_subaccount_code:
@@ -482,8 +556,24 @@ class CashFlowService:
         if source_balance.regime != target_balance.regime:
             raise ValueError("No se puede transferir entre regímenes distintos.")
 
+        self.ensure_business_fund_configs(
+            business_id=business_id,
+            regime=source_balance.regime,
+        )
+
+        self._validate_subaccount_is_active(business_id, source_subaccount_code)
+        self._validate_subaccount_is_active(business_id, target_subaccount_code)
+
+        self._validate_operation_policy(
+            business_id=business_id,
+            subaccount_code=source_subaccount_code,
+            amount=amount_value,
+            supporting_document_ref=supporting_document_ref,
+        )
+
         if source_balance.regime == Client.REGIME_FINANCIAL:
             self._validate_financial_transfer_rules(
+                business_id=business_id,
                 source_code=source_subaccount_code,
                 target_code=target_subaccount_code,
             )
@@ -549,6 +639,7 @@ class CashFlowService:
         description: str | None = None,
         source_ref: str | None = None,
         occurred_at_value=None,
+        supporting_document_ref: str | None = None,
         commit: bool = True,
     ) -> bool:
         if self.SUBACCOUNT_FIN_CHANGES not in {
@@ -569,6 +660,7 @@ class CashFlowService:
             source_ref=source_ref,
             occurred_at_value=occurred_at_value,
             denominations=denominations,
+            supporting_document_ref=supporting_document_ref,
             commit=commit,
         )
 
@@ -707,6 +799,7 @@ class CashFlowService:
             source_type="payroll_extract",
             source_ref=source_ref,
             occurred_at_value=occurred_at_value,
+            supporting_document_ref=None,
             commit=commit,
         )
 
@@ -728,8 +821,253 @@ class CashFlowService:
             source_type="payroll_revert",
             source_ref=source_ref,
             occurred_at_value=occurred_at_value,
+            supporting_document_ref=None,
             commit=commit,
         )
+
+    def _validate_subaccount_is_active(
+        self, business_id: int, subaccount_code: str
+    ) -> None:
+        config = BusinessCashFundConfig.query.filter_by(
+            business_id=business_id,
+            subaccount_code=subaccount_code,
+        ).first()
+        if config and not config.is_active:
+            raise ValueError(
+                f"La sub-cuenta '{subaccount_code}' está desactivada para este negocio."
+            )
+
+    def _validate_operation_policy(
+        self,
+        business_id: int,
+        subaccount_code: str,
+        amount: float,
+        supporting_document_ref: str | None = None,
+    ) -> None:
+        config = BusinessCashFundConfig.query.filter_by(
+            business_id=business_id,
+            subaccount_code=subaccount_code,
+        ).first()
+        if not config:
+            return
+
+        threshold = config.threshold_max_per_operation
+        if threshold is not None and float(amount or 0) > float(threshold):
+            raise ValueError(
+                "El monto excede el umbral máximo permitido para este fondo."
+            )
+
+        if (
+            config.requires_documentation
+            and not (supporting_document_ref or "").strip()
+        ):
+            raise ValueError(
+                "Este fondo requiere respaldo documental para registrar la operación."
+            )
+
+    def list_fund_configurations(self, business_id: int) -> list[dict]:
+        business = Business.query.get(business_id)
+        if not business:
+            raise ValueError("Negocio no encontrado")
+
+        regime = (business.client.accounting_regime or "").strip().lower()
+        if regime in {Client.REGIME_FISCAL, Client.REGIME_FINANCIAL}:
+            self.ensure_default_subaccounts(business_id=business_id, regime=regime)
+
+        rows = (
+            BusinessCashFundConfig.query.filter_by(business_id=business_id)
+            .order_by(
+                BusinessCashFundConfig.location.asc(),
+                BusinessCashFundConfig.subaccount_code.asc(),
+            )
+            .all()
+        )
+        return [
+            {
+                "id": row.id,
+                "regime": row.regime,
+                "location": row.location,
+                "subaccount_code": row.subaccount_code,
+                "display_name": row.display_name,
+                "is_active": bool(row.is_active),
+                "is_custom": bool(row.is_custom),
+                "threshold_max_per_operation": (
+                    float(row.threshold_max_per_operation)
+                    if row.threshold_max_per_operation is not None
+                    else None
+                ),
+                "requires_documentation": bool(row.requires_documentation),
+                "target_balance": (
+                    float(row.target_balance)
+                    if row.target_balance is not None
+                    else None
+                ),
+            }
+            for row in rows
+        ]
+
+    def upsert_fund_configuration(
+        self,
+        business_id: int,
+        subaccount_code: str,
+        is_active: bool | None = None,
+        threshold_max_per_operation: float | None = None,
+        requires_documentation: bool | None = None,
+        target_balance: float | None = None,
+        display_name: str | None = None,
+        commit: bool = True,
+    ) -> dict:
+        business = Business.query.get(business_id)
+        if not business:
+            raise ValueError("Negocio no encontrado")
+
+        regime = (business.client.accounting_regime or "").strip().lower()
+        self.ensure_default_subaccounts(business_id=business_id, regime=regime)
+
+        code = (subaccount_code or "").strip()
+        if not code:
+            raise ValueError("Debes indicar subaccount_code.")
+
+        config = BusinessCashFundConfig.query.filter_by(
+            business_id=business_id,
+            subaccount_code=code,
+        ).first()
+        if not config:
+            raise ValueError("Fondo no encontrado para el negocio.")
+
+        if is_active is not None:
+            config.is_active = bool(is_active)
+        if requires_documentation is not None:
+            config.requires_documentation = bool(requires_documentation)
+        if display_name is not None and str(display_name).strip():
+            config.display_name = str(display_name).strip()
+
+        if threshold_max_per_operation is not None:
+            threshold_value = float(threshold_max_per_operation)
+            if threshold_value <= 0:
+                raise ValueError("El umbral por operación debe ser mayor que cero.")
+            config.threshold_max_per_operation = threshold_value
+
+        if target_balance is not None:
+            target_value = float(target_balance)
+            if target_value < 0:
+                raise ValueError("El monto objetivo del fondo no puede ser negativo.")
+            config.target_balance = target_value
+
+        if commit:
+            db.session.commit()
+
+        return {
+            "subaccount_code": config.subaccount_code,
+            "display_name": config.display_name,
+            "is_active": bool(config.is_active),
+            "is_custom": bool(config.is_custom),
+            "threshold_max_per_operation": (
+                float(config.threshold_max_per_operation)
+                if config.threshold_max_per_operation is not None
+                else None
+            ),
+            "requires_documentation": bool(config.requires_documentation),
+            "target_balance": (
+                float(config.target_balance)
+                if config.target_balance is not None
+                else None
+            ),
+        }
+
+    def create_custom_fund(
+        self,
+        business_id: int,
+        subaccount_code: str,
+        display_name: str,
+        location: str = CashSubaccountBalance.LOCATION_CASH,
+        threshold_max_per_operation: float | None = None,
+        requires_documentation: bool = False,
+        target_balance: float | None = None,
+        is_active: bool = True,
+        commit: bool = True,
+    ) -> dict:
+        business = Business.query.get(business_id)
+        if not business:
+            raise ValueError("Negocio no encontrado")
+
+        regime = (business.client.accounting_regime or "").strip().lower()
+        self.ensure_default_subaccounts(business_id=business_id, regime=regime)
+
+        code = (subaccount_code or "").strip()
+        if not code:
+            raise ValueError("Debes indicar subaccount_code.")
+        if not str(display_name or "").strip():
+            raise ValueError("Debes indicar display_name.")
+        if location not in {
+            CashSubaccountBalance.LOCATION_CASH,
+            CashSubaccountBalance.LOCATION_BANK,
+        }:
+            raise ValueError("location debe ser 'cash_box' o 'bank_account'.")
+
+        existing = BusinessCashFundConfig.query.filter_by(
+            business_id=business_id,
+            subaccount_code=code,
+        ).first()
+        if existing:
+            raise ValueError("Ya existe un fondo con ese subaccount_code.")
+
+        threshold_value = None
+        if threshold_max_per_operation is not None:
+            threshold_value = float(threshold_max_per_operation)
+            if threshold_value <= 0:
+                raise ValueError("El umbral por operación debe ser mayor que cero.")
+
+        target_value = None
+        if target_balance is not None:
+            target_value = float(target_balance)
+            if target_value < 0:
+                raise ValueError("El monto objetivo del fondo no puede ser negativo.")
+
+        balance = self._get_or_create_balance(
+            business_id=business_id,
+            regime=regime,
+            subaccount_code=code,
+            subaccount_name=str(display_name).strip(),
+            location=location,
+        )
+        balance.subaccount_name = str(display_name).strip()
+
+        config = BusinessCashFundConfig(
+            business_id=business_id,
+            regime=regime,
+            location=location,
+            subaccount_code=code,
+            display_name=str(display_name).strip(),
+            is_active=bool(is_active),
+            is_custom=True,
+            threshold_max_per_operation=threshold_value,
+            requires_documentation=bool(requires_documentation),
+            target_balance=target_value,
+        )
+        db.session.add(config)
+
+        if commit:
+            db.session.commit()
+
+        return {
+            "subaccount_code": config.subaccount_code,
+            "display_name": config.display_name,
+            "location": config.location,
+            "is_active": bool(config.is_active),
+            "is_custom": True,
+            "threshold_max_per_operation": (
+                float(config.threshold_max_per_operation)
+                if config.threshold_max_per_operation is not None
+                else None
+            ),
+            "requires_documentation": bool(config.requires_documentation),
+            "target_balance": (
+                float(config.target_balance)
+                if config.target_balance is not None
+                else None
+            ),
+        }
 
     @staticmethod
     def _movement_sign(kind: str) -> int:

@@ -11,12 +11,15 @@ from app.forms import (
 )
 from app.models import DailyIncome
 from app.services import IncomeService
+from app.services.cash_flow_service import CashFlowService
 
 bp = Blueprint(
     "income",
     __name__,
     url_prefix="/clients/<string:client_slug>/business/<string:business_slug>/income",
 )
+
+cash_flow_service = CashFlowService()
 
 
 @bp.route("/list", methods=["GET", "POST"])
@@ -265,4 +268,98 @@ def reconcile_income_event(client_slug, business_slug, income_event_id):
             client_slug=client_slug,
             business_slug=business_slug,
         )
+    )
+
+
+@bp.route("/funds/settings", methods=["GET", "POST"])
+def funds_settings(client_slug, business_slug):
+    """Administración mínima de fondos por negocio (F10 UI)."""
+    income_service = IncomeService()
+
+    try:
+        business, _ = income_service.resolve_business_and_filters(
+            client_slug=client_slug,
+            business_slug=business_slug,
+        )
+    except Exception as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("client.list_clients"))
+
+    if request.method == "POST":
+        action = (request.form.get("action") or "").strip()
+        try:
+            if action == "update":
+                subaccount_code = (request.form.get("subaccount_code") or "").strip()
+                threshold_raw = (
+                    request.form.get("threshold_max_per_operation") or ""
+                ).strip()
+                target_raw = (request.form.get("target_balance") or "").strip()
+
+                cash_flow_service.upsert_fund_configuration(
+                    business_id=business.id,
+                    subaccount_code=subaccount_code,
+                    is_active=(request.form.get("is_active") == "on"),
+                    threshold_max_per_operation=(
+                        float(threshold_raw) if threshold_raw else None
+                    ),
+                    requires_documentation=(
+                        request.form.get("requires_documentation") == "on"
+                    ),
+                    target_balance=(float(target_raw) if target_raw else None),
+                    display_name=(request.form.get("display_name") or "").strip(),
+                    commit=True,
+                )
+                flash("Configuración de fondo actualizada.", "success")
+
+            elif action == "create_custom":
+                threshold_raw = (
+                    request.form.get("new_threshold_max_per_operation") or ""
+                ).strip()
+                target_raw = (request.form.get("new_target_balance") or "").strip()
+
+                cash_flow_service.create_custom_fund(
+                    business_id=business.id,
+                    subaccount_code=(
+                        request.form.get("new_subaccount_code") or ""
+                    ).strip(),
+                    display_name=(request.form.get("new_display_name") or "").strip(),
+                    location=(request.form.get("new_location") or "cash_box").strip(),
+                    threshold_max_per_operation=(
+                        float(threshold_raw) if threshold_raw else None
+                    ),
+                    requires_documentation=(
+                        request.form.get("new_requires_documentation") == "on"
+                    ),
+                    target_balance=(float(target_raw) if target_raw else None),
+                    is_active=(request.form.get("new_is_active") == "on"),
+                    commit=True,
+                )
+                flash("Fondo personalizado creado correctamente.", "success")
+            else:
+                flash("Acción no reconocida.", "error")
+        except ValueError as exc:
+            flash(str(exc), "error")
+        except Exception as exc:
+            flash(f"Error al guardar configuración de fondos: {exc}", "error")
+
+        return redirect(
+            url_for(
+                "income.funds_settings",
+                client_slug=client_slug,
+                business_slug=business_slug,
+            )
+        )
+
+    try:
+        fund_configs = cash_flow_service.list_fund_configurations(
+            business_id=business.id
+        )
+    except ValueError as exc:
+        flash(str(exc), "error")
+        fund_configs = []
+
+    return render_template(
+        "income/funds_settings.html",
+        business=business,
+        fund_configs=fund_configs,
     )
