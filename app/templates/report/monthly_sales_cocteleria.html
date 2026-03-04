@@ -1,19 +1,11 @@
 {% extends "base.html" %}
 {% block vendor_javascript %}
-  <script src="{{ url_for('main.node_modules', filename='simple-datatables/dist/umd/simple-datatables.js') }}"></script>
+  {% include 'components/simple_datatables_vendor_js.html' %}
 {% endblock vendor_javascript %}
 {% block content %}
-  <!-- Hero Section -->
-  <section class="py-12">
-    <div class="container mx-auto px-4 text-center">
-      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
-        Reporte Mensual de Ventas - {{ business.name }}
-      </h1>
-      <p class="text-lg text-gray-600 dark:text-gray-300 mt-2">
-        Genera reportes mensuales detallados de tus ventas.
-      </p>
-    </div>
-  </section>
+  {% set hero_title = 'Reporte Mensual de Ventas - ' ~ business.name %}
+  {% set hero_subtitle = 'Genera reportes mensuales detallados de tus ventas.' %}
+  {% include 'components/page_hero.html' %}
 
   <!-- Formulario para Seleccionar el Mes -->
   <section class="bg-white py-12 dark:bg-gray-800">

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block vendor_javascript %}
-  <script src="{{ url_for('main.node_modules', filename='simple-datatables/dist/umd/simple-datatables.js') }}"></script>
+  {% include 'components/simple_datatables_vendor_js.html' %}
 {% endblock vendor_javascript %}
 {% block content %}
 

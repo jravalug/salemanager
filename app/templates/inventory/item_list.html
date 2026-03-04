@@ -1,19 +1,11 @@
 {% extends "base.html" %}
 {% block vendor_javascript %}
-  <script src="{{ url_for('main.node_modules', filename='simple-datatables/dist/umd/simple-datatables.js') }}"></script>
+  {% include 'components/simple_datatables_vendor_js.html' %}
 {% endblock vendor_javascript %}
 {% block content %}
-  <!-- Hero Section -->
-  <section class="py-12">
-    <div class="container mx-auto px-4 text-center">
-      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
-        Gestión de Artículos de Inventario
-      </h1>
-      <p class="text-lg text-gray-600 dark:text-gray-300 mt-2">
-        Administra los artículos de inventario.
-      </p>
-    </div>
-  </section>
+  {% set hero_title = 'Gestión de Artículos de Inventario' %}
+  {% set hero_subtitle = 'Administra los artículos de inventario.' %}
+  {% include 'components/page_hero.html' %}
 
   <!-- Formulario para Agregar un Nuevo Artículo de Inventario -->
   <section class="bg-white py-12 dark:bg-gray-800">
