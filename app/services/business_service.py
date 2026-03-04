@@ -1,12 +1,10 @@
 from app.models import Business
 from app.extensions import db
-from app.repositories.business_repository import BusinessRepository
 
 
 class BusinessService:
     def __init__(self):
-        """Inicializa el repositorio de negocios."""
-        self.repository = BusinessRepository()
+        """Inicializa el servicio de negocios."""
 
     @staticmethod
     def _validate_required_fields(data: dict, required_fields: list[str]) -> None:
@@ -70,7 +68,9 @@ class BusinessService:
         :return: Un diccionario con los filtros aplicables.
         """
         filters = {
-            "business_id": business.id if business.is_general else business.parent_business_id
+            "business_id": (
+                business.id if business.is_general else business.parent_business_id
+            )
         }
         if not business.is_general:
             filters["specific_business_id"] = business.id

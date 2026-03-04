@@ -5,7 +5,41 @@ from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from openpyxl.utils import get_column_letter
 
 
+def _set_column_widths(sheet, widths):
+    """Aplica anchos de columna a una hoja de Excel."""
+    for idx, width in enumerate(widths, start=1):
+        sheet.column_dimensions[get_column_letter(idx)].width = width
+
+
+def _set_column_widths_safe(sheet, widths):
+    """Aplica anchos de columna ignorando errores puntuales de configuración."""
+    for idx, width in enumerate(widths, start=1):
+        try:
+            sheet.column_dimensions[get_column_letter(idx)].width = width
+        except Exception:
+            pass
+
+
+def _apply_row_border(sheet, row_idx, start_col, end_col, border):
+    """Aplica un borde a un rango de columnas dentro de una fila."""
+    for col_idx in range(start_col, end_col + 1):
+        sheet.cell(row=row_idx, column=col_idx).border = border
+
+
+def _apply_row_alignment(sheet, row_idx, start_col, end_col, alignment):
+    """Aplica una alineación a un rango de columnas dentro de una fila."""
+    for col_idx in range(start_col, end_col + 1):
+        sheet.cell(row=row_idx, column=col_idx).alignment = alignment
+
+
+def _serialize_product_usages(product_usages):
+    """Convierte el mapa de consumos por producto en texto legible."""
+    usages = [f"{product}: {qty}" for product, qty in (product_usages or {}).items()]
+    return ", ".join(usages)
+
+
 def generate_excel_sales_by_date(business, sales_data, period):
+    """Genera un Excel resumen de ventas por día para un negocio y período."""
     # Crear un archivo Excel
     workbook = Workbook()
     sheet = workbook.active
@@ -18,7 +52,6 @@ def generate_excel_sales_by_date(business, sales_data, period):
     bold_font = Font(bold=True, size=12, color="000000")
     total_font = Font(bold=True, size=12, color="00B050")
     alignment_center = Alignment(horizontal="center", vertical="center")
-    alignment_left = Alignment(horizontal="left", vertical="center")
     alignment_right = Alignment(horizontal="right", vertical="center")
     border = Border(
         left=Side(style="thin"),
@@ -102,9 +135,7 @@ def generate_excel_sales_by_date(business, sales_data, period):
                 cell.alignment = alignment_right
 
     # Ajustar el ancho de las columnas automáticamente
-    for col in range(1, len(headers) + 1):
-        column = get_column_letter(col)
-        sheet.column_dimensions[column].width = 27
+    _set_column_widths(sheet, [27] * len(headers))
 
     # Guardar el archivo en memoria
     excel_file = BytesIO()
@@ -133,7 +164,6 @@ def generate_excel_ipv(business_name, data, month):
 
     # Estilos generales
     bold_font = Font(bold=True)
-    title_font = Font(size=16, bold=True, color="000000")
     center_alignment = Alignment(horizontal="center", vertical="center")
     right_alignment = Alignment(horizontal="right", vertical="center")
     left_alignment = Alignment(horizontal="left", vertical="center")
@@ -287,24 +317,18 @@ def generate_excel_ipv(business_name, data, month):
             sheet[f"H{formula_row}"] = formula_at_the_end  # Columna "Al Final"
 
             # Aplicar alineación a las celdas
-            for col_idx in range(2, 10):  # Columnas desde "Al inicio" hasta "Vendido"
-                sheet.cell(row=formula_row, column=col_idx).alignment = center_alignment
-            for col_idx in range(10, 12):  # Columnas "Precio" e "Importe"
-                sheet.cell(row=formula_row, column=col_idx).alignment = right_alignment
+            _apply_row_alignment(sheet, formula_row, 2, 9, center_alignment)
+            _apply_row_alignment(sheet, formula_row, 10, 11, right_alignment)
 
             # Aplicar borde inferior a la fila completa
-            for col_idx in range(1, 12):  # Todas las columnas (A a K)
-                sheet.cell(row=formula_row, column=col_idx).border = thin_border_buttom
+            _apply_row_border(sheet, formula_row, 1, 11, thin_border_buttom)
 
             row_counter += 1  # Incrementar contador de filas
 
         # Aplicar borde grueso después del último producto "No Comida"
         if day["non_food"]:  # Solo si hay productos "No Comida"
             last_non_food_row = row_counter - 1
-            for col_idx in range(1, 12):  # Todas las columnas (A a K)
-                sheet.cell(row=last_non_food_row, column=col_idx).border = (
-                    medium_border_buttom
-                )
+            _apply_row_border(sheet, last_non_food_row, 1, 11, medium_border_buttom)
 
         # Productos Comida
         for product in day["food"]:
@@ -325,29 +349,21 @@ def generate_excel_ipv(business_name, data, month):
             )
 
             # Aplicar alineación a las celdas
-            for col_idx in range(2, 10):  # Columnas desde "Al inicio" hasta "Vendido"
-                sheet.cell(row=row_counter, column=col_idx).alignment = center_alignment
-            for col_idx in range(10, 12):  # Columnas "Precio" e "Importe"
-                sheet.cell(row=row_counter, column=col_idx).alignment = right_alignment
+            _apply_row_alignment(sheet, row_counter, 2, 9, center_alignment)
+            _apply_row_alignment(sheet, row_counter, 10, 11, right_alignment)
 
             # Aplicar borde inferior a la fila completa
-            for col_idx in range(1, 12):  # Todas las columnas (A a K)
-                sheet.cell(row=row_counter, column=col_idx).border = thin_border_buttom
+            _apply_row_border(sheet, row_counter, 1, 11, thin_border_buttom)
 
             row_counter += 1  # Incrementar contador de filas
 
         # Aplicar borde grueso después del último producto "Comida"
         if day["food"]:  # Solo si hay productos "Comida"
             last_food_row = row_counter - 1
-            for col_idx in range(1, 12):  # Todas las columnas (A a K)
-                sheet.cell(row=last_food_row, column=col_idx).border = (
-                    medium_border_buttom
-                )
+            _apply_row_border(sheet, last_food_row, 1, 11, medium_border_buttom)
 
         # Ajustar ancho de las columnas
-        column_widths = [30, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
-        for idx, width in enumerate(column_widths, start=1):
-            sheet.column_dimensions[chr(64 + idx)].width = width
+        _set_column_widths(sheet, [30, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10])
 
     # Guardar y enviar
     excel_file = BytesIO()
@@ -427,14 +443,9 @@ def generate_excel_inventory_consumption(business, data, month):
             ]
             sheet.append(row)
             current_row = sheet.max_row
-            # aplicar estilos
-            for col in range(1, 5):
-                cell = sheet.cell(row=current_row, column=col)
-                cell.border = border
-                if col == 4:
-                    cell.alignment = right_alignment
-                else:
-                    cell.alignment = left_alignment
+            _apply_row_border(sheet, current_row, 1, 4, border)
+            _apply_row_alignment(sheet, current_row, 1, 3, left_alignment)
+            _apply_row_alignment(sheet, current_row, 4, 4, right_alignment)
 
     # Agregar hojas detalladas por día (cada hoja con usos por producto)
     for day in data:
@@ -452,11 +463,7 @@ def generate_excel_inventory_consumption(business, data, month):
             cell.alignment = center_alignment
 
         for item in day.get("items", []):
-            usos = []
-            pu = item.get("product_usages", {}) or {}
-            for prod, qty in pu.items():
-                usos.append(f"{prod}: {qty}")
-            usos_text = ", ".join(usos)
+            usos_text = _serialize_product_usages(item.get("product_usages", {}))
             row = [
                 item.get("name"),
                 item.get("unit"),
@@ -465,28 +472,16 @@ def generate_excel_inventory_consumption(business, data, month):
             ]
             sheet_day.append(row)
             current_row = sheet_day.max_row
-            for col in range(1, 5):
-                cell = sheet_day.cell(row=current_row, column=col)
-                cell.border = border
-                if col == 3:
-                    cell.alignment = right_alignment
-                else:
-                    cell.alignment = left_alignment
+            _apply_row_border(sheet_day, current_row, 1, 4, border)
+            _apply_row_alignment(sheet_day, current_row, 1, 2, left_alignment)
+            _apply_row_alignment(sheet_day, current_row, 3, 3, right_alignment)
+            _apply_row_alignment(sheet_day, current_row, 4, 4, left_alignment)
 
         # ajustar anchos
-        widths = [40, 12, 18, 80]
-        for idx, w in enumerate(widths, start=1):
-            try:
-                sheet_day.column_dimensions[get_column_letter(idx)].width = w
-            except Exception:
-                pass
+        _set_column_widths_safe(sheet_day, [40, 12, 18, 80])
 
     # Ajustar ancho de la hoja principal
-    for idx, w in enumerate([12, 40, 12, 18], start=1):
-        try:
-            sheet.column_dimensions[get_column_letter(idx)].width = w
-        except Exception:
-            pass
+    _set_column_widths_safe(sheet, [12, 40, 12, 18])
 
     excel_file = BytesIO()
     workbook.save(excel_file)

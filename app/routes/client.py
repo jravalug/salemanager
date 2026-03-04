@@ -2,7 +2,6 @@ from flask import Blueprint, abort, flash, redirect, render_template, request, u
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.forms import ClientForm
-from app.models import Client
 from app.services import ClientAccountingService, ClientService
 
 bp = Blueprint("client", __name__, url_prefix="/clients")

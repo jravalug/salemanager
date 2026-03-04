@@ -4,6 +4,8 @@ from wtforms.validators import DataRequired
 
 
 class MonthForm(FlaskForm):
+    """Formulario de selección de mes en formato `YYYY-MM`."""
+
     month = StringField(
         "Mes (YYYY-MM)",
         validators=[

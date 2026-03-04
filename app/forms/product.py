@@ -142,7 +142,8 @@ class ProductDetailForm(FlaskForm):
     submit = SubmitField("Agregar Materia Prima")
 
     def __init__(self, *args, **kwargs):
-        super(ProductDetailForm, self).__init__(*args, **kwargs)
+        """Inicializa el formulario cargando opciones disponibles de materias primas."""
+        super().__init__(*args, **kwargs)
         # Cargar las opciones del campo "inventory_item" con las materias primas disponibles
         self.raw_material_id.choices = self._load_raw_materials()
 

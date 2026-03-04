@@ -8,6 +8,33 @@ class ProductRepository:
     Repositorio para manejar las operaciones relacionadas con el modelo Product.
     """
 
+    @staticmethod
+    def _validate_required_product_fields(**kwargs):
+        """Valida campos mínimos requeridos para crear/actualizar productos."""
+        required_fields = ["name", "price"]
+        for field in required_fields:
+            if field not in kwargs:
+                raise ValueError(f"El campo '{field}' es obligatorio.")
+
+    @staticmethod
+    def _validate_price(price):
+        """Valida que el precio sea mayor que cero."""
+        if price is None or price <= 0:
+            raise ValueError("El precio debe ser mayor que cero.")
+
+    @staticmethod
+    def _get_product_detail_or_error(product_id, raw_material_id):
+        """Obtiene una relación producto-materia prima o lanza error si no existe."""
+        product_detail = ProductDetail.query.filter_by(
+            product_id=product_id,
+            raw_material_id=raw_material_id,
+        ).first()
+        if not product_detail:
+            raise ValueError(
+                "La relación entre el producto y la materia prima no existe."
+            )
+        return product_detail
+
     def get_all_products(self, business_id):
         """
         Obtiene todos los productos asociados a un negocio específico.
@@ -22,7 +49,7 @@ class ProductRepository:
                 .all()
             )
         except Exception as e:
-            raise RuntimeError(f"Error al consultar los productos: {e}")
+            raise RuntimeError(f"Error al consultar los productos: {e}") from e
 
     def get_product_by_id(self, business_id, product_id):
         """
@@ -39,7 +66,7 @@ class ProductRepository:
             ).first()
             return product
         except Exception as e:
-            raise RuntimeError(f"Error al consultar el producto: {e}")
+            raise RuntimeError(f"Error al consultar el producto: {e}") from e
 
     def get_product_with_raw_materials(self, business_id, product_id):
         """
@@ -66,26 +93,7 @@ class ProductRepository:
             return product
 
         except Exception as e:
-            raise RuntimeError(f"Error al consultar el producto: {e}")
-
-    def get_products_with_raw_materials(self, business_id):
-        """
-        Obtiene todos los productos de un negocio junto con sus materias primas asociadas.
-
-        :param business_id: El ID del negocio.
-        :return: Lista de productos con sus materias primas cargadas.
-        """
-        try:
-            return (
-                Product.query.filter_by(business_id=business_id)
-                .options(joinedload(Product.raw_materials))  # Cargar relaciones
-                .order_by(Product.name.asc())
-                .all()
-            )
-        except Exception as e:
-            raise RuntimeError(
-                f"Error al consultar los productos con materias primas: {e}"
-            )
+            raise RuntimeError(f"Error al consultar el producto: {e}") from e
 
     def create_product(self, business_id, **kwargs):
         """
@@ -96,20 +104,14 @@ class ProductRepository:
         :return: El objeto Product recién creado.
         """
         try:
-            # Validar campos obligatorios
-            required_fields = ["name", "price"]
-            for field in required_fields:
-                if field not in kwargs:
-                    raise ValueError(f"El campo '{field}' es obligatorio.")
+            self._validate_required_product_fields(**kwargs)
 
             # Validar que el negocio exista
             business = Business.query.get(business_id)
             if not business:
                 raise ValueError("El negocio no existe.")
 
-            # Validar que el precio sea positivo
-            if kwargs["price"] <= 0:
-                raise ValueError("El precio debe ser mayor que cero.")
+            self._validate_price(kwargs["price"])
 
             # Crear el producto
             new_product = Product(business_id=business_id, **kwargs)
@@ -119,7 +121,7 @@ class ProductRepository:
 
         except Exception as e:
             db.session.rollback()
-            raise RuntimeError(f"Error al crear el producto: {e}")
+            raise RuntimeError(f"Error al crear el producto: {e}") from e
 
     def update_product(self, product, **kwargs):
         """
@@ -141,8 +143,7 @@ class ProductRepository:
                 raise ValueError("El campo 'name' no puede estar vacío.")
 
             if "price" in kwargs:
-                if kwargs["price"] is None or kwargs["price"] <= 0:
-                    raise ValueError("El campo 'price' debe ser mayor que cero.")
+                self._validate_price(kwargs["price"])
 
             # Iterar sobre los campos proporcionados en kwargs
             for key, value in kwargs.items():
@@ -166,20 +167,7 @@ class ProductRepository:
         except Exception as e:
             # Capturar cualquier otro error durante la actualización
             db.session.rollback()
-            raise RuntimeError(f"Error al actualizar el producto: {e}")
-
-    def delete_product(self, product):
-        """
-        Elimina un producto de la base de datos.
-
-        :param product: Objeto Product a eliminar.
-        """
-        try:
-            db.session.delete(product)
-            db.session.commit()
-        except Exception as e:
-            db.session.rollback()
-            raise RuntimeError(f"Error al eliminar el producto: {e}")
+            raise RuntimeError(f"Error al actualizar el producto: {e}") from e
 
     def add_product_detail(self, product_id, raw_material_id, quantity):
         """
@@ -206,13 +194,13 @@ class ProductRepository:
             db.session.commit()
             return new_relation
 
-        except ValueError as ve:
+        except ValueError:
             db.session.rollback()
-            raise ValueError(str(ve))
+            raise
 
         except Exception as e:
             db.session.rollback()
-            raise RuntimeError(f"Error al agregar la materia prima: {str(e)}")
+            raise RuntimeError(f"Error al agregar la materia prima: {str(e)}") from e
 
     def update_product_detail(self, product_id, raw_material_id, quantity):
         """
@@ -226,15 +214,10 @@ class ProductRepository:
         :raises RuntimeError: Si ocurre un error durante la operación.
         """
         try:
-            # Buscar la relación existente
-            product_detail = ProductDetail.query.filter_by(
-                product_id=product_id, raw_material_id=raw_material_id
-            ).first()
-
-            if not product_detail:
-                raise ValueError(
-                    "La relación entre el producto y la materia prima no existe."
-                )
+            product_detail = self._get_product_detail_or_error(
+                product_id=product_id,
+                raw_material_id=raw_material_id,
+            )
 
             # Actualizar la cantidad
             product_detail.quantity = quantity
@@ -243,13 +226,13 @@ class ProductRepository:
             db.session.commit()
             return product_detail
 
-        except ValueError as ve:
+        except ValueError:
             db.session.rollback()
-            raise ValueError(str(ve))
+            raise
 
         except Exception as e:
             db.session.rollback()
-            raise RuntimeError(f"Error al actualizar la relación: {str(e)}")
+            raise RuntimeError(f"Error al actualizar la relación: {str(e)}") from e
 
     def remove_product_detail(self, product_id, raw_material_id):
         """
@@ -262,15 +245,10 @@ class ProductRepository:
         :raises RuntimeError: Si ocurre un error durante la operación.
         """
         try:
-            # Buscar la relación existente
-            product_detail = ProductDetail.query.filter_by(
-                product_id=product_id, raw_material_id=raw_material_id
-            ).first()
-
-            if not product_detail:
-                raise ValueError(
-                    "La relación entre el producto y la materia prima no existe."
-                )
+            product_detail = self._get_product_detail_or_error(
+                product_id=product_id,
+                raw_material_id=raw_material_id,
+            )
 
             # Eliminar la relación
             db.session.delete(product_detail)
@@ -279,20 +257,13 @@ class ProductRepository:
             db.session.commit()
             return True
 
-        except ValueError as ve:
+        except ValueError:
             db.session.rollback()
-            raise ValueError(str(ve))
+            raise
 
         except Exception as e:
             db.session.rollback()
-            raise RuntimeError(f"Error al eliminar la relación: {str(e)}")
-
-    def _validate_require_product_fields(self, **kwargs):
-        # Validar campos obligatorios
-        required_fields = ["name", "price"]
-        for field in required_fields:
-            if field not in kwargs:
-                raise ValueError(f"El campo '{field}' es obligatorio.")
+            raise RuntimeError(f"Error al eliminar la relación: {str(e)}") from e
 
     def _validate_product_detail_relation(self, product_id, raw_material_id):
         """

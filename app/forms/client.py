@@ -9,9 +9,14 @@ from wtforms.validators import DataRequired, Length, Optional
 
 
 class ClientForm(FlaskForm):
+    """Formulario de alta/edición de clientes con datos legales y de contacto."""
+
     name = StringField(
         "Nombre",
-        validators=[DataRequired(), Length(max=120)],
+        validators=[
+            DataRequired(message="El nombre del cliente es obligatorio."),
+            Length(max=120),
+        ],
     )
     identity_number = StringField(
         "Número de identidad",
@@ -69,7 +74,7 @@ class ClientForm(FlaskForm):
 
     client_type = SelectField(
         "Tipo de cliente",
-        validators=[DataRequired()],
+        validators=[DataRequired(message="El tipo de cliente es obligatorio.")],
         choices=[
             ("tcp", "TCP"),
             ("mipyme", "MIPYME"),
@@ -78,12 +83,11 @@ class ClientForm(FlaskForm):
     )
     accounting_regime = SelectField(
         "Régimen contable",
-        validators=[DataRequired()],
+        validators=[DataRequired(message="El régimen contable es obligatorio.")],
         choices=[
             ("fiscal", "Fiscal"),
             ("financiera", "Financiera"),
         ],
         default="fiscal",
     )
-    is_active = BooleanField("Activo", default=True)
     is_active = BooleanField("Activo", default=True)

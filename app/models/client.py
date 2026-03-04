@@ -87,11 +87,3 @@ class Client(db.Model):
     @property
     def slug(self) -> str:
         return self.slugify(self.name)
-
-    @property
-    def is_financial_regime(self) -> bool:
-        return self.accounting_regime == self.REGIME_FINANCIAL
-
-    @property
-    def is_fiscal_regime(self) -> bool:
-        return self.accounting_regime == self.REGIME_FISCAL

@@ -1,6 +1,19 @@
 from collections import defaultdict
 
-from flask import flash, session
+
+def _sale_products_count(sale) -> int:
+    """Calcula la cantidad total de productos en una venta."""
+    return sum(sale_detail.quantity for sale_detail in sale.products)
+
+
+def _sale_income_from_product_prices(sale) -> float:
+    """Calcula el importe total de una venta usando `quantity * product.price`."""
+    return sum(sp.quantity * sp.product.price for sp in sale.products)
+
+
+def _sale_income_from_total_amount(sale) -> float:
+    """Devuelve el importe total persistido en la venta."""
+    return sale.total_amount
 
 
 def group_sales_by_month(sales):
@@ -16,8 +29,8 @@ def group_sales_by_month(sales):
         date_key = sale.date.strftime("%Y-%m-%d")
 
         # Calcular totales por venta
-        total_products = sum(sale_detail.quantity for sale_detail in sale.products)
-        total_income = sale.total_amount
+        total_products = _sale_products_count(sale)
+        total_income = _sale_income_from_total_amount(sale)
 
         # Agregar datos a la estructura
         grouped_sales[month_key][date_key]["total_products"] += total_products
@@ -35,17 +48,6 @@ def calculate_month_totals(sales_by_months):
     return month_totals
 
 
-def get_excluded_sales():
-    """Obtiene las ventas excluidas de la sesión."""
-    try:
-        return [
-            int(excluded_sale) for excluded_sale in session.get("excluded_sales", [])
-        ]
-    except (ValueError, TypeError):
-        flash("Error en el formato de las ventas excluidas.", "error")
-        return []
-
-
 def calculate_sales_totals(sales):
     """
     Calcula el total de productos y el total de importe a partir de un grupo de ventas.
@@ -60,10 +62,8 @@ def calculate_sales_totals(sales):
     total_income = 0
 
     for sale in sales:
-        # Itera sobre los productos de cada venta
-        for sp in sale.products:
-            total_products += sp.quantity
-            total_income += sp.quantity * sp.product.price
+        total_products += _sale_products_count(sale)
+        total_income += _sale_income_from_product_prices(sale)
 
     return {
         "total_products": total_products,
@@ -73,8 +73,8 @@ def calculate_sales_totals(sales):
 
 def calculate_sale_detail_totals(sale):
     """Calcula los totales de productos e importe para una venta."""
-    total_products = sum(sp.quantity for sp in sale.products)
-    total_income = sum(sp.quantity * sp.product.price for sp in sale.products)
+    total_products = _sale_products_count(sale)
+    total_income = _sale_income_from_product_prices(sale)
     return total_products, total_income
 
 
@@ -105,8 +105,8 @@ def format_daily_sales(sales_by_day):
 
         for sale in sales:
             # Calcular totales para esta venta
-            sale_total_products = sum(detail.quantity for detail in sale.products)
-            sale_total_income = sale.total_amount
+            sale_total_products = _sale_products_count(sale)
+            sale_total_income = _sale_income_from_total_amount(sale)
 
             # Agrupar productos por nombre
             products_dict = group_products(sale)
@@ -142,26 +142,3 @@ def format_daily_sales(sales_by_day):
         )
 
     return daily_sales
-
-
-def calculate_sale_total_amount(original_price, discounts, taxes):
-    """
-    Calcula el total de una venta.
-    """
-
-    total_product_price = original_price
-    total_discount = original_price * discounts
-    total_taxes = original_price * taxes
-
-    total_amount = total_product_price - total_discount + total_taxes
-    return total_amount, total_product_price, total_discount, total_taxes
-
-
-def calculate_sale_detail_total_price(price, quantity, discount):
-    """
-    Calcula el total de los productos de una venta.
-    """
-    original_price = price * quantity
-    discounted_price = original_price * discount
-    total_price = original_price - discounted_price
-    return total_price, original_price, discounted_price

@@ -1,21 +1,17 @@
 from datetime import datetime
 from io import BytesIO
 import json
-from typing import Any, List
+from typing import List
 from collections import defaultdict
 from dateutil.relativedelta import relativedelta
 from openpyxl import Workbook
 
-from app import db
-from app.models import Sale, Product, SaleDetail
+from app.models import Sale
 from app.repositories.sales_repository import SalesRepository
 from app.services.business_service import BusinessService
 from app.utils.slug_utils import get_business_by_slugs
 from app.utils import (
-    group_products,
-    calculate_sale_detail_totals,
     format_daily_sales,
-    calculate_sales_totals,
 )
 
 

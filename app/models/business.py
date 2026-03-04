@@ -151,40 +151,6 @@ class Business(db.Model):
         ),
     )
 
-    def to_dict(self):
-        """
-        Convierte el objeto Business en un diccionario para facilitar la serialización.
-        """
-        return {
-            "id": self.id,
-            "name": self.name,
-            "description": self.description,
-            "logo": self.logo,
-            "category": self.category,
-            "business_activity": self.business_activity,
-            "income_entry_mode": self.income_entry_mode,
-            "default_income_activity": self.default_income_activity,
-            "address": self.address,
-            "phone_number": self.phone_number,
-            "email": self.email,
-            "website": self.website,
-            "tax_id": self.tax_id,
-            "fiscal_street": self.fiscal_street,
-            "fiscal_number": self.fiscal_number,
-            "fiscal_between_streets": self.fiscal_between_streets,
-            "fiscal_apartment": self.fiscal_apartment,
-            "fiscal_district": self.fiscal_district,
-            "fiscal_municipality": self.fiscal_municipality,
-            "fiscal_province": self.fiscal_province,
-            "fiscal_postal_code": self.fiscal_postal_code,
-            "currency": self.currency,
-            "is_general": self.is_general,
-            "client_id": self.client_id,
-            "parent_business_id": self.parent_business_id,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }
-
     def parent_name(self):
         """
         Retorna el nombre del negocio general si es un negocio especifico

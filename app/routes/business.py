@@ -7,13 +7,14 @@ from flask import (
     flash,
     request,
 )
-from app.models import Business
 from app.forms import BusinessForm
 from app.services import BusinessService, BusinessRulesService
 from app.utils.slug_utils import get_business_by_slugs
 from app.utils.file_utils import handle_logo_upload
 
-bp = Blueprint("business", __name__, url_prefix="/clients/<string:client_slug>/business")
+bp = Blueprint(
+    "business", __name__, url_prefix="/clients/<string:client_slug>/business"
+)
 
 business_service = BusinessService()
 business_rules_service = BusinessRulesService()
@@ -31,8 +32,10 @@ def detail_or_edit(client_slug, business_slug):
     form = BusinessForm(obj=business)
 
     if request.method == "GET":
-        default_mode, default_activity = business_rules_service.resolve_business_income_defaults(
-            business.client, business
+        default_mode, default_activity = (
+            business_rules_service.resolve_business_income_defaults(
+                business.client, business
+            )
         )
         if not business.income_entry_mode:
             form.income_entry_mode.data = default_mode
@@ -109,8 +112,10 @@ def add_sub_business(client_slug, business_slug):
     # Inicializar el formulario
     form = BusinessForm()
 
-    default_mode, default_activity = business_rules_service.resolve_business_income_defaults(
-        business.client, business
+    default_mode, default_activity = (
+        business_rules_service.resolve_business_income_defaults(
+            business.client, business
+        )
     )
     if request.method == "GET":
         form.business_activity.data = business.business_activity
@@ -131,7 +136,8 @@ def add_sub_business(client_slug, business_slug):
             )
             or business.business_activity,
             income_entry_mode=form.income_entry_mode.data or default_mode,
-            default_income_activity=form.default_income_activity.data or default_activity,
+            default_income_activity=form.default_income_activity.data
+            or default_activity,
             is_general=False,
             parent_business_id=business.id,
             client_id=business.client_id,

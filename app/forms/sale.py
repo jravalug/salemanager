@@ -1,17 +1,22 @@
+from flask_wtf import FlaskForm
 from wtforms import (
+    BooleanField,
+    DateField,
+    FloatField,
     HiddenField,
     IntegerField,
+    SelectField,
+    StringField,
     SubmitField,
 )
-
-from flask_wtf import FlaskForm
-from wtforms import StringField, DateField, SelectField, FloatField, BooleanField
 from wtforms.validators import DataRequired, Optional, NumberRange
 
 from app.models.business import Business
 
 
 class SaleForm(FlaskForm):
+    """Formulario para crear y editar ventas."""
+
     specific_business_id = SelectField(
         "Negocio Específico",
         coerce=lambda x: int(x) if x else None,  # Acepta valores nulos
@@ -80,7 +85,8 @@ class SaleForm(FlaskForm):
     )
 
     def __init__(self, parent_business_id, *args, **kwargs):
-        super(SaleForm, self).__init__(*args, **kwargs)
+        """Inicializa opciones de sub-negocios en base al negocio padre."""
+        super().__init__(*args, **kwargs)
 
         # Obtener sub negocios
         sub_businesses = Business.query.filter_by(
@@ -94,6 +100,8 @@ class SaleForm(FlaskForm):
 
 
 class SaleDetailForm(FlaskForm):
+    """Formulario para agregar productos a una venta."""
+
     product_id = SelectField(
         "Producto",
         coerce=int,
@@ -128,6 +136,8 @@ class SaleDetailForm(FlaskForm):
 
 
 class UpdateSaleDetailForm(FlaskForm):
+    """Formulario para actualizar un producto ya agregado a una venta."""
+
     sale_detail_id = HiddenField(
         "ID de la Venta del Producto",
         validators=[
@@ -154,6 +164,8 @@ class UpdateSaleDetailForm(FlaskForm):
 
 
 class RemoveSaleDetailForm(FlaskForm):
+    """Formulario para quitar un producto de una venta."""
+
     sale_detail_id = HiddenField(
         "ID de la Venta del Producto",
         validators=[

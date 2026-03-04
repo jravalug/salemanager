@@ -8,32 +8,23 @@ from app.models import Business, Sale, SaleDetail, Product
 
 
 class SalesRepository:
+    """Acceso a datos para operaciones CRUD y consultas de ventas."""
+
+    @staticmethod
+    def _get_sale_detail_or_error(sale_id: int, sale_detail_id: int) -> SaleDetail:
+        """Obtiene un detalle de venta o lanza error si no existe."""
+        sale_detail = SaleDetail.query.filter_by(
+            id=sale_detail_id, sale_id=sale_id
+        ).first()
+        if not sale_detail:
+            raise ValueError("La relación entre la venta y el producto no existe.")
+        return sale_detail
 
     def _base_query(self):
         """Consulta base con relaciones pre-cargadas"""
         return Sale.query.options(
             joinedload(Sale.products).joinedload(SaleDetail.product)
         )
-
-    def _query_sales(self, filters: dict = None, order_by: dict = None) -> Sale:
-        """
-        Método privado para realizar consultas genéricas sobre ventas.
-        Args:
-            filters (dict): Filtros a aplicar en la consulta (opcional).
-            order_by (dict): Campo por el cual ordenar los resultados (opcional).
-        Returns:
-            Sale: Lista de ventas que cumplen con los criterios.
-        """
-
-        try:
-            query = self._base_query()
-            if filters:
-                query = query.filter_by(**filters)
-            if order_by is not None:  # ✅ Corrección clave
-                query = query.order_by(order_by)
-            return query.all()
-        except Exception as e:
-            raise RuntimeError(f"Error al consultar los ventas: {str(e)}")
 
     def _query_sale(self, filters: dict = None, order_by: dict = None) -> Sale:
         """
@@ -51,11 +42,11 @@ class SalesRepository:
 
             if filters:
                 query = query.filter_by(**filters)
-            if order_by is not None:  # ✅ Corrección clave
+            if order_by is not None:
                 query = query.order_by(order_by)
             return query.first()
         except Exception as e:
-            raise RuntimeError(f"Error al consultar los ventas: {str(e)}")
+            raise RuntimeError(f"Error al consultar los ventas: {str(e)}") from e
 
     def _calculate_sale_subtotal(self, sale_id: int):
         """Calcula el subtotal de la venta considerando la suma de los productos"""
@@ -68,7 +59,7 @@ class SalesRepository:
             self._calculate_sale_total(sale)
         except Exception as e:
             db.session.rollback()
-            raise RuntimeError(f"Error al calcular el subtotal de la venta: {e}")
+            raise RuntimeError(f"Error al calcular el subtotal de la venta: {e}") from e
 
     def _calculate_sale_total(self, sale: Sale):
         """Calcula el subtotal de la venta considerando la suma de los productos"""
@@ -80,7 +71,7 @@ class SalesRepository:
             db.session.commit()
         except Exception as e:
             db.session.rollback()
-            raise RuntimeError(f"Error al calcular el total de la venta: {e}")
+            raise RuntimeError(f"Error al calcular el total de la venta: {e}") from e
 
     def get_sale_by_id(self, sale_id: int) -> Sale:
         """
@@ -98,7 +89,7 @@ class SalesRepository:
             sale = self._query_sale(filters=filters)
             return sale
         except Exception as e:
-            raise RuntimeError(f"Error al consultar el venta: {e}")
+            raise RuntimeError(f"Error al consultar el venta: {e}") from e
 
     def get_sales_for_month(
         self,
@@ -184,7 +175,7 @@ class SalesRepository:
 
         except Exception as e:
             db.session.rollback()
-            raise RuntimeError(f"Error al crear la venta: {e}")
+            raise RuntimeError(f"Error al crear la venta: {e}") from e
 
     def update_sale(self, sale, **kwargs):
         """
@@ -244,20 +235,7 @@ class SalesRepository:
         except Exception as e:
             # Capturar cualquier otro error durante la actualización
             db.session.rollback()
-            raise RuntimeError(f"Error al actualizar la venta: {e}")
-
-    def delete_sale(self, sale):
-        """
-        Elimina una venta de la base de datos.
-
-        :param sale: Objeto Sale a eliminar.
-        """
-        try:
-            db.session.delete(sale)
-            db.session.commit()
-        except Exception as e:
-            db.session.rollback()
-            raise RuntimeError(f"Error al eliminar el venta: {e}")
+            raise RuntimeError(f"Error al actualizar la venta: {e}") from e
 
     def add_sale_detail(
         self,
@@ -299,13 +277,13 @@ class SalesRepository:
             self._calculate_sale_subtotal(sale_id)
             return new_relation
 
-        except ValueError as ve:
+        except ValueError:
             db.session.rollback()
-            raise ValueError(str(ve))
+            raise
 
         except Exception as e:
             db.session.rollback()
-            raise RuntimeError(f"Error al agregar el producto: {str(e)}")
+            raise RuntimeError(f"Error al agregar el producto: {str(e)}") from e
 
     def update_sale_detail(
         self,
@@ -333,13 +311,10 @@ class SalesRepository:
             RuntimeError: Si ocurre un error durante la operación.
         """
         try:
-            # Buscar la relación existente
-            sale_detail = SaleDetail.query.filter_by(
-                id=sale_detail_id, sale_id=sale_id
-            ).first()
-
-            if not sale_detail:
-                raise ValueError("La relación entre la venta y el producto no existe.")
+            sale_detail = self._get_sale_detail_or_error(
+                sale_id=sale_id,
+                sale_detail_id=sale_detail_id,
+            )
 
             # Actualizar la cantidad
             sale_detail.quantity = quantity
@@ -353,13 +328,13 @@ class SalesRepository:
             self._calculate_sale_subtotal(sale_id)
             return sale_detail
 
-        except ValueError as ve:
+        except ValueError:
             db.session.rollback()
-            raise ValueError(str(ve))
+            raise
 
         except Exception as e:
             db.session.rollback()
-            raise RuntimeError(f"Error al actualizar la relación: {str(e)}")
+            raise RuntimeError(f"Error al actualizar la relación: {str(e)}") from e
 
     def remove_sale_detail(self, sale_id: int, sale_detail_id: int) -> bool:
         """
@@ -374,14 +349,10 @@ class SalesRepository:
             RuntimeError: Si ocurre un error durante la operación.
         """
         try:
-            # Buscar la relación existente
-            sale_detail = SaleDetail.query.filter_by(
-                id=sale_detail_id,
+            sale_detail = self._get_sale_detail_or_error(
                 sale_id=sale_id,
-            ).first()
-
-            if not sale_detail:
-                raise ValueError("La relación entre la venta y el producto no existe.")
+                sale_detail_id=sale_detail_id,
+            )
 
             # Eliminar la relación
             db.session.delete(sale_detail)
@@ -392,39 +363,10 @@ class SalesRepository:
             self._calculate_sale_subtotal(sale_id)
             return True
 
-        except ValueError as ve:
+        except ValueError:
             db.session.rollback()
-            raise ValueError(str(ve))
+            raise
 
         except Exception as e:
             db.session.rollback()
-            raise RuntimeError(f"Error al eliminar la relación: {str(e)}")
-
-    def get_sales_monthly_totals(self, filters: dict = None) -> dict:
-        """
-        Crea un listado de ventas mensuales
-
-        Args:
-            filters (dict): Filtros a aplicar en la consulta (opcional).
-
-        Returns:
-            dict: Diccionario que contiene los meses y los totales.
-
-        Raises:
-            RuntimeError: Si ocurre un error durante la operación.
-        """
-        try:
-            monthly_totals = (
-                db.session.query(
-                    func.strftime("%Y-%m", Sale.date).label("month"),
-                    func.sum(Sale.total_amount).label("total"),
-                )
-                .filter_by(**filters)
-                .group_by(func.strftime("%Y-%m", Sale.date))
-                .all()
-            )
-            return monthly_totals
-        except Exception as e:
-            raise RuntimeError(
-                f"Error al crear el listado de ventas mensuales: {str(e)}"
-            )
+            raise RuntimeError(f"Error al eliminar la relación: {str(e)}") from e

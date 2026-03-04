@@ -48,14 +48,6 @@ class SalesService:
 
     # Nuevos métodos para operaciones CRUD
 
-    def get_sales_by_business(self, business_id):
-        """Obtiene las ventas de un negocio"""
-        return (
-            Sale.query.options(joinedload(Sale.products).joinedload(SaleDetail.product))
-            .filter(Sale.business_id == business_id)
-            .first_or_404()
-        )
-
     def get_sale(self, sale_id, business_id):
         """Obtiene los detalles completos de una venta con sus relaciones"""
         return (
@@ -90,10 +82,15 @@ class SalesService:
                 "id": sale.id,
                 "date": sale.date.strftime("%Y-%m-%d"),
                 "total": sum(
-                    sale_product.total_price
-                    if sale_product.total_price is not None
-                    else (sale_product.quantity or 0)
-                    * ((sale_product.product.price if sale_product.product else 0) or 0)
+                    (
+                        sale_product.total_price
+                        if sale_product.total_price is not None
+                        else (sale_product.quantity or 0)
+                        * (
+                            (sale_product.product.price if sale_product.product else 0)
+                            or 0
+                        )
+                    )
                     for sale_product in sale.products
                 ),
             }
@@ -202,7 +199,9 @@ class SalesService:
                 prev_month = months[idx + 1]
             if idx - 1 >= 0:
                 next_month = months[idx - 1]
-            display_month_name = SalesService.build_months_display([selected_month])[0][1]
+            display_month_name = SalesService.build_months_display([selected_month])[0][
+                1
+            ]
         except Exception:
             display_month_name = selected_month
 
@@ -246,7 +245,9 @@ class SalesService:
 
         if date_range:
             all_daily_income = (
-                daily_query.filter(DailyIncome.date.between(date_range[0], date_range[1]))
+                daily_query.filter(
+                    DailyIncome.date.between(date_range[0], date_range[1])
+                )
                 .order_by(DailyIncome.date.desc(), DailyIncome.id.desc())
                 .all()
             )
@@ -387,7 +388,9 @@ class SalesService:
                         income.amount or 0
                     )
 
-        daily_sales = self._aggregate_daily_sales(sales_by_months) if not is_daily_mode else {}
+        daily_sales = (
+            self._aggregate_daily_sales(sales_by_months) if not is_daily_mode else {}
+        )
 
         daily_sales_sorted = sorted(
             daily_sales.items(), key=lambda item: item[0], reverse=True

@@ -14,7 +14,12 @@ from app.models import Business, DailyIncome
 
 
 class BusinessForm(FlaskForm):
-    name = StringField("Nombre", validators=[DataRequired()])
+    """Formulario para crear y editar negocios."""
+
+    name = StringField(
+        "Nombre",
+        validators=[DataRequired(message="El nombre del negocio es obligatorio.")],
+    )
     description = TextAreaField("Descripción", validators=[Optional()])
     business_activity = StringField("Actividad del negocio", validators=[Optional()])
     income_entry_mode = SelectField(
@@ -61,7 +66,12 @@ class BusinessForm(FlaskForm):
 
 
 class DailyIncomeForm(FlaskForm):
-    date = DateField("Fecha", validators=[DataRequired()])
+    """Formulario para registrar ingresos diarios manuales."""
+
+    date = DateField(
+        "Fecha",
+        validators=[DataRequired(message="La fecha es obligatoria.")],
+    )
     mark_non_taxable = BooleanField("No considerados a efectos de impuestos")
     activity = SelectField(
         "Actividad",
@@ -69,10 +79,14 @@ class DailyIncomeForm(FlaskForm):
             (DailyIncome.ACTIVITY_SALE, "Venta"),
             (DailyIncome.ACTIVITY_SERVICE, "Servicio"),
         ],
-        validators=[DataRequired()],
+        validators=[DataRequired(message="La actividad es obligatoria.")],
         default=DailyIncome.ACTIVITY_SALE,
     )
-    amount = DecimalField("Monto", places=2, validators=[DataRequired()])
+    amount = DecimalField(
+        "Monto",
+        places=2,
+        validators=[DataRequired(message="El monto es obligatorio.")],
+    )
     description = TextAreaField("Detalles o descripción", validators=[Optional()])
     cash_location = SelectField(
         "Registro de efectivo",
@@ -80,6 +94,6 @@ class DailyIncomeForm(FlaskForm):
             (DailyIncome.LOCATION_CASH, "Efectivo en caja"),
             (DailyIncome.LOCATION_BANK, "Efectivo en banco"),
         ],
-        validators=[DataRequired()],
+        validators=[DataRequired(message="La ubicación del efectivo es obligatoria.")],
         default=DailyIncome.LOCATION_CASH,
     )
