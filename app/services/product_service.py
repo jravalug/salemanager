@@ -1,7 +1,6 @@
 from typing import List
 from sqlalchemy import func
 
-from app.forms import ProductForm
 from app.models import Product, ProductDetail, InventoryItem, Sale, SaleDetail
 from app.extensions import db
 from app.repositories.product_repository import ProductRepository
@@ -14,6 +13,7 @@ class ProductService:
     """
 
     def __init__(self):
+        """Inicializa el repositorio de productos."""
         self.repository = ProductRepository()
 
     def get_all_products(self, business_id: int) -> List[Product]:
@@ -131,6 +131,7 @@ class ProductService:
     def remove_raw_material_with_name(
         self, product_id: int, raw_material_id: int
     ) -> str:
+        """Elimina materia prima del producto y devuelve su nombre."""
         raw_material = InventoryItem.query.get(raw_material_id)
         if not raw_material:
             raise ValueError("La materia prima seleccionada no existe.")
@@ -139,6 +140,7 @@ class ProductService:
         return raw_material.name
 
     def get_products_api_data(self, client_slug: str, business_slug: str):
+        """Serializa productos del negocio resuelto por slugs para API."""
         business = get_business_by_slugs(client_slug, business_slug)
         if not business:
             return []
@@ -155,6 +157,7 @@ class ProductService:
         ]
 
     def get_product_list_stats(self, business_id: int, products_list: List[Product]):
+        """Calcula categorías y estadísticas de venta/consumo para listado de productos."""
         categories = sorted(
             {
                 product.category

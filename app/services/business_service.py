@@ -5,7 +5,27 @@ from app.repositories.business_repository import BusinessRepository
 
 class BusinessService:
     def __init__(self):
+        """Inicializa el repositorio de negocios."""
         self.repository = BusinessRepository()
+
+    @staticmethod
+    def _validate_required_fields(data: dict, required_fields: list[str]) -> None:
+        """Valida que los campos obligatorios estén presentes en los datos."""
+        for field in required_fields:
+            if field not in data:
+                raise ValueError(
+                    f"El campo '{field}' es obligatorio para crear un negocio."
+                )
+
+    @staticmethod
+    def _apply_business_updates(business: Business, data: dict) -> None:
+        """Aplica cambios validados al modelo `Business` recibido."""
+        for key, value in data.items():
+            if not hasattr(business, key):
+                raise ValueError(
+                    f"El campo '{key}' no es válido para el modelo Business."
+                )
+            setattr(business, key, value)
 
     def create_business(self, **kwargs):
         """
@@ -15,15 +35,7 @@ class BusinessService:
         :return: El objeto Business recién creado.
         """
         try:
-            # Validar que los campos obligatorios estén presentes
-            required_fields = ["name"]
-            for field in required_fields:
-                if field not in kwargs:
-                    raise ValueError(
-                        f"El campo '{field}' es obligatorio para crear un negocio."
-                    )
-
-            # Crear una nueva instancia de Business con los campos proporcionados
+            self._validate_required_fields(kwargs, ["name"])
             new_business = Business(**kwargs)
             db.session.add(new_business)
             db.session.commit()
@@ -42,15 +54,7 @@ class BusinessService:
         :return: El objeto `Business` actualizado.
         """
         try:
-            # Actualizar los campos del negocio con los valores proporcionados
-            for key, value in kwargs.items():
-                if hasattr(business, key):  # Verificar que el campo exista en el modelo
-                    setattr(business, key, value)
-                else:
-                    raise ValueError(
-                        f"El campo '{key}' no es válido para el modelo Business."
-                    )
-
+            self._apply_business_updates(business, kwargs)
             db.session.commit()
             return business
 
@@ -58,7 +62,7 @@ class BusinessService:
             db.session.rollback()
             raise RuntimeError(f"Error al actualizar el negocio: {e}")
 
-    def get_parent_filters(self, business):
+    def get_parent_filters(self, business: Business):
         """
         Devuelve los filtros necesarios para consultar ventas u otros datos relacionados con un negocio.
 
@@ -66,9 +70,7 @@ class BusinessService:
         :return: Un diccionario con los filtros aplicables.
         """
         filters = {
-            "business_id": (
-                business.id if business.is_general else business.parent_business_id
-            )
+            "business_id": business.id if business.is_general else business.parent_business_id
         }
         if not business.is_general:
             filters["specific_business_id"] = business.id
@@ -76,6 +78,7 @@ class BusinessService:
 
     @staticmethod
     def get_businesses_api_data():
+        """Serializa negocios para respuestas simples de API."""
         businesses = Business.query.all()
         return [
             {

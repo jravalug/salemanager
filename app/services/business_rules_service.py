@@ -4,11 +4,24 @@ from app.services.sale_service import SalesService
 
 
 class BusinessRulesService:
+    INHERITED_FISCAL_FIELDS = (
+        "fiscal_street",
+        "fiscal_number",
+        "fiscal_between_streets",
+        "fiscal_apartment",
+        "fiscal_district",
+        "fiscal_municipality",
+        "fiscal_province",
+        "fiscal_postal_code",
+    )
+
     def __init__(self):
+        """Inicializa dependencias usadas por las reglas de negocio."""
         self.sale_service = SalesService()
 
     @staticmethod
     def normalize_optional_text(value):
+        """Normaliza texto opcional devolviendo `None` cuando está vacío."""
         if value is None:
             return None
         cleaned_value = value.strip()
@@ -16,6 +29,7 @@ class BusinessRulesService:
 
     @staticmethod
     def _is_blank(value):
+        """Indica si un valor debe considerarse vacío para herencia de campos."""
         if value is None:
             return True
         if isinstance(value, str):
@@ -24,6 +38,7 @@ class BusinessRulesService:
 
     @staticmethod
     def snapshot_parent_state(business: Business):
+        """Toma una instantánea de campos heredables del negocio padre."""
         if not business.is_general:
             return None
 
@@ -42,6 +57,7 @@ class BusinessRulesService:
     def resolve_business_income_defaults(
         self, client: Client | None, business: Business
     ):
+        """Resuelve modo y actividad de ingreso por defecto según reglas del cliente."""
         if not client:
             return Business.INCOME_MODE_DAILY, Business.INCOME_ACTIVITY_SALE
 
@@ -63,47 +79,64 @@ class BusinessRulesService:
     def resolve_fiscal_values_from_form(
         self, form, parent_business: Business | None = None
     ):
-        fiscal_street = self.normalize_optional_text(form.fiscal_street.data)
-        fiscal_number = self.normalize_optional_text(form.fiscal_number.data)
-        fiscal_between_streets = self.normalize_optional_text(
-            form.fiscal_between_streets.data
-        )
-        fiscal_apartment = self.normalize_optional_text(form.fiscal_apartment.data)
-        fiscal_district = self.normalize_optional_text(form.fiscal_district.data)
-        fiscal_municipality = self.normalize_optional_text(
-            form.fiscal_municipality.data
-        )
-        fiscal_province = self.normalize_optional_text(form.fiscal_province.data)
-        fiscal_postal_code = self.normalize_optional_text(form.fiscal_postal_code.data)
-
-        if parent_business:
-            fiscal_street = fiscal_street or parent_business.fiscal_street
-            fiscal_number = fiscal_number or parent_business.fiscal_number
-            fiscal_between_streets = (
-                fiscal_between_streets or parent_business.fiscal_between_streets
-            )
-            fiscal_apartment = fiscal_apartment or parent_business.fiscal_apartment
-            fiscal_district = fiscal_district or parent_business.fiscal_district
-            fiscal_municipality = (
-                fiscal_municipality or parent_business.fiscal_municipality
-            )
-            fiscal_province = fiscal_province or parent_business.fiscal_province
-            fiscal_postal_code = (
-                fiscal_postal_code or parent_business.fiscal_postal_code
-            )
-
-        return {
-            "fiscal_street": fiscal_street,
-            "fiscal_number": fiscal_number,
-            "fiscal_between_streets": fiscal_between_streets,
-            "fiscal_apartment": fiscal_apartment,
-            "fiscal_district": fiscal_district,
-            "fiscal_municipality": fiscal_municipality,
-            "fiscal_province": fiscal_province,
-            "fiscal_postal_code": fiscal_postal_code,
+        """Resuelve valores fiscales del formulario aplicando herencia del padre."""
+        fiscal_values = {
+            field_name: self.normalize_optional_text(getattr(form, field_name).data)
+            for field_name in self.INHERITED_FISCAL_FIELDS
         }
 
+        if parent_business:
+            for field_name in self.INHERITED_FISCAL_FIELDS:
+                fiscal_values[field_name] = (
+                    fiscal_values[field_name] or getattr(parent_business, field_name)
+                )
+
+        return fiscal_values
+
+    @staticmethod
+    def _resolve_business_scope_ids(business: Business):
+        """Devuelve IDs de negocio principal y específico según el alcance."""
+        if business.is_general:
+            return business.id, None
+        return business.parent_business_id, business.id
+
+    @staticmethod
+    def _income_location_by_payment_method(payment_method: str | None):
+        """Mapea método de pago a ubicación de efectivo/banco en ingresos diarios."""
+        return (
+            DailyIncome.LOCATION_BANK
+            if payment_method in {"transfer", "card", "bank"}
+            else DailyIncome.LOCATION_CASH
+        )
+
+    @staticmethod
+    def _delete_sales_summary_entries_for_business(business_id: int):
+        """Elimina ingresos automáticos de resumen de ventas para un negocio."""
+        DailyIncome.query.filter_by(
+            business_id=business_id,
+            source=DailyIncome.SOURCE_SALES_SUMMARY,
+        ).delete()
+
+    def _build_sales_by_day_and_location(self, business: Business):
+        """Agrupa ventas por día y ubicación de caja/banco para el resumen."""
+        sales_by_day_and_location = {}
+        main_business_id, specific_business_id = self._resolve_business_scope_ids(business)
+
+        sales_query = Sale.query.filter(Sale.business_id == main_business_id)
+        if specific_business_id is not None:
+            sales_query = sales_query.filter(Sale.specific_business_id == specific_business_id)
+
+        for sale in sales_query.all():
+            location = self._income_location_by_payment_method(sale.payment_method)
+            bucket_key = (sale.date, location)
+            sales_by_day_and_location[bucket_key] = sales_by_day_and_location.get(
+                bucket_key, 0.0
+            ) + float(sale.total_amount or 0)
+
+        return sales_by_day_and_location
+
     def sync_children_inherited_fields(self, parent_business, previous_parent_state):
+        """Sincroniza en hijos los campos heredables modificados en el negocio padre."""
         if not parent_business.is_general:
             return
 
@@ -111,21 +144,10 @@ class BusinessRulesService:
         if not child_businesses:
             return
 
-        inherited_fields = [
-            "fiscal_street",
-            "fiscal_number",
-            "fiscal_between_streets",
-            "fiscal_apartment",
-            "fiscal_district",
-            "fiscal_municipality",
-            "fiscal_province",
-            "fiscal_postal_code",
-        ]
-
         updated_any_child = False
 
         for child in child_businesses:
-            for field_name in inherited_fields:
+            for field_name in self.INHERITED_FISCAL_FIELDS:
                 child_value = getattr(child, field_name)
                 old_parent_value = previous_parent_state.get(field_name)
                 new_parent_value = getattr(parent_business, field_name)
@@ -150,50 +172,27 @@ class BusinessRulesService:
             db.session.commit()
 
     def sync_sales_summary_daily_income(self, business):
+        """Regenera ingresos diarios automáticos a partir de ventas detalladas."""
         if not business:
             return
 
         if business.income_entry_mode != Business.INCOME_MODE_DETAILED:
             return
 
+        main_business_id, specific_business_id = self._resolve_business_scope_ids(business)
         sales_scope = self.sale_service.generate_monthly_totals_sales(
-            business_id=(
-                business.id if business.is_general else business.parent_business_id
-            ),
-            specific_business_id=None if business.is_general else business.id,
+            business_id=main_business_id,
+            specific_business_id=specific_business_id,
         )
 
         if not sales_scope:
-            DailyIncome.query.filter_by(
-                business_id=business.id,
-                source=DailyIncome.SOURCE_SALES_SUMMARY,
-            ).delete()
+            self._delete_sales_summary_entries_for_business(business.id)
             db.session.commit()
             return
 
-        sales_by_day_and_location = {}
-        sales_query = Sale.query.filter(
-            Sale.business_id
-            == (business.id if business.is_general else business.parent_business_id)
-        )
-        if not business.is_general:
-            sales_query = sales_query.filter(Sale.specific_business_id == business.id)
+        sales_by_day_and_location = self._build_sales_by_day_and_location(business)
 
-        for sale in sales_query.all():
-            location = (
-                DailyIncome.LOCATION_BANK
-                if sale.payment_method in {"transfer", "card", "bank"}
-                else DailyIncome.LOCATION_CASH
-            )
-            bucket_key = (sale.date, location)
-            sales_by_day_and_location[bucket_key] = sales_by_day_and_location.get(
-                bucket_key, 0.0
-            ) + float(sale.total_amount or 0)
-
-        DailyIncome.query.filter_by(
-            business_id=business.id,
-            source=DailyIncome.SOURCE_SALES_SUMMARY,
-        ).delete()
+        self._delete_sales_summary_entries_for_business(business.id)
 
         for (day, location), amount in sales_by_day_and_location.items():
             db.session.add(

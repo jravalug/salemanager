@@ -1,15 +1,16 @@
 from datetime import datetime
 from io import BytesIO
 import json
-from typing import List
+from typing import Any, List
 from collections import defaultdict
 from dateutil.relativedelta import relativedelta
 from openpyxl import Workbook
 
 from app import db
-from app.models import Sale, Product, SaleDetail, Business, Client
+from app.models import Sale, Product, SaleDetail
 from app.repositories.sales_repository import SalesRepository
 from app.services.business_service import BusinessService
+from app.utils.slug_utils import get_business_by_slugs
 from app.utils import (
     group_products,
     calculate_sale_detail_totals,
@@ -20,27 +21,13 @@ from app.utils import (
 
 class SalesReportService:
     def __init__(self):
+        """Inicializa dependencias de reportes de ventas."""
         self.repository = SalesRepository()
         self.business_service = BusinessService()
 
-    @staticmethod
-    def get_client_by_slug(client_slug: str) -> Client | None:
-        clients = Client.query.order_by(Client.id.asc()).all()
-        return next((item for item in clients if item.slug == client_slug), None)
-
-    def get_business_by_slugs(
-        self,
-        client_slug: str,
-        business_slug: str,
-    ) -> Business | None:
-        client = self.get_client_by_slug(client_slug)
-        if not client:
-            return None
-        businesses = Business.query.filter_by(client_id=client.id).all()
-        return next((item for item in businesses if item.slug == business_slug), None)
-
     def resolve_business_scope(self, client_slug: str, business_slug: str):
-        business = self.get_business_by_slugs(client_slug, business_slug)
+        """Resuelve negocio y filtros de alcance a partir de slugs."""
+        business = get_business_by_slugs(client_slug, business_slug)
         if not business:
             raise ValueError("Negocio no encontrado")
 
@@ -48,7 +35,8 @@ class SalesReportService:
         return business, business_filters
 
     @staticmethod
-    def parse_json_payload(raw_payload, require_non_empty: bool = False):
+    def parse_json_payload(raw_payload: str | None, require_non_empty: bool = False):
+        """Parsea un payload JSON y valida opcionalmente que no esté vacío."""
         try:
             data = json.loads(raw_payload or "[]")
         except json.JSONDecodeError:
@@ -59,9 +47,9 @@ class SalesReportService:
 
         return data
 
-    def get_daily_sales(self, month_str, business_id, specific_business_id=None):
-        """Obtiene las ventas diarias agrupadas y procesadas."""
-        # Validar el formato del mes
+    @staticmethod
+    def _month_date_range(month_str: str):
+        """Convierte `YYYY-MM` a rango de fechas del mes seleccionado."""
         try:
             selected_month = datetime.strptime(month_str, "%Y-%m").date()
         except ValueError:
@@ -69,6 +57,30 @@ class SalesReportService:
 
         start_date = selected_month.replace(day=1)
         end_date = start_date + relativedelta(months=1, days=-1)
+        return selected_month, start_date, end_date
+
+    def _get_sales_for_month_by_scope(
+        self,
+        month_str: str,
+        business_filters: dict,
+    ) -> list[Sale]:
+        """Obtiene ventas mensuales del repositorio según alcance de negocio."""
+        _, start_date, end_date = self._month_date_range(month_str)
+        return self.repository.get_sales_for_month(
+            business_id=business_filters["business_id"],
+            specific_business_id=business_filters.get("specific_business_id"),
+            start_date=start_date,
+            end_date=end_date,
+        )
+
+    def get_daily_sales(
+        self,
+        month_str: str,
+        business_id: int,
+        specific_business_id: int | None = None,
+    ):
+        """Obtiene las ventas diarias agrupadas y procesadas."""
+        _, start_date, end_date = self._month_date_range(month_str)
 
         # Obtener las ventas del repositorio
         all_daily_sales = self.repository.get_sales_for_month(
@@ -77,8 +89,8 @@ class SalesReportService:
 
         # Procesar las ventas
         grouped_sales_by_day = self._group_sales_by_day(all_daily_sales)
-        formated_daily_sales = format_daily_sales(grouped_sales_by_day)
-        return all_daily_sales, formated_daily_sales
+        formatted_daily_sales = format_daily_sales(grouped_sales_by_day)
+        return all_daily_sales, formatted_daily_sales
 
     def get_monthly_totals(self, daily_sales: List[Sale]) -> dict:
         """
@@ -111,6 +123,7 @@ class SalesReportService:
         specific_business_id=None,
         category_filter=None,
     ):
+        """Genera la estructura diaria de ventas por producto para reportes mensuales."""
         sales, _ = self.get_daily_sales(
             month_str,
             business_id,
@@ -196,6 +209,7 @@ class SalesReportService:
 
     @staticmethod
     def generate_excel_sales_by_product(data):
+        """Genera un archivo Excel consolidado por producto para el período."""
         product_summary = defaultdict(
             lambda: {"quantity": 0, "total_amount": 0, "orders": defaultdict(set)}
         )
@@ -239,6 +253,7 @@ class SalesReportService:
 
     @staticmethod
     def generate_excel_sales_by_product_by_date(data):
+        """Genera un archivo Excel desglosado por fecha y producto."""
         sales_by_day = defaultdict(list)
         for day in data:
             formatted_date = datetime.strptime(day["date"], "%Y-%m-%d").strftime(
@@ -295,34 +310,9 @@ class SalesReportService:
         return excel_file
 
     def get_ipv_daily_sales(self, month_str, business, business_filters):
-        selected_month = datetime.strptime(month_str, "%Y-%m").date()
-        start_date = selected_month.replace(day=1)
-        end_date = start_date + relativedelta(months=1, days=-1)
-
-        if business.is_general:
-            sales = (
-                Sale.query.filter(
-                    Sale.business_id == business_filters["business_id"],
-                    Sale.date.between(start_date, end_date),
-                )
-                .join(Sale.products)
-                .join(SaleDetail.product)
-                .order_by(Sale.date.asc())
-                .all()
-            )
-        else:
-            sales = (
-                Sale.query.filter(
-                    Sale.business_id == business_filters["business_id"],
-                    Sale.specific_business_id
-                    == business_filters["specific_business_id"],
-                    Sale.date.between(start_date, end_date),
-                )
-                .join(Sale.products)
-                .join(SaleDetail.product)
-                .order_by(Sale.date.asc())
-                .all()
-            )
+        """Construye reporte IPV diario separando no-comida y comida."""
+        selected_month, _, _ = self._month_date_range(month_str)
+        sales = self._get_sales_for_month_by_scope(month_str, business_filters)
 
         non_food_products = {}
         for sale in sales:
@@ -409,12 +399,10 @@ class SalesReportService:
 
         return daily_sales, selected_month
 
-    # Helpers Methods
+    # Helper methods
 
     def _group_sales_by_day(self, sales):
         """Agrupa las ventas por día."""
-        from collections import defaultdict
-
         sales_by_day = defaultdict(list)
         for sale in sales:
             date_key = sale.date.strftime("%Y-%m-%d")
@@ -432,18 +420,7 @@ class SalesReportService:
         Retorna un diccionario donde la clave es el id de InventoryItem y el valor contiene
         nombre, unidad, total_consumed (float) y optionally product_usages (mapping product->qty).
         """
-        from collections import defaultdict
-        from datetime import datetime
-        from dateutil.relativedelta import relativedelta
-
-        # Validar y calcular rango de fechas
-        try:
-            selected_month = datetime.strptime(month_str, "%Y-%m").date()
-        except ValueError:
-            raise ValueError("El mes debe estar en formato YYYY-MM.")
-
-        start_date = selected_month.replace(day=1)
-        end_date = start_date + relativedelta(months=1, days=-1)
+        _, start_date, end_date = self._month_date_range(month_str)
 
         # Obtener ventas del repositorio
         sales = self.repository.get_sales_for_month(
@@ -504,18 +481,7 @@ class SalesReportService:
 
         Los días con consumo cero no se incluyen.
         """
-        from collections import defaultdict
-        from datetime import datetime
-        from dateutil.relativedelta import relativedelta
-
-        # Validar y calcular rango de fechas
-        try:
-            selected_month = datetime.strptime(month_str, "%Y-%m").date()
-        except ValueError:
-            raise ValueError("El mes debe estar en formato YYYY-MM.")
-
-        start_date = selected_month.replace(day=1)
-        end_date = start_date + relativedelta(months=1, days=-1)
+        _, start_date, end_date = self._month_date_range(month_str)
 
         # Obtener ventas del repositorio
         sales = self.repository.get_sales_for_month(

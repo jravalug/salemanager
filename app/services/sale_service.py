@@ -26,18 +26,32 @@ class SalesService:
     Servicio para manejar las operaciones relacionadas con el modelo Sale.
     """
 
+    MONTH_NAMES = (
+        "Enero",
+        "Febrero",
+        "Marzo",
+        "Abril",
+        "Mayo",
+        "Junio",
+        "Julio",
+        "Agosto",
+        "Septiembre",
+        "Octubre",
+        "Noviembre",
+        "Diciembre",
+    )
+
     def __init__(self):
+        """Inicializa dependencias del servicio de ventas."""
         self.repository = SalesRepository()
-        self.business = BusinessService()
+        self.business_service = BusinessService()
 
     # Nuevos métodos para operaciones CRUD
 
     def get_sales_by_business(self, business_id):
         """Obtiene las ventas de un negocio"""
         return (
-            Sale.query.options(
-                db.joinedload(Sale.products).joinedload(SaleDetail.product)
-            )
+            Sale.query.options(joinedload(Sale.products).joinedload(SaleDetail.product))
             .filter(Sale.business_id == business_id)
             .first_or_404()
         )
@@ -45,22 +59,22 @@ class SalesService:
     def get_sale(self, sale_id, business_id):
         """Obtiene los detalles completos de una venta con sus relaciones"""
         return (
-            Sale.query.options(
-                db.joinedload(Sale.products).joinedload(SaleDetail.product)
-            )
+            Sale.query.options(joinedload(Sale.products).joinedload(SaleDetail.product))
             .filter(Sale.id == sale_id, Sale.business_id == business_id)
             .first_or_404()
         )
 
     def resolve_business_and_filters(self, client_slug: str, business_slug: str):
+        """Resuelve negocio por slugs y devuelve filtros de consulta asociados."""
         business = get_business_by_slugs(client_slug, business_slug)
         if not business:
             raise ValueError("Negocio no encontrado")
 
-        filters = self.business.get_parent_filters(business=business)
+        filters = self.business_service.get_parent_filters(business=business)
         return business, filters
 
     def resolve_sale_scope(self, client_slug: str, business_slug: str, sale_id: int):
+        """Resuelve negocio, filtros y venta concreta dentro del alcance válido."""
         business, filters = self.resolve_business_and_filters(
             client_slug, business_slug
         )
@@ -69,13 +83,17 @@ class SalesService:
 
     @staticmethod
     def get_sales_api_data(business_id: int):
+        """Devuelve ventas serializadas para consumo de endpoints API."""
         sales = Sale.query.filter_by(business_id=business_id).all()
         return [
             {
                 "id": sale.id,
                 "date": sale.date.strftime("%Y-%m-%d"),
                 "total": sum(
-                    sale_product.quantity * sale_product.product.price
+                    sale_product.total_price
+                    if sale_product.total_price is not None
+                    else (sale_product.quantity or 0)
+                    * ((sale_product.product.price if sale_product.product else 0) or 0)
                     for sale_product in sale.products
                 ),
             }
@@ -101,6 +119,7 @@ class SalesService:
         ).first_or_404()
 
     def handle_remove_product_form(self, sale: Sale, sale_detail_id: int) -> Product:
+        """Procesa formulario para remover un producto de una venta."""
         sale_detail = self.get_sale_detail_for_sale(
             sale_id=sale.id,
             sale_detail_id=sale_detail_id,
@@ -114,6 +133,7 @@ class SalesService:
         quantity: int,
         discount: float,
     ) -> SaleDetail:
+        """Procesa formulario para agregar un producto a una venta."""
         return self.add_product_to_sale(
             sale=sale,
             product_id=product_id,
@@ -128,6 +148,7 @@ class SalesService:
         quantity: int,
         discount: float,
     ) -> SaleDetail:
+        """Procesa formulario para actualizar cantidad/descuento de un producto vendido."""
         sale_detail = self.get_sale_detail_for_sale(
             sale_id=sale.id,
             sale_detail_id=sale_detail_id,
@@ -141,6 +162,7 @@ class SalesService:
 
     @staticmethod
     def parse_month_range(month_param: str | None):
+        """Resuelve mes seleccionado y su rango de fechas opcional."""
         selected_month = month_param if month_param else None
         date_range = None
         if not month_param:
@@ -153,31 +175,113 @@ class SalesService:
 
     @staticmethod
     def build_months_display(months: list[str]):
-        month_names = [
-            "Enero",
-            "Febrero",
-            "Marzo",
-            "Abril",
-            "Mayo",
-            "Junio",
-            "Julio",
-            "Agosto",
-            "Septiembre",
-            "Octubre",
-            "Noviembre",
-            "Diciembre",
-        ]
+        """Convierte meses `YYYY-MM` a etiquetas legibles para UI."""
         months_display = []
         for month in months:
             try:
                 dt = datetime.strptime(month, "%Y-%m").date()
-                label = f"{month_names[dt.month - 1]} {dt.year}"
+                label = f"{SalesService.MONTH_NAMES[dt.month - 1]} {dt.year}"
             except Exception:
                 label = month
             months_display.append((month, label))
         return months_display
 
+    @staticmethod
+    def _resolve_month_navigation(selected_month: str | None, months: list[str]):
+        """Calcula navegación de mes anterior/siguiente para la vista."""
+        prev_month = None
+        next_month = None
+        display_month_name = "Todos"
+
+        if not selected_month or selected_month not in months:
+            return prev_month, next_month, display_month_name
+
+        try:
+            idx = months.index(selected_month)
+            if idx + 1 < len(months):
+                prev_month = months[idx + 1]
+            if idx - 1 >= 0:
+                next_month = months[idx - 1]
+            display_month_name = SalesService.build_months_display([selected_month])[0][1]
+        except Exception:
+            display_month_name = selected_month
+
+        return prev_month, next_month, display_month_name
+
+    @staticmethod
+    def _aggregate_daily_sales(sales_by_months: dict):
+        """Consolida ventas diarias provenientes de múltiples meses."""
+        daily_sales = {}
+        for _, dates in sales_by_months.items():
+            for date_key, data in dates.items():
+                if date_key in daily_sales:
+                    daily_sales[date_key]["total_products"] += data.get(
+                        "total_products", 0
+                    )
+                    daily_sales[date_key]["total_income"] += data.get("total_income", 0)
+                    daily_sales[date_key]["sales"].extend(data.get("sales", []))
+                else:
+                    daily_sales[date_key] = {
+                        "total_products": data.get("total_products", 0),
+                        "total_income": data.get("total_income", 0),
+                        "sales": list(data.get("sales", [])),
+                    }
+        return daily_sales
+
+    @staticmethod
+    def _load_daily_income_context(business_id: int, date_range):
+        """Carga ingresos diarios con y sin filtro mensual para el contexto."""
+        daily_query = DailyIncome.query.filter_by(business_id=business_id)
+        all_daily_income_unfiltered = daily_query.order_by(
+            DailyIncome.date.desc(), DailyIncome.id.desc()
+        ).all()
+        months = sorted(
+            {
+                income.date.strftime("%Y-%m")
+                for income in all_daily_income_unfiltered
+                if income.date
+            },
+            reverse=True,
+        )
+
+        if date_range:
+            all_daily_income = (
+                daily_query.filter(DailyIncome.date.between(date_range[0], date_range[1]))
+                .order_by(DailyIncome.date.desc(), DailyIncome.id.desc())
+                .all()
+            )
+        else:
+            all_daily_income = all_daily_income_unfiltered
+
+        return all_daily_income_unfiltered, all_daily_income, months
+
+    @staticmethod
+    def _load_sales_context(filters: dict, date_range):
+        """Carga ventas con y sin filtro mensual para el contexto de listado."""
+        all_sales_unfiltered = (
+            Sale.query.options(joinedload(Sale.products))
+            .filter_by(**filters)
+            .order_by(Sale.date.desc())
+            .all()
+        )
+        sales_by_months_unfiltered = group_sales_by_month(all_sales_unfiltered)
+        months = sorted(list(sales_by_months_unfiltered.keys()), reverse=True)
+
+        if date_range:
+            all_sales = (
+                Sale.query.options(joinedload(Sale.products))
+                .filter_by(**filters)
+                .filter(Sale.date.between(date_range[0], date_range[1]))
+                .order_by(Sale.date.desc())
+                .all()
+            )
+        else:
+            all_sales = all_sales_unfiltered
+
+        return all_sales_unfiltered, all_sales, months
+
     def create_daily_income(self, business: Business, form) -> DailyIncome:
+        """Registra un ingreso diario manual para el negocio indicado."""
         income_type = (
             DailyIncome.TYPE_NON_TAXABLE
             if form.mark_non_taxable.data
@@ -199,6 +303,7 @@ class SalesService:
 
     @staticmethod
     def build_sale_summaries(daily_sales: dict):
+        """Construye resúmenes por venta agrupando productos y totales."""
         sale_summaries = {}
         for _, data in daily_sales.items():
             for sale in data.get("sales", []):
@@ -242,6 +347,7 @@ class SalesService:
         filters: dict,
         month_param: str | None,
     ):
+        """Arma el contexto completo de la vista de listado de ventas."""
         is_daily_mode = business.income_entry_mode == Business.INCOME_MODE_DAILY
         all_sales_unfiltered = []
         all_daily_income_unfiltered = []
@@ -252,48 +358,19 @@ class SalesService:
         all_daily_income = []
 
         if is_daily_mode:
-            daily_query = DailyIncome.query.filter_by(business_id=business.id)
-            all_daily_income_unfiltered = daily_query.order_by(
-                DailyIncome.date.desc(), DailyIncome.id.desc()
-            ).all()
-            months = sorted(
-                {
-                    income.date.strftime("%Y-%m")
-                    for income in all_daily_income_unfiltered
-                    if income.date
-                },
-                reverse=True,
+            (
+                all_daily_income_unfiltered,
+                all_daily_income,
+                months,
+            ) = self._load_daily_income_context(
+                business_id=business.id,
+                date_range=date_range,
             )
-            if date_range:
-                all_daily_income = (
-                    daily_query.filter(
-                        DailyIncome.date.between(date_range[0], date_range[1])
-                    )
-                    .order_by(DailyIncome.date.desc(), DailyIncome.id.desc())
-                    .all()
-                )
-            else:
-                all_daily_income = all_daily_income_unfiltered
         else:
-            all_sales_unfiltered = (
-                Sale.query.options(joinedload(Sale.products))
-                .filter_by(**filters)
-                .order_by(Sale.date.desc())
-                .all()
+            all_sales_unfiltered, all_sales, months = self._load_sales_context(
+                filters=filters,
+                date_range=date_range,
             )
-            sales_by_months_unfiltered = group_sales_by_month(all_sales_unfiltered)
-            months = sorted(list(sales_by_months_unfiltered.keys()), reverse=True)
-
-            if date_range:
-                all_sales = (
-                    Sale.query.options(joinedload(Sale.products))
-                    .filter_by(**filters)
-                    .filter(Sale.date.between(date_range[0], date_range[1]))
-                    .order_by(Sale.date.desc())
-                    .all()
-                )
-            else:
-                all_sales = all_sales_unfiltered
 
         months_display = self.build_months_display(months)
 
@@ -310,24 +387,7 @@ class SalesService:
                         income.amount or 0
                     )
 
-        daily_sales = {}
-        if not is_daily_mode:
-            for _, dates in sales_by_months.items():
-                for date_key, data in dates.items():
-                    if date_key in daily_sales:
-                        daily_sales[date_key]["total_products"] += data.get(
-                            "total_products", 0
-                        )
-                        daily_sales[date_key]["total_income"] += data.get(
-                            "total_income", 0
-                        )
-                        daily_sales[date_key]["sales"].extend(data.get("sales", []))
-                    else:
-                        daily_sales[date_key] = {
-                            "total_products": data.get("total_products", 0),
-                            "total_income": data.get("total_income", 0),
-                            "sales": list(data.get("sales", [])),
-                        }
+        daily_sales = self._aggregate_daily_sales(sales_by_months) if not is_daily_mode else {}
 
         daily_sales_sorted = sorted(
             daily_sales.items(), key=lambda item: item[0], reverse=True
@@ -336,21 +396,10 @@ class SalesService:
             self.build_sale_summaries(daily_sales) if not is_daily_mode else {}
         )
 
-        prev_month = None
-        next_month = None
-        display_month_name = None
-        if selected_month and selected_month in months:
-            try:
-                idx = months.index(selected_month)
-                if idx + 1 < len(months):
-                    prev_month = months[idx + 1]
-                if idx - 1 >= 0:
-                    next_month = months[idx - 1]
-                display_month_name = self.build_months_display([selected_month])[0][1]
-            except Exception:
-                display_month_name = selected_month
-        else:
-            display_month_name = "Todos"
+        prev_month, next_month, display_month_name = self._resolve_month_navigation(
+            selected_month=selected_month,
+            months=months,
+        )
 
         current_total = (
             sum(float(item.amount or 0) for item in all_daily_income)
@@ -381,6 +430,7 @@ class SalesService:
         }
 
     def build_sale_details_context(self, sale: Sale, filters: dict):
+        """Prepara formularios y detalles requeridos por la vista de una venta."""
         add_product_form = SaleDetailForm(prefix="add_product")
         update_product_form = UpdateSaleDetailForm(prefix="update_product")
         remove_product_form = RemoveSaleDetailForm(prefix="remove_product")
@@ -421,7 +471,7 @@ class SalesService:
         Returns:
             Sale: El objeto Venta recién generado.
         """
-        business_filter = self.business.get_parent_filters(business)
+        business_filter = self.business_service.get_parent_filters(business)
 
         if business.is_general:
             specific_business_id = form.specific_business_id.data
@@ -544,10 +594,10 @@ class SalesService:
         self.repository.remove_sale_detail(sale.id, sale_detail.id)
         return removed_product
 
-    # Helpers Methods
+    # Helper methods
     def _calculate_sale_detail_total(
         self, unit_price: float, quantity: int, discount: float
-    ):
+    ) -> float:
         """
         Calcula el total por producto considerando descuentos
 
