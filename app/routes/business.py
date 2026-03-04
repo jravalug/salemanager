@@ -373,7 +373,7 @@ def add_sub_business(business_id):
         if business.client:
             return redirect(
                 url_for(
-                    "main.client_dashboard",
+                    "client.client_dashboard",
                     client_slug=business.client.slug,
                     business_id=business.id,
                 )

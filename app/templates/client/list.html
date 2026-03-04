@@ -238,7 +238,7 @@
                                 Ver negocio
                               </a>
                               <a
-                                href="{{ url_for('main.client_dashboard', client_slug=item.client.slug) }}"
+                                href="{{ url_for('client.client_dashboard', client_slug=item.client.slug) }}"
                                 class="inline-flex items-center rounded-lg bg-blue-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
                               >
                                 Entrar al dashboard
@@ -273,7 +273,7 @@
                 </a>
                 {% if item.primary_business %}
                   <a
-                    href="{{ url_for('main.client_dashboard', client_slug=item.client.slug) }}"
+                    href="{{ url_for('client.client_dashboard', client_slug=item.client.slug) }}"
                     class="inline-flex items-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
                   >
                     Trabajar con cliente
