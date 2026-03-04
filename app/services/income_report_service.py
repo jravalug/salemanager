@@ -3,10 +3,17 @@ from io import BytesIO
 import json
 from typing import List
 from collections import defaultdict
+from sqlalchemy import func
 from dateutil.relativedelta import relativedelta
 from openpyxl import Workbook
 
-from app.models import Sale
+from app.models import (
+    Sale,
+    Business,
+    IncomeEvent,
+    FinancialLedgerEntry,
+    FiscalIncomeEntry,
+)
 from app.repositories.income_repository import IncomeRepository
 from app.services.business_service import BusinessService
 from app.utils.slug_utils import get_business_by_slugs
@@ -68,6 +75,301 @@ class IncomeReportService:
             start_date=start_date,
             end_date=end_date,
         )
+
+    @staticmethod
+    def _parse_date(date_str: str, field_name: str):
+        try:
+            return datetime.strptime(date_str, "%Y-%m-%d").date()
+        except (TypeError, ValueError):
+            raise ValueError(f"{field_name} debe estar en formato YYYY-MM-DD.")
+
+    def _parse_date_range(self, start_date: str | None, end_date: str | None):
+        if bool(start_date) != bool(end_date):
+            raise ValueError("Debes enviar start_date y end_date juntos.")
+
+        if not start_date and not end_date:
+            return None, None
+
+        parsed_start = self._parse_date(start_date, "start_date")
+        parsed_end = self._parse_date(end_date, "end_date")
+        if parsed_start > parsed_end:
+            raise ValueError("start_date no puede ser mayor que end_date.")
+
+        return parsed_start, parsed_end
+
+    @staticmethod
+    def _validate_regime_filter(regime: str | None):
+        if not regime:
+            return None
+
+        normalized = regime.strip().lower()
+        allowed = {
+            FinancialLedgerEntry.REGIME_FISCAL,
+            FinancialLedgerEntry.REGIME_FINANCIAL,
+        }
+        if normalized not in allowed:
+            raise ValueError("regime debe ser 'fiscal' o 'financiera'.")
+        return normalized
+
+    @staticmethod
+    def _resolve_aging_bucket(days_pending: int) -> str:
+        if days_pending <= 30:
+            return "0-30"
+        if days_pending <= 60:
+            return "31-60"
+        if days_pending <= 90:
+            return "61-90"
+        return "90+"
+
+    def get_financial_ledger_report(
+        self,
+        business_id: int,
+        start_date: str | None = None,
+        end_date: str | None = None,
+        regime: str | None = None,
+    ):
+        parsed_start, parsed_end = self._parse_date_range(start_date, end_date)
+        regime_filter = self._validate_regime_filter(regime)
+
+        query = FinancialLedgerEntry.query.filter_by(business_id=business_id)
+        if parsed_start and parsed_end:
+            query = query.filter(
+                FinancialLedgerEntry.recognition_date.between(parsed_start, parsed_end)
+            )
+        if regime_filter:
+            query = query.filter(FinancialLedgerEntry.regime == regime_filter)
+
+        entries = query.order_by(
+            FinancialLedgerEntry.recognition_date.asc(),
+            FinancialLedgerEntry.id.asc(),
+        ).all()
+
+        return {
+            "entries": [
+                {
+                    "id": entry.id,
+                    "income_event_id": entry.income_event_id,
+                    "recognition_date": entry.recognition_date.strftime("%Y-%m-%d"),
+                    "amount": float(entry.amount or 0),
+                    "regime": entry.regime,
+                    "source_ref": entry.source_ref,
+                }
+                for entry in entries
+            ],
+            "totals": {
+                "count": len(entries),
+                "amount": round(sum(float(entry.amount or 0) for entry in entries), 2),
+            },
+        }
+
+    def get_fiscal_ledger_report(
+        self,
+        business_id: int,
+        start_date: str | None = None,
+        end_date: str | None = None,
+        regime: str | None = None,
+    ):
+        parsed_start, parsed_end = self._parse_date_range(start_date, end_date)
+        regime_filter = self._validate_regime_filter(regime)
+
+        query = FiscalIncomeEntry.query.filter_by(business_id=business_id)
+        if parsed_start and parsed_end:
+            query = query.filter(
+                FiscalIncomeEntry.recognition_date.between(parsed_start, parsed_end)
+            )
+        if regime_filter:
+            query = query.filter(FiscalIncomeEntry.regime == regime_filter)
+
+        entries = query.order_by(
+            FiscalIncomeEntry.recognition_date.asc(),
+            FiscalIncomeEntry.id.asc(),
+        ).all()
+
+        return {
+            "entries": [
+                {
+                    "id": entry.id,
+                    "income_event_id": entry.income_event_id,
+                    "recognition_date": entry.recognition_date.strftime("%Y-%m-%d"),
+                    "amount": float(entry.amount or 0),
+                    "regime": entry.regime,
+                    "source_ref": entry.source_ref,
+                }
+                for entry in entries
+            ],
+            "totals": {
+                "count": len(entries),
+                "amount": round(sum(float(entry.amount or 0) for entry in entries), 2),
+            },
+        }
+
+    def get_pending_aging_report(
+        self,
+        business_id: int,
+        as_of_date: str | None = None,
+        regime: str | None = None,
+    ):
+        business = Business.query.get(business_id)
+        if not business:
+            raise ValueError("Negocio no encontrado")
+
+        regime_filter = self._validate_regime_filter(regime)
+        business_regime = (business.client.accounting_regime or "").strip().lower()
+        if regime_filter and regime_filter != business_regime:
+            return {
+                "as_of_date": datetime.today().strftime("%Y-%m-%d"),
+                "entries": [],
+                "aging": {"0-30": 0.0, "31-60": 0.0, "61-90": 0.0, "90+": 0.0},
+                "totals": {"count": 0, "amount": 0.0},
+            }
+
+        effective_date = (
+            self._parse_date(as_of_date, "as_of_date")
+            if as_of_date
+            else datetime.today().date()
+        )
+
+        pending_events = (
+            IncomeEvent.query.filter_by(
+                business_id=business_id,
+                collection_status=IncomeEvent.STATUS_PENDING,
+            )
+            .order_by(IncomeEvent.event_date.asc(), IncomeEvent.id.asc())
+            .all()
+        )
+
+        entries = []
+        aging_totals = {"0-30": 0.0, "31-60": 0.0, "61-90": 0.0, "90+": 0.0}
+        for event in pending_events:
+            days_pending = max((effective_date - event.event_date).days, 0)
+            bucket = self._resolve_aging_bucket(days_pending)
+            amount = float(event.amount or 0)
+            aging_totals[bucket] += amount
+            entries.append(
+                {
+                    "income_event_id": event.id,
+                    "event_date": event.event_date.strftime("%Y-%m-%d"),
+                    "days_pending": days_pending,
+                    "aging_bucket": bucket,
+                    "amount": amount,
+                    "payment_channel": event.payment_channel,
+                    "origin_type": event.origin_type,
+                    "source_ref": event.source_ref,
+                }
+            )
+
+        return {
+            "as_of_date": effective_date.strftime("%Y-%m-%d"),
+            "entries": entries,
+            "aging": {key: round(value, 2) for key, value in aging_totals.items()},
+            "totals": {
+                "count": len(entries),
+                "amount": round(sum(item["amount"] for item in entries), 2),
+            },
+        }
+
+    def get_regime_compliance_report(
+        self,
+        business_id: int,
+        start_date: str | None = None,
+        end_date: str | None = None,
+        regime: str | None = None,
+    ):
+        parsed_start, parsed_end = self._parse_date_range(start_date, end_date)
+        business = Business.query.get(business_id)
+        if not business:
+            raise ValueError("Negocio no encontrado")
+
+        applicable_regime = (business.client.accounting_regime or "").strip().lower()
+        requested_regime = self._validate_regime_filter(regime)
+        if requested_regime and requested_regime != applicable_regime:
+            raise ValueError(
+                "El régimen solicitado no coincide con el régimen contable del cliente."
+            )
+
+        financial_query = FinancialLedgerEntry.query.filter_by(business_id=business_id)
+        fiscal_query = FiscalIncomeEntry.query.filter_by(business_id=business_id)
+        pending_query = IncomeEvent.query.filter_by(
+            business_id=business_id,
+            collection_status=IncomeEvent.STATUS_PENDING,
+        )
+
+        if parsed_start and parsed_end:
+            financial_query = financial_query.filter(
+                FinancialLedgerEntry.recognition_date.between(parsed_start, parsed_end)
+            )
+            fiscal_query = fiscal_query.filter(
+                FiscalIncomeEntry.recognition_date.between(parsed_start, parsed_end)
+            )
+            pending_query = pending_query.filter(
+                IncomeEvent.event_date.between(parsed_start, parsed_end)
+            )
+
+        financial_total = (
+            financial_query.with_entities(
+                func.coalesce(func.sum(FinancialLedgerEntry.amount), 0.0)
+            ).scalar()
+            or 0.0
+        )
+        fiscal_total = (
+            fiscal_query.with_entities(
+                func.coalesce(func.sum(FiscalIncomeEntry.amount), 0.0)
+            ).scalar()
+            or 0.0
+        )
+        pending_total = (
+            pending_query.with_entities(
+                func.coalesce(func.sum(IncomeEvent.amount), 0.0)
+            ).scalar()
+            or 0.0
+        )
+
+        applicable_total = (
+            float(fiscal_total)
+            if applicable_regime == FiscalIncomeEntry.REGIME_FISCAL
+            else float(financial_total)
+        )
+
+        return {
+            "business_id": business_id,
+            "client_id": business.client.id,
+            "applicable_regime": applicable_regime,
+            "period": {
+                "start_date": (
+                    parsed_start.strftime("%Y-%m-%d") if parsed_start else None
+                ),
+                "end_date": parsed_end.strftime("%Y-%m-%d") if parsed_end else None,
+            },
+            "totals": {
+                "financial_amount": round(float(financial_total), 2),
+                "fiscal_amount": round(float(fiscal_total), 2),
+                "pending_amount": round(float(pending_total), 2),
+                "applicable_book_amount": round(float(applicable_total), 2),
+            },
+            "compliance": {
+                "is_regime_aligned": True,
+                "message": "Reporte generado usando el régimen contable aplicable del cliente.",
+            },
+        }
+
+    @staticmethod
+    def generate_excel_tabular_report(
+        title: str,
+        headers: list[str],
+        rows: list[list],
+    ):
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = title[:31] if title else "Reporte"
+
+        sheet.append(headers)
+        for row in rows:
+            sheet.append(row)
+
+        excel_file = BytesIO()
+        workbook.save(excel_file)
+        excel_file.seek(0)
+        return excel_file
 
     def get_daily_sales(
         self,
