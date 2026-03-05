@@ -1,8 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import (
     BooleanField,
-    DateField,
-    DecimalField,
     FileField,
     SelectField,
     StringField,
@@ -10,7 +8,7 @@ from wtforms import (
 )
 from wtforms.validators import DataRequired, Optional
 
-from app.models import Business, DailyIncome
+from app.models import Business
 
 
 class BusinessForm(FlaskForm):
@@ -63,47 +61,3 @@ class BusinessForm(FlaskForm):
         description="Marque esta casilla para convertir en negocio principal.",
     )
     logo = FileField("Logo", validators=[Optional()])  # Campo opcional
-
-
-class DailyIncomeForm(FlaskForm):
-    """Formulario para registrar ingresos diarios manuales."""
-
-    date = DateField(
-        "Fecha",
-        validators=[DataRequired(message="La fecha es obligatoria.")],
-    )
-    mark_non_taxable = BooleanField("No considerados a efectos de impuestos")
-    activity = SelectField(
-        "Actividad",
-        choices=[
-            (DailyIncome.ACTIVITY_SALE, "Venta"),
-            (DailyIncome.ACTIVITY_SERVICE, "Servicio"),
-        ],
-        validators=[DataRequired(message="La actividad es obligatoria.")],
-        default=DailyIncome.ACTIVITY_SALE,
-    )
-    payment_method = SelectField(
-        "Método de Pago",
-        choices=[
-            ("cash", "Efectivo"),
-            ("transfer", "Transferencia"),
-            ("check", "Cheque"),
-        ],
-        validators=[DataRequired(message="El método de pago es obligatorio.")],
-        default="cash",
-    )
-    amount = DecimalField(
-        "Monto",
-        places=2,
-        validators=[DataRequired(message="El monto es obligatorio.")],
-    )
-    description = TextAreaField("Detalles o descripción", validators=[Optional()])
-    cash_location = SelectField(
-        "Registro de efectivo",
-        choices=[
-            (DailyIncome.LOCATION_CASH, "Efectivo en caja"),
-            (DailyIncome.LOCATION_BANK, "Efectivo en banco"),
-        ],
-        validators=[DataRequired(message="La ubicación del efectivo es obligatoria.")],
-        default=DailyIncome.LOCATION_CASH,
-    )

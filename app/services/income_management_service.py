@@ -331,13 +331,17 @@ class IncomeManagementService:
         if payment_method not in self.ALLOWED_PAYMENT_METHODS:
             raise ValueError("Método de pago no válido. Usa: cash, transfer o check.")
 
-        bank_like_methods = {"transfer", "check"}
-        if payment_method in bank_like_methods:
+        if payment_method in self.TRANSFER_LIKE_METHODS:
             resolved_cash_location = DailyIncome.LOCATION_BANK
         elif payment_method == "cash":
             resolved_cash_location = DailyIncome.LOCATION_CASH
         else:
             resolved_cash_location = form.cash_location.data
+
+        debtor_data = self._resolve_debtor_invoice_data(
+            form=form,
+            payment_method=payment_method,
+        )
 
         income_type = (
             DailyIncome.TYPE_NON_TAXABLE
@@ -351,8 +355,10 @@ class IncomeManagementService:
             activity=form.activity.data,
             amount=float(form.amount.data or 0),
             description=(form.description.data or "").strip() or None,
+            payment_method=payment_method,
             cash_location=resolved_cash_location,
             source=DailyIncome.SOURCE_MANUAL,
+            **debtor_data,
         )
         db.session.add(new_income)
         if inspect(db.session.get_bind()).has_table("income_event"):

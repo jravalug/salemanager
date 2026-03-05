@@ -6,9 +6,9 @@
   </h2>
   <form
     method="POST"
-    action="{{ url_for('income.funds_settings', client_slug=business.client.slug, business_slug=business.slug) }}"
+    action="{{ url_for('cash_flow.funds_settings', client_slug=business.client.slug, business_slug=business.slug) }}"
     class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2"
-    hx-post="{{ url_for('income.funds_settings', client_slug=business.client.slug, business_slug=business.slug) }}"
+    hx-post="{{ url_for('cash_flow.funds_settings', client_slug=business.client.slug, business_slug=business.slug) }}"
     hx-target="#funds-settings-content"
     hx-swap="outerHTML"
   >

@@ -2,16 +2,18 @@ from flask_wtf import FlaskForm
 from wtforms import (
     BooleanField,
     DateField,
+    DecimalField,
     FloatField,
     HiddenField,
     IntegerField,
     SelectField,
     StringField,
     SubmitField,
+    TextAreaField,
 )
 from wtforms.validators import DataRequired, Optional, NumberRange
 
-from app.forms.business import DailyIncomeForm
+from app.models import DailyIncome
 from app.models.business import Business
 
 
@@ -255,6 +257,157 @@ class RemoveIncomeDetailForm(FlaskForm):
         validators=[DataRequired(message="El ID del detalle es obligatorio.")],
     )
     submit = SubmitField("Eliminar Producto")
+
+
+class DailyIncomeForm(FlaskForm):
+    """Formulario para registrar ingresos diarios manuales."""
+
+    date = DateField(
+        "Fecha",
+        validators=[DataRequired(message="La fecha es obligatoria.")],
+    )
+    mark_non_taxable = BooleanField("No considerados a efectos de impuestos")
+    activity = SelectField(
+        "Actividad",
+        choices=[
+            (DailyIncome.ACTIVITY_SALE, "Venta"),
+            (DailyIncome.ACTIVITY_SERVICE, "Servicio"),
+        ],
+        validators=[DataRequired(message="La actividad es obligatoria.")],
+        default=DailyIncome.ACTIVITY_SALE,
+    )
+    payment_method = SelectField(
+        "Método de Pago",
+        choices=[
+            ("cash", "Efectivo"),
+            ("transfer", "Transferencia"),
+            ("check", "Cheque"),
+        ],
+        validators=[DataRequired(message="El método de pago es obligatorio.")],
+        default="cash",
+    )
+    debtor_type = SelectField(
+        "Tipo de Deudor",
+        choices=[
+            ("", "--- Seleccionar ---"),
+            ("natural", "Persona Natural"),
+            ("legal", "Persona Jurídica"),
+        ],
+        validators=[Optional()],
+    )
+    debtor_natural_full_name = StringField(
+        "Nombre y Apellidos (Natural)",
+        validators=[Optional()],
+    )
+    debtor_natural_identity_number = StringField(
+        "Carnet de Identidad / NIT (Natural)",
+        validators=[Optional()],
+    )
+    debtor_natural_bank_account = StringField(
+        "Cuenta Bancaria (Natural)",
+        validators=[Optional()],
+    )
+    debtor_legal_entity_name = StringField(
+        "Nombre de la Entidad (Jurídica)",
+        validators=[Optional()],
+    )
+    debtor_legal_reeup_code = StringField(
+        "Código REEUP (Jurídica)",
+        validators=[Optional()],
+    )
+    debtor_legal_address = StringField(
+        "Dirección (Jurídica)",
+        validators=[Optional()],
+    )
+    debtor_legal_credit_branch = StringField(
+        "Sucursal de Crédito (Jurídica)",
+        validators=[Optional()],
+    )
+    debtor_legal_bank_account = StringField(
+        "Número de Cuenta (Jurídica)",
+        validators=[Optional()],
+    )
+    debtor_legal_contract_number = StringField(
+        "Número de Contrato (Jurídica)",
+        validators=[Optional()],
+    )
+    amount = DecimalField(
+        "Monto",
+        places=2,
+        validators=[DataRequired(message="El monto es obligatorio.")],
+    )
+    description = TextAreaField("Detalles o descripción", validators=[Optional()])
+    cash_location = SelectField(
+        "Registro de efectivo",
+        choices=[
+            (DailyIncome.LOCATION_CASH, "Efectivo en caja"),
+            (DailyIncome.LOCATION_BANK, "Efectivo en banco"),
+        ],
+        validators=[DataRequired(message="La ubicación del efectivo es obligatoria.")],
+        default=DailyIncome.LOCATION_CASH,
+    )
+
+    def validate(self, extra_validators=None):
+        is_valid = super().validate(extra_validators=extra_validators)
+        payment_method = (self.payment_method.data or "").strip().lower()
+
+        if payment_method not in {"transfer", "check"}:
+            return is_valid
+
+        debtor_type = (self.debtor_type.data or "").strip().lower()
+        if debtor_type not in {"natural", "legal"}:
+            self.debtor_type.errors.append(
+                "Debe seleccionar el tipo de deudor para pagos por transferencia o cheque."
+            )
+            return False
+
+        if debtor_type == "natural":
+            required_natural_fields = [
+                (
+                    self.debtor_natural_full_name,
+                    "El nombre y apellidos es obligatorio.",
+                ),
+                (
+                    self.debtor_natural_identity_number,
+                    "El carnet de identidad o NIT es obligatorio.",
+                ),
+                (
+                    self.debtor_natural_bank_account,
+                    "La cuenta bancaria es obligatoria.",
+                ),
+            ]
+            for field, message in required_natural_fields:
+                if not (field.data or "").strip():
+                    field.errors.append(message)
+                    is_valid = False
+
+        if debtor_type == "legal":
+            required_legal_fields = [
+                (
+                    self.debtor_legal_entity_name,
+                    "El nombre de la entidad es obligatorio.",
+                ),
+                (self.debtor_legal_reeup_code, "El código REEUP es obligatorio."),
+                (self.debtor_legal_address, "La dirección es obligatoria."),
+                (
+                    self.debtor_legal_credit_branch,
+                    "La sucursal de crédito es obligatoria.",
+                ),
+                (
+                    self.debtor_legal_bank_account,
+                    "El número de cuenta es obligatorio.",
+                ),
+                (
+                    self.debtor_legal_contract_number,
+                    "El número de contrato es obligatorio.",
+                ),
+            ]
+            for field, message in required_legal_fields:
+                if not (field.data or "").strip():
+                    field.errors.append(message)
+                    is_valid = False
+
+        return is_valid
 
 
 class DailyManualIncomeForm(DailyIncomeForm):

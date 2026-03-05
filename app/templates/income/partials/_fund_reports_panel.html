@@ -11,9 +11,9 @@
     {% if business %}
       <form
         method="get"
-        action="{{ url_for('income.funds_reports_panel', client_slug=business.client.slug, business_slug=business.slug) }}"
+        action="{{ url_for('cash_flow.funds_reports_panel', client_slug=business.client.slug, business_slug=business.slug) }}"
         class="grid grid-cols-1 gap-2 md:grid-cols-5 md:items-end"
-        hx-get="{{ url_for('income.funds_reports_panel', client_slug=business.client.slug, business_slug=business.slug) }}"
+        hx-get="{{ url_for('cash_flow.funds_reports_panel', client_slug=business.client.slug, business_slug=business.slug) }}"
         hx-target="#fund-reports-panel"
         hx-swap="outerHTML"
       >

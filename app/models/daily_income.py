@@ -15,6 +15,9 @@ class DailyIncome(db.Model):
 
     SOURCE_MANUAL = "manual"
     SOURCE_SALES_SUMMARY = "sales_summary"
+    PAYMENT_METHOD_CASH = "cash"
+    PAYMENT_METHOD_TRANSFER = "transfer"
+    PAYMENT_METHOD_CHECK = "check"
 
     id = db.Column(db.Integer, primary_key=True)
     business_id = db.Column(
@@ -30,9 +33,22 @@ class DailyIncome(db.Model):
     activity = db.Column(db.String(20), nullable=False, default=ACTIVITY_SALE)
     amount = db.Column(db.Float, nullable=False, default=0.0)
     description = db.Column(db.String(255), nullable=True)
+    payment_method = db.Column(
+        db.String(20), nullable=False, default=PAYMENT_METHOD_CASH
+    )
     cash_location = db.Column(
         db.String(20), nullable=False, default=LOCATION_CASH, index=True
     )
+    debtor_type = db.Column(db.String(20), nullable=True)
+    debtor_natural_full_name = db.Column(db.String(150), nullable=True)
+    debtor_natural_identity_number = db.Column(db.String(50), nullable=True)
+    debtor_natural_bank_account = db.Column(db.String(80), nullable=True)
+    debtor_legal_entity_name = db.Column(db.String(200), nullable=True)
+    debtor_legal_reeup_code = db.Column(db.String(50), nullable=True)
+    debtor_legal_address = db.Column(db.String(255), nullable=True)
+    debtor_legal_credit_branch = db.Column(db.String(120), nullable=True)
+    debtor_legal_bank_account = db.Column(db.String(80), nullable=True)
+    debtor_legal_contract_number = db.Column(db.String(80), nullable=True)
     source = db.Column(db.String(20), nullable=False, default=SOURCE_MANUAL, index=True)
     created_at = db.Column(
         db.DateTime,

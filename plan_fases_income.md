@@ -315,6 +315,8 @@ Objetivo: capturar y validar información obligatoria del deudor cuando el cobro
 - [x] Exigir para persona natural: nombre y apellidos, carnet/NIT, cuenta bancaria.
 - [x] Exigir para persona jurídica: entidad, REEUP, dirección, sucursal de crédito, número de cuenta, número de contrato.
 - [x] Integrar persistencia en backend al crear/actualizar ingresos detallados.
+- [x] Extender campos y validación de deudor al flujo de ingresos diarios (`DailyIncomeForm` + `create_daily_income`).
+- [x] Persistir método de pago y datos de deudor en `DailyIncome` para cobros diarios por `transfer`/`check`.
 
 ### Guía de convenciones HTMX (F11)
 
@@ -369,6 +371,7 @@ Objetivo: capturar y validar información obligatoria del deudor cuando el cobro
 - [x] F12.1 Modelo/migración de datos de deudor en `Sale`.
 - [x] F12.2 Validación condicional por método de pago y tipo de deudor.
 - [x] F12.3 Captura UI de datos de deudor en formularios de ingresos detallados.
+- [x] F12.4 Extensión a ingresos diarios (modelo + formulario + servicio + UI).
 
 ---
 
@@ -437,3 +440,4 @@ Objetivo: capturar y validar información obligatoria del deudor cuando el cobro
 - 2026-03-04: Corrección terminológica solicitada: el código interno usa `check` y la UI mantiene etiqueta en español "Cheque"; se aplicó migración `d8a1c5b7e9f0` para normalizar `sale.payment_method` de `cheque` a `check`.
 - 2026-03-04: Saneo integral de valores legacy en datos de ingresos: se aplicó migración `e3b6a4d1f9c2` para normalizar `sale.payment_method` al catálogo final (`cash`, `transfer`, `check`) mapeando variantes heredadas (`cheque`, `transferencia`, `bank`, `card`, `mix`, `other`, `tarjeta`, `mixto`, `otro`, vacíos) a valores canónicos.
 - 2026-03-04: Se incorporó F12 para facturación por `transfer`/`check`: nuevos campos de deudor en `Sale` (natural/jurídico), validaciones condicionales en formulario/backend y migración `f1c2d3e4b5a6`.
+- 2026-03-05: Se extendió F12 al flujo de ingresos diarios: `DailyIncome` ahora persiste `payment_method` y datos de deudor (natural/jurídico), `DailyIncomeForm` valida condicionalmente para `transfer`/`check`, `create_daily_income` guarda la información, y el modal diario captura los nuevos campos.

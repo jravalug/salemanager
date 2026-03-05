@@ -94,6 +94,167 @@
                     class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                   )
                 }}
+                {% for error in add_income_form.payment_method.errors %}
+                  <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                    >{{ error }}</span
+                  >
+                {% endfor %}
+              </div>
+
+              <div class="sm:col-span-2">
+                {{ add_income_form.debtor_type.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                {{
+                  add_income_form.debtor_type(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                  )
+                }}
+                {% for error in add_income_form.debtor_type.errors %}
+                  <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                    >{{ error }}</span
+                  >
+                {% endfor %}
+              </div>
+
+              <div class="sm:col-span-4">
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  Para pagos por transferencia/cheque complete los datos del
+                  deudor según tipo.
+                </p>
+              </div>
+
+              <div class="sm:col-span-4">
+                {{ add_income_form.debtor_natural_full_name.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                {{
+                  add_income_form.debtor_natural_full_name(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                    placeholder="Nombre y apellidos"
+                  )
+                }}
+                {% for error in add_income_form.debtor_natural_full_name.errors %}
+                  <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                    >{{ error }}</span
+                  >
+                {% endfor %}
+              </div>
+
+              <div class="sm:col-span-2">
+                {{ add_income_form.debtor_natural_identity_number.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                {{
+                  add_income_form.debtor_natural_identity_number(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                    placeholder="Carnet o NIT"
+                  )
+                }}
+                {% for error in add_income_form.debtor_natural_identity_number.errors %}
+                  <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                    >{{ error }}</span
+                  >
+                {% endfor %}
+              </div>
+
+              <div class="sm:col-span-2">
+                {{ add_income_form.debtor_natural_bank_account.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                {{
+                  add_income_form.debtor_natural_bank_account(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                    placeholder="Cuenta bancaria"
+                  )
+                }}
+                {% for error in add_income_form.debtor_natural_bank_account.errors %}
+                  <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                    >{{ error }}</span
+                  >
+                {% endfor %}
+              </div>
+
+              <div class="sm:col-span-4">
+                {{ add_income_form.debtor_legal_entity_name.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                {{
+                  add_income_form.debtor_legal_entity_name(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                    placeholder="Nombre de la entidad"
+                  )
+                }}
+                {% for error in add_income_form.debtor_legal_entity_name.errors %}
+                  <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                    >{{ error }}</span
+                  >
+                {% endfor %}
+              </div>
+
+              <div class="sm:col-span-2">
+                {{ add_income_form.debtor_legal_reeup_code.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                {{
+                  add_income_form.debtor_legal_reeup_code(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                    placeholder="Código REEUP"
+                  )
+                }}
+                {% for error in add_income_form.debtor_legal_reeup_code.errors %}
+                  <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                    >{{ error }}</span
+                  >
+                {% endfor %}
+              </div>
+
+              <div class="sm:col-span-2">
+                {{ add_income_form.debtor_legal_credit_branch.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                {{
+                  add_income_form.debtor_legal_credit_branch(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                    placeholder="Sucursal de crédito"
+                  )
+                }}
+                {% for error in add_income_form.debtor_legal_credit_branch.errors %}
+                  <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                    >{{ error }}</span
+                  >
+                {% endfor %}
+              </div>
+
+              <div class="sm:col-span-4">
+                {{ add_income_form.debtor_legal_address.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                {{
+                  add_income_form.debtor_legal_address(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                    placeholder="Dirección"
+                  )
+                }}
+                {% for error in add_income_form.debtor_legal_address.errors %}
+                  <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                    >{{ error }}</span
+                  >
+                {% endfor %}
+              </div>
+
+              <div class="sm:col-span-2">
+                {{ add_income_form.debtor_legal_bank_account.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                {{
+                  add_income_form.debtor_legal_bank_account(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                    placeholder="Número de cuenta"
+                  )
+                }}
+                {% for error in add_income_form.debtor_legal_bank_account.errors %}
+                  <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                    >{{ error }}</span
+                  >
+                {% endfor %}
+              </div>
+
+              <div class="sm:col-span-2">
+                {{ add_income_form.debtor_legal_contract_number.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
+                {{
+                  add_income_form.debtor_legal_contract_number(
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                    placeholder="Número de contrato"
+                  )
+                }}
+                {% for error in add_income_form.debtor_legal_contract_number.errors %}
+                  <span class="mt-2 text-sm text-red-600 dark:text-red-500"
+                    >{{ error }}</span
+                  >
+                {% endfor %}
               </div>
 
               <div class="sm:col-span-2">
