@@ -42,7 +42,7 @@ class IncomeForm(FlaskForm):
         validators=[Optional()],
     )
     debtor_type = SelectField(
-        "Tipo de Deudor",
+        "Tipo de Cliente",
         choices=[
             ("", "--- Seleccionar ---"),
             ("natural", "Persona Natural"),
@@ -139,7 +139,7 @@ class IncomeForm(FlaskForm):
         debtor_type = (self.debtor_type.data or "").strip().lower()
         if debtor_type not in {"natural", "legal"}:
             self.debtor_type.errors.append(
-                "Debe seleccionar el tipo de deudor para pagos por transferencia o cheque."
+                "Debe seleccionar el tipo de cliente para pagos por transferencia o cheque."
             )
             return False
 
@@ -287,7 +287,7 @@ class DailyIncomeForm(FlaskForm):
         default="cash",
     )
     debtor_type = SelectField(
-        "Tipo de Deudor",
+        "Tipo de Cliente",
         choices=[
             ("", "--- Seleccionar ---"),
             ("natural", "Persona Natural"),
@@ -357,7 +357,7 @@ class DailyIncomeForm(FlaskForm):
         debtor_type = (self.debtor_type.data or "").strip().lower()
         if debtor_type not in {"natural", "legal"}:
             self.debtor_type.errors.append(
-                "Debe seleccionar el tipo de deudor para pagos por transferencia o cheque."
+                "Debe seleccionar el tipo de cliente para pagos por transferencia o cheque."
             )
             return False
 

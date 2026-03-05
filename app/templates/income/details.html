@@ -8,7 +8,6 @@
   </section>
 
   {% include 'income/partials/modals/_update_sale_modal.html' %}
-
   {% include 'income/partials/modals/_add_product_modal.html' %}
   {% include 'income/partials/modals/_update_product_modal.html' %}
   {% include 'income/partials/modals/_add_sale_modal.html' %}
@@ -17,7 +16,142 @@
 {% block custom_javascript %}
   <script src="{{ url_for('main.node_modules', filename='tom-select/dist/js/tom-select.complete.js') }}"></script>
   <script>
-    {#import TomSelect from "tom-select/base";#}
+    //import TomSelect from "tom-select/base";
+
+    const DEBTOR_COMMON_FIELD_NAMES = ["debtor_type"];
+    const DEBTOR_NATURAL_FIELD_NAMES = [
+      "debtor_natural_full_name",
+      "debtor_natural_identity_number",
+      "debtor_natural_bank_account",
+    ];
+    const DEBTOR_LEGAL_FIELD_NAMES = [
+      "debtor_legal_entity_name",
+      "debtor_legal_reeup_code",
+      "debtor_legal_credit_branch",
+      "debtor_legal_address",
+      "debtor_legal_bank_account",
+      "debtor_legal_contract_number",
+    ];
+
+    function normalizePaymentMethod(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase();
+    }
+
+    function isCashPayment(value) {
+      const normalizedValue = normalizePaymentMethod(value);
+      return ["cash", "efectivo"].includes(normalizedValue);
+    }
+
+    function normalizeDebtorType(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase();
+    }
+
+    function getFieldContainer(fieldEl) {
+      if (!fieldEl) return null;
+      return fieldEl.closest("div.sm\\:col-span-2, div.sm\\:col-span-4");
+    }
+
+    function findFieldByBaseName(formEl, baseName) {
+      if (!formEl || !baseName) return null;
+
+      // Support both plain names (payment_method) and prefixed names (update_sale-payment_method).
+      return (
+        formEl.querySelector(`[name="${baseName}"]`) ||
+        formEl.querySelector(`[name$="-${baseName}"]`)
+      );
+    }
+
+    function initDebtorVisibilityByPayment(formEl) {
+      if (!formEl) return;
+      if (formEl.dataset.debtorVisibilityBound === "true") return;
+
+      const paymentField = findFieldByBaseName(formEl, "payment_method");
+
+      if (!paymentField) return;
+
+      formEl.dataset.debtorVisibilityBound = "true";
+
+      const commonFields = DEBTOR_COMMON_FIELD_NAMES.map((name) =>
+        findFieldByBaseName(formEl, name),
+      ).filter(Boolean);
+      const naturalFields = DEBTOR_NATURAL_FIELD_NAMES.map((name) =>
+        findFieldByBaseName(formEl, name),
+      ).filter(Boolean);
+      const legalFields = DEBTOR_LEGAL_FIELD_NAMES.map((name) =>
+        findFieldByBaseName(formEl, name),
+      ).filter(Boolean);
+      const debtorFields = [...commonFields, ...naturalFields, ...legalFields];
+
+      if (!debtorFields.length) return;
+
+      const originalRequiredState = new WeakMap();
+      debtorFields.forEach((fieldEl) => {
+        originalRequiredState.set(fieldEl, Boolean(fieldEl.required));
+      });
+
+      function setFieldVisibility(fieldEl, visible) {
+        const containerEl = getFieldContainer(fieldEl);
+        if (!containerEl) return;
+
+        containerEl.classList.toggle("hidden", !visible);
+        fieldEl.disabled = !visible;
+        fieldEl.required = visible && originalRequiredState.get(fieldEl);
+      }
+
+      function updateDebtorVisibility() {
+        const paymentIsCash = isCashPayment(paymentField.value);
+
+        if (paymentIsCash) {
+          debtorFields.forEach((fieldEl) => setFieldVisibility(fieldEl, false));
+          return;
+        }
+
+        commonFields.forEach((fieldEl) => setFieldVisibility(fieldEl, true));
+
+        const debtorTypeField = commonFields[0] || null;
+        const debtorType = normalizeDebtorType(
+          debtorTypeField ? debtorTypeField.value : "",
+        );
+
+        if (debtorType === "natural") {
+          naturalFields.forEach((fieldEl) => setFieldVisibility(fieldEl, true));
+          legalFields.forEach((fieldEl) => setFieldVisibility(fieldEl, false));
+          return;
+        }
+
+        if (debtorType === "legal") {
+          naturalFields.forEach((fieldEl) =>
+            setFieldVisibility(fieldEl, false),
+          );
+          legalFields.forEach((fieldEl) => setFieldVisibility(fieldEl, true));
+          return;
+        }
+
+        naturalFields.forEach((fieldEl) => setFieldVisibility(fieldEl, false));
+        legalFields.forEach((fieldEl) => setFieldVisibility(fieldEl, false));
+      }
+
+      paymentField.addEventListener("change", updateDebtorVisibility);
+      paymentField.addEventListener("input", updateDebtorVisibility);
+
+      const debtorTypeField = findFieldByBaseName(formEl, "debtor_type");
+      if (debtorTypeField) {
+        debtorTypeField.addEventListener("change", updateDebtorVisibility);
+        debtorTypeField.addEventListener("input", updateDebtorVisibility);
+      }
+
+      updateDebtorVisibility();
+    }
+
+    function initDebtorVisibilityForSaleModals() {
+      document
+        .querySelectorAll("#add_sale_modal form, #update_sale_modal form")
+        .forEach((formEl) => initDebtorVisibilityByPayment(formEl));
+    }
 
     function closeModalById(modalId) {
       var modal = document.getElementById(modalId);
@@ -81,6 +215,12 @@
       if (typeof initFlowbite === "function") {
         initFlowbite();
       }
+
+      initDebtorVisibilityForSaleModals();
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+      initDebtorVisibilityForSaleModals();
     });
   </script>
 {% endblock custom_javascript %}
