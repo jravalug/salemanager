@@ -109,7 +109,9 @@ Referencias internas activas para este contexto:
 ### 3.3 Rutas y API
 
 - `app/routes/income.py` → flujo web de ingresos.
+- `app/routes/cash_flow.py` → flujo web de fondos/reportes operativos de cash-flow (separado de `income` en re-auditoría F11).
 - `app/routes/api/income.py` → exposición API de ingresos.
+- `app/routes/api/cash_flow.py` → exposición API de cash-flow (separada de `api/income.py` para modularidad completa).
 - `app/routes/reports.py` → endpoints actuales de reportes (base para F5).
 
 ### 3.4 Formularios y templates
@@ -441,3 +443,5 @@ Objetivo: capturar y validar información obligatoria del deudor cuando el cobro
 - 2026-03-04: Saneo integral de valores legacy en datos de ingresos: se aplicó migración `e3b6a4d1f9c2` para normalizar `sale.payment_method` al catálogo final (`cash`, `transfer`, `check`) mapeando variantes heredadas (`cheque`, `transferencia`, `bank`, `card`, `mix`, `other`, `tarjeta`, `mixto`, `otro`, vacíos) a valores canónicos.
 - 2026-03-04: Se incorporó F12 para facturación por `transfer`/`check`: nuevos campos de deudor en `Sale` (natural/jurídico), validaciones condicionales en formulario/backend y migración `f1c2d3e4b5a6`.
 - 2026-03-05: Se extendió F12 al flujo de ingresos diarios: `DailyIncome` ahora persiste `payment_method` y datos de deudor (natural/jurídico), `DailyIncomeForm` valida condicionalmente para `transfer`/`check`, `create_daily_income` guarda la información, y el modal diario captura los nuevos campos.
+- 2026-03-04: Re-ejecución de F11 (auditoría modular de rutas): se separaron rutas web de fondos/cash-flow desde `app/routes/income.py` hacia `app/routes/cash_flow.py`, se mantuvieron URLs públicas (`/income/funds/*`) para no romper navegación, y se actualizaron endpoints HTMX/UI a blueprint `cash_flow` con validación técnica sin errores.
+- 2026-03-05: Modularidad completa de cash-flow en API: endpoints `/income/cash-flow/*` fueron extraídos de `app/routes/api/income.py` a `app/routes/api/cash_flow.py`, se registró blueprint dedicado `api_cash_flow` y se validó en `url_map` que las rutas públicas se mantienen sin ruptura de compatibilidad.
