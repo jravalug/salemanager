@@ -34,10 +34,8 @@ class IncomeForm(FlaskForm):
         "Método de Pago",
         choices=[
             ("cash", "Efectivo"),
-            ("card", "Tarjeta"),
             ("transfer", "Transferencia"),
-            ("mix", "Mixto"),
-            ("other", "Otro"),
+            ("check", "Cheque"),
         ],
         validators=[Optional()],
     )

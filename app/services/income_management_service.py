@@ -50,6 +50,8 @@ class IncomeManagementService:
         "Diciembre",
     )
 
+    ALLOWED_PAYMENT_METHODS = {"cash", "transfer", "check"}
+
     def __init__(self):
         """Inicializa dependencias del servicio de ventas."""
         self.repository = IncomeRepository()
@@ -319,6 +321,22 @@ class IncomeManagementService:
 
     def create_daily_income(self, business: Business, form) -> DailyIncome:
         """Registra un ingreso diario manual para el negocio indicado."""
+        payment_method = (
+            getattr(form, "payment_method", None) and form.payment_method.data
+        ) or ""
+        payment_method = (payment_method or "").strip().lower()
+
+        if payment_method not in self.ALLOWED_PAYMENT_METHODS:
+            raise ValueError("Método de pago no válido. Usa: cash, transfer o check.")
+
+        bank_like_methods = {"transfer", "check"}
+        if payment_method in bank_like_methods:
+            resolved_cash_location = DailyIncome.LOCATION_BANK
+        elif payment_method == "cash":
+            resolved_cash_location = DailyIncome.LOCATION_CASH
+        else:
+            resolved_cash_location = form.cash_location.data
+
         income_type = (
             DailyIncome.TYPE_NON_TAXABLE
             if form.mark_non_taxable.data
@@ -331,14 +349,14 @@ class IncomeManagementService:
             activity=form.activity.data,
             amount=float(form.amount.data or 0),
             description=(form.description.data or "").strip() or None,
-            cash_location=form.cash_location.data,
+            cash_location=resolved_cash_location,
             source=DailyIncome.SOURCE_MANUAL,
         )
         db.session.add(new_income)
         if inspect(db.session.get_bind()).has_table("income_event"):
             payment_channel = (
                 IncomeEvent.CHANNEL_BANK_TRANSFER
-                if form.cash_location.data == DailyIncome.LOCATION_BANK
+                if resolved_cash_location == DailyIncome.LOCATION_BANK
                 else IncomeEvent.CHANNEL_CASH
             )
             collection_status = (
@@ -652,10 +670,14 @@ class IncomeManagementService:
             specific_business_id = business_filter["specific_business_id"]
 
         # Convertir el formulario en un diccionario
+        payment_method = (form.payment_method.data or "").strip().lower()
+        if payment_method not in self.ALLOWED_PAYMENT_METHODS:
+            raise ValueError("Método de pago no válido. Usa: cash, transfer o check.")
+
         data = {
             "sale_number": form.sale_number.data,
             "date": form.date.data,
-            "payment_method": form.payment_method.data,
+            "payment_method": payment_method,
             "status": form.status.data,
             "excluded": form.excluded.data,
             "discount": form.discount.data or 0,
@@ -682,10 +704,14 @@ class IncomeManagementService:
             Sale: Instancia actualizada de Sale
         """
         # Convertir el formulario en un diccionario
+        payment_method = (form.payment_method.data or "").strip().lower()
+        if payment_method not in self.ALLOWED_PAYMENT_METHODS:
+            raise ValueError("Método de pago no válido. Usa: cash, transfer o check.")
+
         data = {
             "sale_number": form.sale_number.data,
             "date": form.date.data,
-            "payment_method": form.payment_method.data,
+            "payment_method": payment_method,
             "status": form.status.data,
             "excluded": form.excluded.data,
             "discount": form.discount.data or 0,

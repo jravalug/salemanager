@@ -1,0 +1,97 @@
+<div
+  class="flex flex-col px-4 py-3 space-y-3 lg:flex-row lg:items-center lg:justify-between lg:space-y-0 lg:space-x-4"
+>
+  <div class="flex items-center flex-1 space-x-4">
+    <h5>
+      <span class="text-gray-500"
+        >{{ 'Ingresos:' if is_daily_mode else 'Ingresos detallados:' }}</span
+      >
+      <span class="dark:text-white"
+        >{{ all_daily_income|length if is_daily_mode else all_sales|length }}</span
+      >
+    </h5>
+    <h5>
+      <span class="text-gray-500">Total ingresos:</span>
+      <span class="dark:text-white"> {{ current_total | currency }} </span>
+    </h5>
+  </div>
+  <div
+    class="flex flex-col flex-shrink-0 space-y-3 md:flex-row md:items-center lg:justify-end md:space-y-0 md:space-x-3"
+  >
+    <a
+      href="{{ url_for('income.funds_settings', client_slug=business.client.slug, business_slug=business.slug) }}"
+      class="flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 dark:hover:bg-gray-600"
+    >
+      Configurar fondos
+    </a>
+    <button
+      type="button"
+      data-modal-target="add_sale_modal"
+      data-modal-toggle="add_sale_modal"
+      class="flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800"
+    >
+      <svg
+        class="h-3.5 w-3.5 mr-2"
+        fill="currentColor"
+        viewbox="0 0 20 20"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <path
+          clip-rule="evenodd"
+          fill-rule="evenodd"
+          d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+        />
+      </svg>
+      {{ 'Agregar ingreso' if is_daily_mode else 'Agregar ingreso detallado' }}
+    </button>
+    <form
+      method="get"
+      action="{{ url_for('income.sales', client_slug=business.client.slug, business_slug=business.slug) }}"
+      class="flex items-center space-x-2"
+      hx-get="{{ url_for('income.sales', client_slug=business.client.slug, business_slug=business.slug) }}"
+      hx-target="#income-list-content"
+      hx-swap="innerHTML"
+      hx-push-url="true"
+    >
+      <label for="month_top" class="sr-only">Filtrar por mes</label>
+      <select
+        id="month_top"
+        name="month"
+        onchange="this.form.submit()"
+        class="text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+      >
+        <option value="">Todos</option>
+        {% if months_display %}
+          {% for m, label in months_display %}
+            <option
+              value="{{ m }}"
+              {% if m == selected_month %}selected{% endif %}
+            >
+              {{ label }}
+            </option>
+          {% endfor %}
+        {% else %}
+          {% if months %}
+            {% for m in months %}
+              <option
+                value="{{ m }}"
+                {% if m == selected_month %}selected{% endif %}
+              >
+                {{ m }}
+              </option>
+            {% endfor %}
+          {% endif %}
+        {% endif %}
+      </select>
+      <noscript>
+        <button
+          type="submit"
+          class="inline-flex items-center rounded-lg bg-primary-700 px-3 py-2 text-sm font-medium text-white hover:bg-primary-800"
+        >
+          Filtrar
+        </button>
+      </noscript>
+    </form>
+  </div>
+</div>

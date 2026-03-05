@@ -105,7 +105,7 @@ class BusinessRulesService:
         """Mapea método de pago a ubicación de efectivo/banco en ingresos diarios."""
         return (
             DailyIncome.LOCATION_BANK
-            if payment_method in {"transfer", "card", "bank"}
+            if payment_method in {"transfer", "check"}
             else DailyIncome.LOCATION_CASH
         )
 

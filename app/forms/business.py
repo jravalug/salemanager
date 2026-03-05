@@ -82,6 +82,16 @@ class DailyIncomeForm(FlaskForm):
         validators=[DataRequired(message="La actividad es obligatoria.")],
         default=DailyIncome.ACTIVITY_SALE,
     )
+    payment_method = SelectField(
+        "Método de Pago",
+        choices=[
+            ("cash", "Efectivo"),
+            ("transfer", "Transferencia"),
+            ("check", "Cheque"),
+        ],
+        validators=[DataRequired(message="El método de pago es obligatorio.")],
+        default="cash",
+    )
     amount = DecimalField(
         "Monto",
         places=2,

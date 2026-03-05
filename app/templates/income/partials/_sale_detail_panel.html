@@ -1,0 +1,71 @@
+<div id="sale-detail-panel" class="mx-auto max-w-3xl">
+  {% if inline_message %}
+    {% set is_success = inline_message_type != 'error' %}
+    <div
+      class="mb-4 rounded-lg border px-4 py-3 text-sm {{ 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300' if is_success else 'border-red-300 bg-red-50 text-red-800 dark:border-red-700 dark:bg-red-900/20 dark:text-red-300' }}"
+    >
+      {{ inline_message }}
+    </div>
+  {% endif %}
+
+  <div class="flex justify-between align-middle">
+    <h2 class="text-xl font-semibold text-gray-900 dark:text-white sm:text-2xl">
+      Nota de Venta # {{ sale.sale_number }}
+      <span class="text-base text-red-400"
+        >{{ '(Excluida)' if sale.excluded }}</span
+      >
+    </h2>
+    <span
+      class="text-xl font-semibold text-gray-900 dark:text-white sm:text-2xl"
+      >{{ sale.date }}</span
+    >
+  </div>
+
+  <div
+    class="mt-6 space-y-4 border-b border-t border-gray-200 py-8 dark:border-gray-700 sm:mt-8"
+  >
+    <h4 class="text-lg font-semibold text-gray-900 dark:text-white">
+      Detalles
+    </h4>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-5">
+      <div class="sm:col-span-2 flex items-center gap-2">
+        <span class="text-base font-medium text-gray-900 dark:text-white"
+          >Método de Pago:</span
+        >
+        <span class="text-base font-normal text-gray-500 dark:text-gray-400 ">
+          {{ sale.payment_method | format_payment_method }}
+        </span>
+      </div>
+      <div class="sm:col-span-2 flex items-center gap-2">
+        <span
+          class="text-base font-medium text-gray-900 dark:text-white sm:col-span-2"
+          >Estado:</span
+        >
+        {{ sale.status | format_sale_status_badge | safe }}
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between gap-4">
+      <button
+        type="button"
+        data-modal-target="update_sale_modal"
+        data-modal-toggle="update_sale_modal"
+        class="text-base font-medium text-primary-700 hover:underline dark:text-primary-500"
+      >
+        Editar
+      </button>
+      <button
+        type="button"
+        data-modal-target="add_product_modal"
+        data-modal-toggle="add_product_modal"
+        class="text-base font-medium text-primary-700 hover:underline dark:text-primary-500"
+        onclick="setFocus()"
+      >
+        + Agregar Producto
+      </button>
+    </div>
+  </div>
+
+  {% include 'income/partials/_sale_products_summary.html' %}
+</div>

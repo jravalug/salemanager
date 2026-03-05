@@ -8,7 +8,7 @@ class Sale(db.Model):
     date = db.Column(db.Date, nullable=False)  # Fecha de la Venta
     payment_method = db.Column(
         db.String(50), nullable=False, default="cash"
-    )  # Método de pago (efectivo, tarjeta, transferencia, etc.)
+    )  # Método de pago (cash, transfer, check)
     status = db.Column(
         db.String(20),
         default="completed",
@@ -65,7 +65,7 @@ class Sale(db.Model):
     # Añadir check constraint para tax >= 0
     __table_args__ = (
         db.CheckConstraint("tax >= 0", name="tax_non_negative"),
-        db.CheckConstraint("discount >= 0", name="discount_non_negative")
+        db.CheckConstraint("discount >= 0", name="discount_non_negative"),
     )
 
     def calculate_total(self):

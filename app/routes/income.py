@@ -63,6 +63,8 @@ def sales(client_slug, business_slug):
         add_daily_manual_income_form.activity.data = (
             business.default_income_activity or DailyIncome.ACTIVITY_SALE
         )
+    if not add_daily_manual_income_form.payment_method.data:
+        add_daily_manual_income_form.payment_method.data = "cash"
 
     if is_daily_mode:
         if add_daily_manual_income_form.validate_on_submit():
@@ -107,13 +109,23 @@ def sales(client_slug, business_slug):
                     )
                 )
 
-    return render_template(
-        "income/list.html",
-        business=business,
-        add_sale_form=add_income_detail_form,
-        add_income_form=add_daily_manual_income_form,
+    template_context = {
+        "business": business,
+        "add_sale_form": add_income_detail_form,
+        "add_income_form": add_daily_manual_income_form,
+        "pending_income_events": income_service.get_pending_income_events(business.id),
+        "inline_message": None,
+        "inline_message_type": None,
         **list_context,
-    )
+    }
+
+    if request.method == "GET" and request.headers.get("HX-Request") == "true":
+        return render_template(
+            "income/partials/_income_list_content.html",
+            **template_context,
+        )
+
+    return render_template("income/list.html", **template_context)
 
 
 @bp.route("/<int:sale_id>", methods=["GET", "POST"])
@@ -137,10 +149,40 @@ def details(client_slug, business_slug, sale_id):
             )
         )
 
-    details_context = income_service.build_income_details_context(
-        income=income,
-        filters=filters,
-    )
+    def build_details_context():
+        return income_service.build_income_details_context(
+            income=income,
+            filters=filters,
+        )
+
+    def build_template_context(details_context):
+        return {
+            "business": business,
+            "sale": income,
+            "products": details_context["sale_details"],
+            "add_product_form": details_context["add_product_form"],
+            "remove_product_form": details_context["remove_product_form"],
+            "update_product_form": details_context["update_product_form"],
+            "update_sale_form": details_context["update_sale_form"],
+            "add_sale_form": details_context["add_sale_form"],
+            "sale_summaries": details_context.get("sale_summaries", {}),
+            "inline_message": details_context.get("inline_message"),
+            "inline_message_type": details_context.get("inline_message_type"),
+        }
+
+    def render_sale_detail_panel(details_context):
+        return render_template(
+            "income/partials/_sale_detail_panel.html",
+            **build_template_context(details_context),
+        )
+
+    def build_htmx_details_context(message, message_type="success"):
+        details_context = build_details_context()
+        details_context["inline_message"] = message
+        details_context["inline_message_type"] = message_type
+        return details_context
+
+    details_context = build_details_context()
     add_product_form = details_context["add_product_form"]
     update_product_form = details_context["update_product_form"]
     remove_product_form = details_context["remove_product_form"]
@@ -164,6 +206,12 @@ def details(client_slug, business_slug, sale_id):
                 sale_detail_id=remove_product_form.sale_detail_id.data,
             )
             flash(f"Producto '{removed_product.name}' eliminado", "success")
+            if request.headers.get("HX-Request") == "true":
+                return render_sale_detail_panel(
+                    build_htmx_details_context(
+                        f"Producto '{removed_product.name}' eliminado"
+                    )
+                )
             return redirect_to_income_detail()
 
         if add_product_form.validate_on_submit():
@@ -174,6 +222,12 @@ def details(client_slug, business_slug, sale_id):
                 discount=add_product_form.discount.data,
             )
             flash(f"Producto '{new_income_detail.product.name}' agregado", "success")
+            if request.headers.get("HX-Request") == "true":
+                return render_sale_detail_panel(
+                    build_htmx_details_context(
+                        f"Producto '{new_income_detail.product.name}' agregado"
+                    )
+                )
             return redirect_to_income_detail()
 
         if update_product_form.validate_on_submit():
@@ -184,11 +238,19 @@ def details(client_slug, business_slug, sale_id):
                 discount=update_product_form.discount.data,
             )
             flash("Producto actualizado correctamente", "success")
+            if request.headers.get("HX-Request") == "true":
+                return render_sale_detail_panel(
+                    build_htmx_details_context("Producto actualizado correctamente")
+                )
             return redirect_to_income_detail()
 
         if update_sale_form.validate_on_submit():
             income_service.update_income(income=income, form=update_sale_form)
             flash("Ingreso actualizado correctamente", "success")
+            if request.headers.get("HX-Request") == "true":
+                return render_sale_detail_panel(
+                    build_htmx_details_context("Ingreso actualizado correctamente")
+                )
             return redirect_to_income_detail()
 
     except Exception as e:
@@ -221,15 +283,7 @@ def details(client_slug, business_slug, sale_id):
             )
 
     return render_template(
-        "income/details.html",
-        business=business,
-        sale=income,
-        products=details_context["sale_details"],
-        add_product_form=add_product_form,
-        remove_product_form=remove_product_form,
-        update_product_form=update_product_form,
-        update_sale_form=update_sale_form,
-        add_sale_form=add_sale_form,
+        "income/details.html", **build_template_context(details_context)
     )
 
 
@@ -237,9 +291,11 @@ def details(client_slug, business_slug, sale_id):
 def reconcile_income_event(client_slug, business_slug, income_event_id):
     """Concilia manualmente un ingreso pendiente por acreditar."""
     income_service = IncomeService()
+    is_htmx_request = request.headers.get("HX-Request") == "true"
+    month_param = (request.form.get("month") or request.args.get("month") or "").strip()
 
     try:
-        business, _ = income_service.resolve_business_and_filters(
+        business, filters = income_service.resolve_business_and_filters(
             client_slug=client_slug,
             business_slug=business_slug,
         )
@@ -247,6 +303,8 @@ def reconcile_income_event(client_slug, business_slug, income_event_id):
         flash(str(exc), "error")
         return redirect(url_for("client.list_clients"))
 
+    message = ""
+    message_type = "success"
     try:
         income_service.reconcile_income_event(
             business_id=business.id,
@@ -256,18 +314,139 @@ def reconcile_income_event(client_slug, business_slug, income_event_id):
             reconciled_by=request.form.get("reconciled_by"),
             bank_name=request.form.get("bank_name"),
         )
-        flash("Ingreso pendiente conciliado correctamente.", "success")
+        message = "Ingreso pendiente conciliado correctamente."
     except ValueError as exc:
-        flash(str(exc), "error")
+        message = str(exc)
+        message_type = "error"
     except Exception as exc:
-        flash(f"Error al conciliar ingreso: {exc}", "error")
+        message = f"Error al conciliar ingreso: {exc}"
+        message_type = "error"
+
+    if is_htmx_request:
+        try:
+            list_context = income_service.build_income_list_context(
+                business=business,
+                filters=filters,
+                month_param=month_param or None,
+            )
+        except ValueError:
+            list_context = income_service.build_income_list_context(
+                business=business,
+                filters=filters,
+                month_param=None,
+            )
+            message = "Formato de mes inválido. Usa YYYY-MM."
+            message_type = "error"
+
+        return render_template(
+            "income/partials/_income_list_content.html",
+            business=business,
+            pending_income_events=income_service.get_pending_income_events(business.id),
+            inline_message=message,
+            inline_message_type=message_type,
+            **list_context,
+        )
+
+    flash(message, message_type)
 
     return redirect(
         url_for(
             "income.sales",
             client_slug=client_slug,
             business_slug=business_slug,
+            month=month_param or None,
         )
+    )
+
+
+@bp.route("/funds/reports-panel", methods=["GET"])
+def funds_reports_panel(client_slug, business_slug):
+    """Panel parcial HTMX para reportes operativos de cash-flow."""
+    income_service = IncomeService()
+
+    try:
+        business, _ = income_service.resolve_business_and_filters(
+            client_slug=client_slug,
+            business_slug=business_slug,
+        )
+    except Exception:
+        return render_template(
+            "income/partials/_fund_reports_panel.html",
+            business=None,
+            cash_balance_report={
+                "entries": [],
+                "totals": {"bank": 0, "cash": 0, "overall": 0},
+            },
+            cash_movement_report={
+                "entries": [],
+                "totals": {"count": 0, "inflows": 0, "outflows": 0, "net": 0},
+                "filters": {
+                    "start_date": None,
+                    "end_date": None,
+                    "subaccount_code": None,
+                    "chronological": False,
+                    "limit": 100,
+                },
+            },
+            report_subaccount_options=[],
+            report_error="No se pudo resolver el negocio para generar reportes.",
+        )
+
+    start_date = (request.args.get("start_date") or "").strip() or None
+    end_date = (request.args.get("end_date") or "").strip() or None
+    subaccount_code = (request.args.get("subaccount_code") or "").strip() or None
+    chronological = (request.args.get("chronological") or "") in {
+        "1",
+        "true",
+        "True",
+        "on",
+    }
+
+    report_error = None
+    try:
+        cash_balance_report = cash_flow_service.get_cash_balance_report(
+            business_id=business.id
+        )
+        cash_movement_report = cash_flow_service.get_cash_movement_report(
+            business_id=business.id,
+            start_date=start_date,
+            end_date=end_date,
+            subaccount_code=subaccount_code,
+            chronological=chronological,
+            limit=100,
+        )
+    except Exception as exc:
+        report_error = str(exc)
+        cash_balance_report = {
+            "entries": [],
+            "totals": {"bank": 0, "cash": 0, "overall": 0},
+        }
+        cash_movement_report = {
+            "entries": [],
+            "totals": {"count": 0, "inflows": 0, "outflows": 0, "net": 0},
+            "filters": {
+                "start_date": start_date,
+                "end_date": end_date,
+                "subaccount_code": subaccount_code,
+                "chronological": chronological,
+                "limit": 100,
+            },
+        }
+
+    try:
+        report_subaccount_options = cash_flow_service.list_fund_configurations(
+            business_id=business.id
+        )
+    except Exception:
+        report_subaccount_options = []
+
+    return render_template(
+        "income/partials/_fund_reports_panel.html",
+        business=business,
+        cash_balance_report=cash_balance_report,
+        cash_movement_report=cash_movement_report,
+        report_subaccount_options=report_subaccount_options,
+        report_error=report_error,
     )
 
 
@@ -275,6 +454,7 @@ def reconcile_income_event(client_slug, business_slug, income_event_id):
 def funds_settings(client_slug, business_slug):
     """Administración mínima de fondos por negocio (F10 UI)."""
     income_service = IncomeService()
+    is_htmx_request = request.headers.get("HX-Request") == "true"
 
     try:
         business, _ = income_service.resolve_business_and_filters(
@@ -287,6 +467,8 @@ def funds_settings(client_slug, business_slug):
 
     if request.method == "POST":
         action = (request.form.get("action") or "").strip()
+        message = ""
+        message_type = "success"
         try:
             if action == "update":
                 subaccount_code = (request.form.get("subaccount_code") or "").strip()
@@ -309,7 +491,7 @@ def funds_settings(client_slug, business_slug):
                     display_name=(request.form.get("display_name") or "").strip(),
                     commit=True,
                 )
-                flash("Configuración de fondo actualizada.", "success")
+                message = "Configuración de fondo actualizada."
 
             elif action == "create_custom":
                 threshold_raw = (
@@ -334,13 +516,92 @@ def funds_settings(client_slug, business_slug):
                     is_active=(request.form.get("new_is_active") == "on"),
                     commit=True,
                 )
-                flash("Fondo personalizado creado correctamente.", "success")
+                message = "Fondo personalizado creado correctamente."
+            elif action == "transfer":
+                amount_raw = (request.form.get("transfer_amount") or "").strip()
+                cash_flow_service.transfer_between_subaccounts(
+                    business_id=business.id,
+                    source_subaccount_code=(
+                        request.form.get("source_subaccount_code") or ""
+                    ).strip(),
+                    target_subaccount_code=(
+                        request.form.get("target_subaccount_code") or ""
+                    ).strip(),
+                    amount=float(amount_raw or 0),
+                    description=(
+                        request.form.get("transfer_description") or ""
+                    ).strip(),
+                    occurred_at_value=(request.form.get("occurred_at") or "").strip()
+                    or None,
+                    supporting_document_ref=(
+                        request.form.get("supporting_document_ref") or ""
+                    ).strip()
+                    or None,
+                    source_type="manual_transfer",
+                    source_ref=None,
+                    commit=True,
+                )
+                message = "Transferencia registrada correctamente."
             else:
-                flash("Acción no reconocida.", "error")
+                message = "Acción no reconocida."
+                message_type = "error"
         except ValueError as exc:
-            flash(str(exc), "error")
+            message = str(exc)
+            message_type = "error"
         except Exception as exc:
-            flash(f"Error al guardar configuración de fondos: {exc}", "error")
+            message = f"Error al guardar configuración de fondos: {exc}"
+            message_type = "error"
+
+        if is_htmx_request:
+            report_error = None
+            try:
+                fund_configs = cash_flow_service.list_fund_configurations(
+                    business_id=business.id
+                )
+            except ValueError as exc:
+                message = str(exc)
+                message_type = "error"
+                fund_configs = []
+
+            try:
+                cash_balance_report = cash_flow_service.get_cash_balance_report(
+                    business_id=business.id
+                )
+                cash_movement_report = cash_flow_service.get_cash_movement_report(
+                    business_id=business.id,
+                    limit=100,
+                )
+            except Exception as exc:
+                report_error = str(exc)
+                cash_balance_report = {
+                    "entries": [],
+                    "totals": {"bank": 0, "cash": 0, "overall": 0},
+                }
+                cash_movement_report = {
+                    "entries": [],
+                    "totals": {"count": 0, "inflows": 0, "outflows": 0, "net": 0},
+                    "filters": {
+                        "start_date": None,
+                        "end_date": None,
+                        "subaccount_code": None,
+                        "chronological": False,
+                        "limit": 100,
+                    },
+                }
+
+            return render_template(
+                "income/partials/_funds_settings_content.html",
+                business=business,
+                fund_configs=fund_configs,
+                inline_message=message,
+                inline_message_type=message_type,
+                cash_balance_report=cash_balance_report,
+                cash_movement_report=cash_movement_report,
+                report_subaccount_options=fund_configs,
+                report_error=report_error,
+            )
+
+        flash(message, message_type)
 
         return redirect(
             url_for(
@@ -358,8 +619,41 @@ def funds_settings(client_slug, business_slug):
         flash(str(exc), "error")
         fund_configs = []
 
+    report_error = None
+    try:
+        cash_balance_report = cash_flow_service.get_cash_balance_report(
+            business_id=business.id
+        )
+        cash_movement_report = cash_flow_service.get_cash_movement_report(
+            business_id=business.id,
+            limit=100,
+        )
+    except Exception as exc:
+        report_error = str(exc)
+        cash_balance_report = {
+            "entries": [],
+            "totals": {"bank": 0, "cash": 0, "overall": 0},
+        }
+        cash_movement_report = {
+            "entries": [],
+            "totals": {"count": 0, "inflows": 0, "outflows": 0, "net": 0},
+            "filters": {
+                "start_date": None,
+                "end_date": None,
+                "subaccount_code": None,
+                "chronological": False,
+                "limit": 100,
+            },
+        }
+
     return render_template(
         "income/funds_settings.html",
         business=business,
         fund_configs=fund_configs,
+        inline_message=None,
+        inline_message_type=None,
+        cash_balance_report=cash_balance_report,
+        cash_movement_report=cash_movement_report,
+        report_subaccount_options=fund_configs,
+        report_error=report_error,
     )

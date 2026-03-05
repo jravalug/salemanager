@@ -14,9 +14,8 @@ def format_payment_method(payment_method):
     """
     payment_methods = {
         "cash": "Efectivo",
-        "card": "Tarjeta",
         "transfer": "Transferencia",
-        "mix": "Mixto",
+        "check": "Cheque",
     }
     return payment_methods.get(payment_method, "Método no especificado")
 

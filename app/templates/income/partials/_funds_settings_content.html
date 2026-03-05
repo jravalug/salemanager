@@ -1,0 +1,14 @@
+<div id="funds-settings-content" class="space-y-6">
+  {% if inline_message %}
+    {% set is_success = inline_message_type == 'success' %}
+    <div
+      class="rounded-lg border px-4 py-3 text-sm {{ 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300' if is_success else 'border-red-300 bg-red-50 text-red-800 dark:border-red-700 dark:bg-red-900/20 dark:text-red-300' }}"
+    >
+      {{ inline_message }}
+    </div>
+  {% endif %}
+  {% include 'income/partials/_fund_config_table.html' %}
+  {% include 'income/partials/_fund_transfer_form.html' %}
+  {% include 'income/partials/_fund_custom_form.html' %}
+  {% include 'income/partials/_fund_reports_panel.html' %}
+</div>

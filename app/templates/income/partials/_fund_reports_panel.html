@@ -1,0 +1,169 @@
+<section
+  id="fund-reports-panel"
+  class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+>
+  <div
+    class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+  >
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+      Reportes operativos de cash-flow
+    </h2>
+    {% if business %}
+      <form
+        method="get"
+        action="{{ url_for('income.funds_reports_panel', client_slug=business.client.slug, business_slug=business.slug) }}"
+        class="grid grid-cols-1 gap-2 md:grid-cols-5 md:items-end"
+        hx-get="{{ url_for('income.funds_reports_panel', client_slug=business.client.slug, business_slug=business.slug) }}"
+        hx-target="#fund-reports-panel"
+        hx-swap="outerHTML"
+      >
+        <div>
+          <label
+            class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300"
+            >Desde</label
+          >
+          <input
+            type="date"
+            name="start_date"
+            value="{{ cash_movement_report.filters.start_date if cash_movement_report and cash_movement_report.filters else '' }}"
+            class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+        <div>
+          <label
+            class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300"
+            >Hasta</label
+          >
+          <input
+            type="date"
+            name="end_date"
+            value="{{ cash_movement_report.filters.end_date if cash_movement_report and cash_movement_report.filters else '' }}"
+            class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+        <div>
+          <label
+            class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300"
+            >Sub-cuenta</label
+          >
+          <select
+            name="subaccount_code"
+            class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+          >
+            <option value="">Todas</option>
+            {% for row in report_subaccount_options or [] %}
+              <option
+                value="{{ row.subaccount_code }}"
+                {% if cash_movement_report and cash_movement_report.filters and cash_movement_report.filters.subaccount_code == row.subaccount_code %}selected{% endif %}
+              >
+                {{ row.display_name }} ({{ row.subaccount_code }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="flex items-center gap-2 pb-2">
+          <input
+            id="chronological"
+            type="checkbox"
+            name="chronological"
+            value="1"
+            class="h-4 w-4 rounded border-gray-300"
+            {% if cash_movement_report and cash_movement_report.filters and cash_movement_report.filters.chronological %}checked{% endif %}
+          />
+          <label
+            for="chronological"
+            class="text-xs text-gray-700 dark:text-gray-300"
+            >Cronológico</label
+          >
+        </div>
+        <div>
+          <button
+            type="submit"
+            class="w-full rounded-lg bg-primary-700 px-3 py-2 text-sm font-medium text-white hover:bg-primary-800"
+          >
+            Filtrar
+          </button>
+        </div>
+      </form>
+    {% endif %}
+  </div>
+
+  {% if report_error %}
+    <div
+      class="mt-4 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-700 dark:bg-red-900/20 dark:text-red-300"
+    >
+      {{ report_error }}
+    </div>
+  {% endif %}
+
+  <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4">
+    <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+      <div class="text-xs text-gray-500 dark:text-gray-400">Banco</div>
+      <div class="text-base font-semibold text-gray-900 dark:text-white">
+        {{ cash_balance_report.totals.bank | currency if cash_balance_report and cash_balance_report.totals else (0 | currency) }}
+      </div>
+    </div>
+    <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+      <div class="text-xs text-gray-500 dark:text-gray-400">Caja</div>
+      <div class="text-base font-semibold text-gray-900 dark:text-white">
+        {{ cash_balance_report.totals.cash | currency if cash_balance_report and cash_balance_report.totals else (0 | currency) }}
+      </div>
+    </div>
+    <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+      <div class="text-xs text-gray-500 dark:text-gray-400">Influjos</div>
+      <div
+        class="text-base font-semibold text-emerald-700 dark:text-emerald-400"
+      >
+        {{ cash_movement_report.totals.inflows | currency if cash_movement_report and cash_movement_report.totals else (0 | currency) }}
+      </div>
+    </div>
+    <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+      <div class="text-xs text-gray-500 dark:text-gray-400">Neto</div>
+      <div class="text-base font-semibold text-gray-900 dark:text-white">
+        {{ cash_movement_report.totals.net | currency if cash_movement_report and cash_movement_report.totals else (0 | currency) }}
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4 overflow-x-auto">
+    <table class="w-full text-left text-sm text-gray-600 dark:text-gray-300">
+      <thead
+        class="bg-gray-50 text-xs uppercase dark:bg-gray-700 dark:text-gray-300"
+      >
+        <tr>
+          <th class="px-3 py-2">Fecha/Hora</th>
+          <th class="px-3 py-2">Sub-cuenta</th>
+          <th class="px-3 py-2">Tipo</th>
+          <th class="px-3 py-2">Origen</th>
+          <th class="px-3 py-2">Destino</th>
+          <th class="px-3 py-2 text-right">Monto</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in (cash_movement_report.entries if cash_movement_report and cash_movement_report.entries else []) %}
+          <tr class="border-b border-gray-200 dark:border-gray-700">
+            <td class="px-3 py-2">{{ row.occurred_at or '-' }}</td>
+            <td class="px-3 py-2">{{ row.subaccount_code }}</td>
+            <td class="px-3 py-2">{{ row.movement_kind }}</td>
+            <td class="px-3 py-2">{{ row.origin_subaccount_code or '-' }}</td>
+            <td class="px-3 py-2">{{ row.target_subaccount_code or '-' }}</td>
+            <td
+              class="px-3 py-2 text-right {{ 'text-emerald-700 dark:text-emerald-400' if row.signed_amount >= 0 else 'text-red-700 dark:text-red-400' }}"
+            >
+              {{ row.signed_amount | currency }}
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td
+              colspan="6"
+              class="px-3 py-4 text-center text-sm text-gray-500 dark:text-gray-400"
+            >
+              No hay movimientos para los filtros seleccionados.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>

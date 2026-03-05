@@ -1,0 +1,121 @@
+<div
+  class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+>
+  <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+    Fondos actuales
+  </h2>
+  <div class="mt-4 overflow-x-auto">
+    <table class="w-full text-sm text-left text-gray-600 dark:text-gray-300">
+      <thead
+        class="text-xs uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300"
+      >
+        <tr>
+          <th class="px-3 py-2">Fondo</th>
+          <th class="px-3 py-2">Código</th>
+          <th class="px-3 py-2">Ubicación</th>
+          <th class="px-3 py-2">Activo</th>
+          <th class="px-3 py-2">Umbral por operación</th>
+          <th class="px-3 py-2">Requiere respaldo</th>
+          <th class="px-3 py-2">Objetivo</th>
+          <th class="px-3 py-2">Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in fund_configs %}
+          <tr class="border-b border-gray-200 dark:border-gray-700 align-top">
+            <form
+              method="POST"
+              action="{{ url_for('income.funds_settings', client_slug=business.client.slug, business_slug=business.slug) }}"
+              hx-post="{{ url_for('income.funds_settings', client_slug=business.client.slug, business_slug=business.slug) }}"
+              hx-target="#funds-settings-content"
+              hx-swap="outerHTML"
+            >
+              <input type="hidden" name="action" value="update" />
+              <input
+                type="hidden"
+                name="subaccount_code"
+                value="{{ row.subaccount_code }}"
+              />
+              <td class="px-3 py-2 min-w-[220px]">
+                <input
+                  type="text"
+                  name="display_name"
+                  value="{{ row.display_name }}"
+                  class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                />
+                {% if row.is_custom %}
+                  <div
+                    class="mt-1 text-xs text-emerald-600 dark:text-emerald-400"
+                  >
+                    Personalizado
+                  </div>
+                {% endif %}
+              </td>
+              <td class="px-3 py-2">{{ row.subaccount_code }}</td>
+              <td class="px-3 py-2">{{ row.location }}</td>
+              <td class="px-3 py-2">
+                <label class="inline-flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="is_active"
+                    class="h-4 w-4 rounded border-gray-300"
+                    {% if row.is_active %}checked{% endif %}
+                  />
+                  <span class="text-xs">Activo</span>
+                </label>
+              </td>
+              <td class="px-3 py-2 min-w-[170px]">
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  name="threshold_max_per_operation"
+                  value="{{ row.threshold_max_per_operation if row.threshold_max_per_operation is not none else '' }}"
+                  class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                />
+              </td>
+              <td class="px-3 py-2">
+                <label class="inline-flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="requires_documentation"
+                    class="h-4 w-4 rounded border-gray-300"
+                    {% if row.requires_documentation %}checked{% endif %}
+                  />
+                  <span class="text-xs">Sí</span>
+                </label>
+              </td>
+              <td class="px-3 py-2 min-w-[160px]">
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  name="target_balance"
+                  value="{{ row.target_balance if row.target_balance is not none else '' }}"
+                  class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                />
+              </td>
+              <td class="px-3 py-2">
+                <button
+                  type="submit"
+                  class="inline-flex items-center rounded-lg bg-blue-700 px-3 py-2 text-xs font-medium text-white hover:bg-blue-800"
+                >
+                  Guardar
+                </button>
+              </td>
+            </form>
+          </tr>
+        {% else %}
+          <tr>
+            <td
+              colspan="8"
+              class="px-3 py-4 text-center text-sm text-gray-500 dark:text-gray-400"
+            >
+              No hay fondos configurados para este negocio.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

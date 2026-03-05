@@ -66,7 +66,8 @@ Este plan se ejecuta bajo contexto operativo y fiscal de Cuba. La implementació
 - Si una operación excede el umbral o no existe saldo suficiente, el sistema debe emitir **alerta de fondo insuficiente para la operación** y no ejecutar el movimiento.
 - La alerta de fondo insuficiente será **solo informativa en UI/API** y **no se persistirá** como evento de rechazo.
 - Debe existir trazabilidad completa de movimientos con fecha/hora de **ingreso** y **extracción** para banco y cada sub-saldo de caja.
-- Para `transferencia`/`cheque`, el efectivo en banco **aumenta solo cuando el cobro está conciliado** (`pending -> collected`).
+- Para `transfer`/`check` (mostrados en UI como Transferencia/Cheque), el efectivo en banco **aumenta solo cuando el cobro está conciliado** (`pending -> collected`).
+- Catálogo final de métodos de cobro para ingresos (sin legacy, código): `cash`, `transfer`, `check`.
 - Debe existir conteo/saldo independiente por sub-saldo y por negocio.
 - Se realizará **recálculo histórico completo** para inicializar saldos desde la data existente.
 
@@ -244,7 +245,7 @@ Objetivo: aplicar reglas de negocio de incrementos/disminuciones por canal y ope
 
 ### Entregables
 - [x] Registrar `cash` en `caja_fisica`.
-- [ ] Registrar `transferencia`/`cheque` en banco solo al conciliar (`pending -> collected`).
+- [x] Registrar `transfer`/`check` en banco solo al conciliar (`pending -> collected`).
 - [x] En contabilidad financiera, registrar ingreso `cash` en `efectivo_por_depositar`.
 - [x] Permitir transferencia de `efectivo_por_depositar` a banco o a cualquier sub-saldo de caja.
 - [x] Permitir transferencia de banco a cualquier sub-saldo de caja.
@@ -252,9 +253,9 @@ Objetivo: aplicar reglas de negocio de incrementos/disminuciones por canal y ope
 - [x] Implementar disminución de tarjeta por pagos (tributos, compras, servicios).
 - [x] Implementar extracción para nómina y reversión a banco de no cobrado.
 - [x] Implementar control de fondo para cambios con detalle de denominaciones.
-- [ ] Implementar reglas de fondos para pagos menores/compras según umbral máximo por operación.
-- [ ] Exigir respaldo documental en rebajas de `fondo_para_pagos_menores`.
-- [ ] Permitir rebajas de `fondo_para_compras` sin respaldo documental obligatorio.
+- [x] Implementar reglas de fondos para pagos menores/compras según umbral máximo por operación.
+- [x] Exigir respaldo documental en rebajas de `fondo_para_pagos_menores`.
+- [x] Permitir rebajas de `fondo_para_compras` sin respaldo documental obligatorio.
 - [x] Emitir alerta y bloquear movimiento por fondo insuficiente o por exceder umbral.
 - [x] Registrar fecha/hora de ingreso y extracción en cada movimiento de banco/sub-saldo.
 
@@ -263,6 +264,7 @@ Objetivo: aplicar reglas de negocio de incrementos/disminuciones por canal y ope
 Objetivo: reconstruir saldos y exponer visibilidad operativa por sub-saldo.
 
 ### Entregables
+
 - [x] Script/migración de recálculo histórico completo por negocio y sub-saldo.
 - [x] Validación de consistencia entre ingresos/eventos, conciliaciones y saldos resultantes.
 - [x] Reporte de saldo actual por negocio (`banco` + sub-saldos de caja).
@@ -275,6 +277,7 @@ Objetivo: reconstruir saldos y exponer visibilidad operativa por sub-saldo.
 Objetivo: permitir que cada negocio configure sus fondos operativos y umbrales.
 
 ### Entregables
+
 - [x] UI/API para activar/desactivar fondos por negocio.
 - [x] Permitir crear fondos adicionales personalizados por negocio.
 - [x] Configurar umbral de `fondo_para_pagos_menores` por negocio (máximo por operación).
@@ -288,16 +291,26 @@ Objetivo: permitir que cada negocio configure sus fondos operativos y umbrales.
 Objetivo: auditar y depurar vistas relacionadas con `income`, unificar diseño fiscal/financiera y migrar interacción a HTMX + API con mínimo de vistas.
 
 ### Entregables
-- [ ] Levantamiento completo de vistas relacionadas directa/indirectamente con `income` (web + componentes + modales + parciales + endpoints API usados).
-- [ ] Matriz de depuración: identificar elementos/vistas innecesarias, duplicadas o de bajo valor y plan de eliminación/refactor.
-- [ ] Definir y aplicar un modelo visual único para flujo fiscal y financiera (estructura, componentes, jerarquía y patrones de interacción comunes).
-- [ ] Evaluar durante el levantamiento si se requieren vistas nuevas para funcionalidades de F1–F10 y documentar decisión por caso.
-- [ ] Garantizar consistencia visual con el sistema actual (tokens, componentes y estilos existentes) sin introducir diseño paralelo.
-- [ ] Priorizar formularios en modales y reducir navegación a pantallas separadas cuando no aporte valor.
-- [ ] Reutilizar partials/componentes en todas las vistas posibles para evitar duplicación de markup/lógica de UI.
-- [ ] Implementar interacciones con HTMX consumiendo API de `income`/`cash-flow` (alta, edición, conciliación, transferencias, configuración de fondos y reportes operativos).
-- [ ] Definir guía de convenciones para nuevas vistas/parciales HTMX (nombres, rutas, fragmentos, manejo de errores/flash y estados vacíos).
-- [ ] Smoke funcional de UX consolidada (desktop/móvil) y checklist de regresión básica en rutas de ingresos.
+- [x] Levantamiento completo de vistas relacionadas directa/indirectamente con `income` (web + componentes + modales + parciales + endpoints API usados).
+- [x] Matriz de depuración: identificar elementos/vistas innecesarias, duplicadas o de bajo valor y plan de eliminación/refactor.
+- [x] Definir y aplicar un modelo visual único para flujo fiscal y financiera (estructura, componentes, jerarquía y patrones de interacción comunes).
+- [x] Evaluar durante el levantamiento si se requieren vistas nuevas para funcionalidades de F1–F10 y documentar decisión por caso.
+- [x] Garantizar consistencia visual con el sistema actual (tokens, componentes y estilos existentes) sin introducir diseño paralelo.
+- [x] Priorizar formularios en modales y reducir navegación a pantallas separadas cuando no aporte valor.
+- [x] Reutilizar partials/componentes en todas las vistas posibles para evitar duplicación de markup/lógica de UI.
+- [x] Implementar interacciones con HTMX consumiendo API de `income`/`cash-flow` (alta, edición, conciliación, transferencias, configuración de fondos y reportes operativos).
+- [x] Definir guía de convenciones para nuevas vistas/parciales HTMX (nombres, rutas, fragmentos, manejo de errores/flash y estados vacíos).
+- [x] Smoke funcional de UX consolidada (desktop/móvil) y checklist de regresión básica en rutas de ingresos.
+
+### Guía de convenciones HTMX (F11)
+
+- **Nombres de partials**: prefijo `_` y responsabilidad única por bloque (`_income_list_content`, `_sale_detail_panel`, `_funds_settings_content`).
+- **Ubicación**: fragmentos de pantalla en `app/templates/income/partials/`; modales en `app/templates/income/partials/modals/`.
+- **Contratos de target**: usar IDs estables de swap (`#income-list-content`, `#sale-detail-panel`, `#funds-settings-content`) y mantenerlos como ancla de render parcial.
+- **Rutas para HTMX**: priorizar rutas web existentes de `income` con `HX-Request` para devolver HTML parcial; fallback clásico por redirect cuando no hay HTMX.
+- **Mensajes/errores**: preferir `inline_message` + `inline_message_type` en partials; conservar `flash` como respaldo no-HTMX.
+- **Estados vacíos**: cada partial debe renderizar estado vacío explícito (sin depender de JS) para mantener parity en modo clásico y HTMX.
+- **Regla de interacción**: después de cada swap, re-inicializar componentes UI requeridos (Flowbite/TomSelect) y cerrar modales cuando aplique.
 
 ---
 
@@ -323,7 +336,7 @@ Objetivo: auditar y depurar vistas relacionadas con `income`, unificar diseño f
 - [ ] F0.x Agregar nuevas configuraciones globales transversales (por definir).
 - [x] F7.1 Modelo de movimientos/saldos por ubicación y sub-saldo.
 - [x] F7.2 Catálogo de sub-saldos por régimen (fiscal/financiera).
-- [ ] F8.1 Reglas de canal para incrementos/disminuciones de saldos.
+- [x] F8.1 Reglas de canal para incrementos/disminuciones de saldos.
 - [x] F8.2 Movimiento interno banco->tarjeta y pagos con tarjeta.
 - [x] F8.3 Flujo de nómina (extracción y reversión de no cobrado).
 - [x] F8.4 Fondo para cambios con denominaciones.
@@ -334,11 +347,11 @@ Objetivo: auditar y depurar vistas relacionadas con `income`, unificar diseño f
 - [x] F9.2 Validar consistencia de saldos históricos.
 - [x] F9.3 Exponer reporte/API/export de saldos y movimientos.
 - [x] F10.1 Configuración dinámica de fondos por negocio.
-- [ ] F11.1 Levantamiento de vistas income y matriz de depuración.
-- [ ] F11.2 Modelo visual único fiscal/financiera.
-- [ ] F11.3 Refactor de vistas con modales + partials.
-- [ ] F11.4 Integración HTMX + API en flujos de income/cash-flow.
-- [ ] F11.5 Limpieza final de vistas innecesarias y smoke UX.
+- [x] F11.1 Levantamiento de vistas income y matriz de depuración.
+- [x] F11.2 Modelo visual único fiscal/financiera.
+- [x] F11.3 Refactor de vistas con modales + partials.
+- [x] F11.4 Integración HTMX + API en flujos de income/cash-flow.
+- [x] F11.5 Limpieza final de vistas innecesarias y smoke UX (cierre técnico).
 
 ---
 
@@ -361,7 +374,7 @@ Objetivo: auditar y depurar vistas relacionadas con `income`, unificar diseño f
 - 2026-03-04: Se validó smoke F5 en `webdev` para JSON y exportación Excel (`/reports/*` y `/reports/*/export` con estado `200` en los cuatro reportes).
 - 2026-03-04: Se consolidó F6 retirando rutas legacy de transición en `income`; quedaron canónicas `GET/POST /income/list`, `GET/POST /income/<id>` y `GET /income/records` en API.
 - 2026-03-04: Se validó smoke de cierre sin rutas legacy en `webdev`: `GET /income/list` 200, `GET /income/sales` 404, `GET /income/<id>` 200, `GET /income/sales/<id>` 404 y `GET /income/records` 200.
-- 2026-03-04: Se definió nueva línea de trabajo para efectivo por ubicación: caja y banco independientes en CUP, con mapeo de canales (`cash`/`tarjeta` -> caja; `transferencia`/`cheque` -> banco), impacto de banco al conciliar y recálculo histórico completo.
+- 2026-03-04: Se definió nueva línea de trabajo para efectivo por ubicación: caja y banco independientes en CUP, con mapeo de canales de cobro (`cash` -> caja; `transfer`/`check` -> banco), impacto de banco al conciliar y recálculo histórico completo.
 - 2026-03-04: Se refinó el diseño de efectivo: para fiscal, sub-saldos `caja_fisica` y `caja_tarjeta_magnetica`; para financiera, fondos operativos de caja (tarjeta, nómina, cambios, pagos menores, compras y por depositar) más banco.
 - 2026-03-04: Se incorporó regla operativa de tarjeta magnética vinculada al banco: solo aumenta por transferencia interna desde banco y solo disminuye por pagos (tributos/compras/servicios).
 - 2026-03-04: Se añadió fase de configuración dinámica de fondos por negocio (incluyendo umbrales y fondos personalizados).
@@ -387,3 +400,22 @@ Objetivo: auditar y depurar vistas relacionadas con `income`, unificar diseño f
 - 2026-03-04: Se completó UI mínima de F10 en `income`: vista `GET/POST /income/funds/settings` para editar fondos existentes y crear fondos personalizados, con acceso directo desde la pantalla de ingresos.
 - 2026-03-04: Smoke UI F10 validado en `webdev`: `GET` de vista (`200`), `POST` de actualización/creación (`302`) y render de resultados (`200`) con fondo personalizado visible en pantalla.
 - 2026-03-04: Se incorporó F11 en el plan: auditoría integral de vistas relacionadas con `income`, definición de modelo visual único fiscal/financiera, reducción de vistas con uso de modales/partials y estrategia de implementación con HTMX consumiendo API.
+- 2026-03-04: Se completó F11.1 con inventario y matriz inicial de depuración en `docs/f11_income_views_inventory.md` (alcance de rutas/templates/forms/services, decisiones mantener/refactor/eliminar/crear, propuesta de partials y estrategia de adopción HTMX + API).
+- 2026-03-04: Avance inicial F11.2/F11.3/F11.4 en `income/list`: extracción de bloques monolíticos a partials (`_income_toolbar`, `_income_list_content`), filtro mensual con HTMX + fallback clásico y respuesta parcial del endpoint `income.sales` para solicitudes `HX-Request`.
+- 2026-03-04: Avance incremental F11.3/F11.4 en `income/details`: extracción de tabla/resumen de productos a partial (`_sale_products_summary`), extracción de modales de producto a `partials/modals`, y flujo HTMX para agregar/editar/eliminar productos con swap parcial y fallback POST/redirect.
+- 2026-03-04: Avance adicional F11.3/F11.4 en `income/details`: extracción del panel principal a partial (`_sale_detail_panel`), extracción del modal de actualización de venta a partial (`_update_sale_modal`) y actualización de venta vía HTMX con refresco parcial del panel completo.
+- 2026-03-04: Avance de refactor F11.3 en `income/details`: extracción del modal de nueva venta a partial (`_add_sale_modal`) para reducir tamaño de plantilla y estandarizar estructura modular de modales.
+- 2026-03-04: Avance F11.3/F11.4 etapa C en `income/funds/settings`: extracción de tabla/formulario a partials (`_fund_config_table`, `_fund_custom_form`, `_funds_settings_content`) y actualización/creación vía HTMX con swap parcial e indicador inline de resultado, manteniendo fallback tradicional por redirect.
+- 2026-03-04: Cierre UX incremental en `income/details`: cierre automático de modales (`add/update product`, `update sale`) tras swaps HTMX exitosos y re-inicialización de componentes Flowbite para mantener interacción consistente después de render parcial.
+- 2026-03-04: Consistencia de feedback en `income/details`: operaciones HTMX de productos y actualización de venta ahora refrescan el panel completo (`#sale-detail-panel`) con mensaje inline contextual y cierre automático de modales en un solo flujo de interacción.
+- 2026-03-04: Smoke técnico HTMX en `income/details` validado en `webdev`: `GET details` y `POST` HTMX de actualización de venta/agregado de producto devolvieron `200` y el fragmento contiene `#sale-detail-panel` con mensajes inline esperados.
+- 2026-03-04: Limpieza de soporte temporal: eliminado `tmp_smoke_details_htmx.py` tras validación; el estado consolidado y pendientes de cierre F11.5 quedaron documentados en `docs/f11_income_views_inventory.md`.
+- 2026-03-04: Avance F11.4 cash-flow: conciliación de pendientes en `income/list` con HTMX (`/income/events/<id>/reconcile`) y transferencia interna en `funds/settings` (`action=transfer`) con recarga parcial e indicador inline; smoke local validó render/listado (`GET /income/list -> 200`) y reportó limitación de entorno para transferencia E2E por ausencia de tabla `business_cash_fund_config`.
+- 2026-03-04: Verificación de cierre del plan: se actualizaron checks según evidencia real en código/documentación (reglas dinámicas de fondos marcadas como completas; F11 corregido para reflejar avances reales; F11.4 mantiene pendiente solo por reportes operativos cash-flow).
+- 2026-03-04: Se cerró pendiente de convenciones HTMX en F11 con guía explícita en este plan (nombres/ubicación de partials, targets de swap, fallback, manejo de mensajes y estados vacíos).
+- 2026-03-04: Cierre F11.4: se incorporó panel HTMX de reportes operativos cash-flow en `income/funds/settings` (`/income/funds/reports-panel`) con filtros (rango, sub-cuenta, orden cronológico), KPIs y tabla de movimientos con recarga parcial.
+- 2026-03-04: Smoke UX consolidado de F11 ejecutado en `conda webdev` sobre rutas clave: `status_main -> 200 200 200` (`/income/list`, `/income/<sale_id>`, `/income/funds/settings`) y panel HTMX de reportes `status_reports_panel -> 200`, con `contains_reports_panel=True` y `contains_filter_button=True`.
+- 2026-03-04: Cierre de check/F8.1 en `webdev`: se agregó método de pago `check` (etiqueta UI: Cheque) en formularios de ingreso, se incorporó formato legible en filtros y se mapeó `check` a ubicación bancaria en reglas de negocio; smoke técnico validó `has_check_choice=True` y `check_maps_bank=bank_cash`.
+- 2026-03-04: Rectificación final de catálogo de cobro en ingresos (sin legacy): formularios `daily` y `sale` quedaron restringidos a `cash`, `transfer`, `check`; se removieron `card`, `mix`, `other` del flujo de ingreso y se validó en `conda webdev` (`daily_matches_expected=True`, `sale_matches_expected=True`).
+- 2026-03-04: Corrección terminológica solicitada: el código interno usa `check` y la UI mantiene etiqueta en español "Cheque"; se aplicó migración `d8a1c5b7e9f0` para normalizar `sale.payment_method` de `cheque` a `check`.
+- 2026-03-04: Saneo integral de valores legacy en datos de ingresos: se aplicó migración `e3b6a4d1f9c2` para normalizar `sale.payment_method` al catálogo final (`cash`, `transfer`, `check`) mapeando variantes heredadas (`cheque`, `transferencia`, `bank`, `card`, `mix`, `other`, `tarjeta`, `mixto`, `otro`, vacíos) a valores canónicos.
