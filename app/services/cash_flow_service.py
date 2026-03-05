@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, date
-from sqlalchemy import func
+from sqlalchemy import func, text
 
 from app import db
 from app.models import (
@@ -105,6 +105,21 @@ class CashFlowService:
     }
 
     @staticmethod
+    def _ensure_business_cash_fund_config_table() -> None:
+        try:
+            db.session.execute(text("SELECT 1 FROM business_cash_fund_config LIMIT 1"))
+            return
+        except Exception as exc:
+            message = str(exc).lower()
+            if (
+                "no such table" not in message
+                and "has no table named business_cash_fund_config" not in message
+            ):
+                raise
+
+        BusinessCashFundConfig.__table__.create(bind=db.engine, checkfirst=True)
+
+    @staticmethod
     def _parse_occurred_at(occurred_at_value=None) -> datetime:
         if not occurred_at_value:
             return datetime.utcnow()
@@ -147,6 +162,8 @@ class CashFlowService:
         self.ensure_business_fund_configs(business_id=business_id, regime=regime)
 
     def ensure_business_fund_configs(self, business_id: int, regime: str) -> None:
+        self._ensure_business_cash_fund_config_table()
+
         defaults = self.DEFAULT_SUBACCOUNTS.get(regime, [])
         for subaccount_code, subaccount_name, location in defaults:
             config = BusinessCashFundConfig.query.filter_by(
