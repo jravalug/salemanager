@@ -198,6 +198,8 @@ class BusinessRulesService:
 
         sales_by_day_and_location = self._build_sales_by_day_and_location(business)
 
+        IncomeManagementService._ensure_daily_income_compatibility_columns()
+
         self._delete_sales_summary_entries_for_business(business.id)
 
         for (day, location), amount in sales_by_day_and_location.items():

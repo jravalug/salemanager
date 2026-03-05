@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, inspect, text
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.extensions import db
@@ -85,7 +85,9 @@ class ClientService:
                 form.legal_municipality.data
             ),
             legal_province=self._normalize_optional_text(form.legal_province.data),
-            legal_postal_code=self._normalize_optional_text(form.legal_postal_code.data),
+            legal_postal_code=self._normalize_optional_text(
+                form.legal_postal_code.data
+            ),
             phone_numbers=self._split_list_values(form.phone_numbers_input.data),
             primary_phone_number=self._normalize_optional_text(
                 form.primary_phone_number.data
@@ -108,25 +110,33 @@ class ClientService:
     def _apply_form_to_client(self, client: Client, form) -> None:
         """Aplica sobre un cliente existente los datos de actualización del formulario."""
         client.name = form.name.data.strip()
-        client.identity_number = self._normalize_optional_text(form.identity_number.data)
+        client.identity_number = self._normalize_optional_text(
+            form.identity_number.data
+        )
         client.nit = self._normalize_optional_text(form.nit.data)
         client.legal_street = self._normalize_optional_text(form.legal_street.data)
         client.legal_number = self._normalize_optional_text(form.legal_number.data)
         client.legal_between_streets = self._normalize_optional_text(
             form.legal_between_streets.data
         )
-        client.legal_apartment = self._normalize_optional_text(form.legal_apartment.data)
+        client.legal_apartment = self._normalize_optional_text(
+            form.legal_apartment.data
+        )
         client.legal_district = self._normalize_optional_text(form.legal_district.data)
         client.legal_municipality = self._normalize_optional_text(
             form.legal_municipality.data
         )
         client.legal_province = self._normalize_optional_text(form.legal_province.data)
-        client.legal_postal_code = self._normalize_optional_text(form.legal_postal_code.data)
+        client.legal_postal_code = self._normalize_optional_text(
+            form.legal_postal_code.data
+        )
         client.phone_numbers = self._split_list_values(form.phone_numbers_input.data)
         client.primary_phone_number = self._normalize_optional_text(
             form.primary_phone_number.data
         )
-        client.email_addresses = self._split_list_values(form.email_addresses_input.data)
+        client.email_addresses = self._split_list_values(
+            form.email_addresses_input.data
+        )
         client.primary_email_address = self._normalize_optional_text(
             form.primary_email_address.data
         )
@@ -202,17 +212,30 @@ class ClientService:
             sales_conditions.append(Sale.specific_business_id.in_(all_business_ids))
 
         if sales_conditions:
-            sale_query = Sale.query.filter(or_(*sales_conditions))
-            sales_count = sale_query.count()
-            month_sales_count = sale_query.filter(
-                func.strftime("%Y-%m", Sale.date) == current_month
-            ).count()
+            try:
+                (
+                    sales_count,
+                    month_sales_count,
+                    revenue_total,
+                    last_sale_date,
+                ) = ClientService._calculate_sale_query_metrics(
+                    sales_conditions=sales_conditions,
+                    current_month=current_month,
+                )
+            except Exception as exc:
+                if not ClientService._is_missing_sale_debtor_column_error(exc):
+                    raise
 
-            revenue_value = sale_query.with_entities(
-                func.coalesce(func.sum(Sale.total_amount), 0.0)
-            ).scalar()
-            revenue_total = float(revenue_value or 0.0)
-            last_sale_date = sale_query.with_entities(func.max(Sale.date)).scalar()
+                ClientService._ensure_sale_debtor_compatibility_columns()
+                (
+                    sales_count,
+                    month_sales_count,
+                    revenue_total,
+                    last_sale_date,
+                ) = ClientService._calculate_sale_query_metrics(
+                    sales_conditions=sales_conditions,
+                    current_month=current_month,
+                )
 
         return {
             "product_count": product_count,
@@ -221,6 +244,59 @@ class ClientService:
             "revenue_total": revenue_total,
             "last_sale_date": last_sale_date,
         }
+
+    @staticmethod
+    def _calculate_sale_query_metrics(sales_conditions: list, current_month: str):
+        sale_query = Sale.query.filter(or_(*sales_conditions))
+        sales_count = sale_query.count()
+        month_sales_count = sale_query.filter(
+            func.strftime("%Y-%m", Sale.date) == current_month
+        ).count()
+
+        revenue_value = sale_query.with_entities(
+            func.coalesce(func.sum(Sale.total_amount), 0.0)
+        ).scalar()
+        revenue_total = float(revenue_value or 0.0)
+        last_sale_date = sale_query.with_entities(func.max(Sale.date)).scalar()
+        return sales_count, month_sales_count, revenue_total, last_sale_date
+
+    @staticmethod
+    def _is_missing_sale_debtor_column_error(exc: Exception) -> bool:
+        message = str(exc).lower()
+        return "no such column" in message and "sale.debtor_type" in message
+
+    @staticmethod
+    def _ensure_sale_debtor_compatibility_columns() -> None:
+        inspector = inspect(db.engine)
+        existing_columns = {column["name"] for column in inspector.get_columns("sale")}
+
+        column_defs = {
+            "debtor_type": "VARCHAR(20)",
+            "debtor_natural_full_name": "VARCHAR(150)",
+            "debtor_natural_identity_number": "VARCHAR(50)",
+            "debtor_natural_bank_account": "VARCHAR(80)",
+            "debtor_legal_entity_name": "VARCHAR(200)",
+            "debtor_legal_reeup_code": "VARCHAR(50)",
+            "debtor_legal_address": "VARCHAR(255)",
+            "debtor_legal_credit_branch": "VARCHAR(120)",
+            "debtor_legal_bank_account": "VARCHAR(80)",
+            "debtor_legal_contract_number": "VARCHAR(80)",
+        }
+
+        missing_columns = [
+            (name, ddl)
+            for name, ddl in column_defs.items()
+            if name not in existing_columns
+        ]
+        if not missing_columns:
+            return
+
+        db.session.rollback()
+        with db.engine.begin() as connection:
+            for column_name, ddl in missing_columns:
+                connection.execute(
+                    text(f"ALTER TABLE sale ADD COLUMN {column_name} {ddl}")
+                )
 
     @staticmethod
     def _format_month(month_value: str):
@@ -372,9 +448,7 @@ class ClientService:
         """Obtiene negocios principales, agrupación de hijos y totales para un cliente."""
         client_businesses = self._get_parent_businesses_for_client(client.id)
         _, business_groups = self._build_business_groups(client_businesses)
-        total_sub_businesses = sum(
-            item["children_count"] for item in business_groups
-        )
+        total_sub_businesses = sum(item["children_count"] for item in business_groups)
 
         return client_businesses, business_groups, total_sub_businesses
 

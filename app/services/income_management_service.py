@@ -2,7 +2,7 @@ from typing import Dict, Optional
 from datetime import date, datetime
 from collections import defaultdict
 
-from sqlalchemy import desc, func, inspect
+from sqlalchemy import desc, func, inspect, text
 from sqlalchemy.orm import joinedload
 from dateutil.relativedelta import relativedelta
 
@@ -271,9 +271,20 @@ class IncomeManagementService:
     def _load_daily_income_context(business_id: int, date_range):
         """Carga ingresos diarios con y sin filtro mensual para el contexto."""
         daily_query = DailyIncome.query.filter_by(business_id=business_id)
-        all_daily_income_unfiltered = daily_query.order_by(
-            DailyIncome.date.desc(), DailyIncome.id.desc()
-        ).all()
+
+        try:
+            all_daily_income_unfiltered = daily_query.order_by(
+                DailyIncome.date.desc(), DailyIncome.id.desc()
+            ).all()
+        except Exception as exc:
+            if not IncomeManagementService._is_missing_daily_income_column_error(exc):
+                raise
+
+            IncomeManagementService._ensure_daily_income_compatibility_columns()
+            all_daily_income_unfiltered = daily_query.order_by(
+                DailyIncome.date.desc(), DailyIncome.id.desc()
+            ).all()
+
         months = sorted(
             {
                 income.date.strftime("%Y-%m")
@@ -295,6 +306,52 @@ class IncomeManagementService:
             all_daily_income = all_daily_income_unfiltered
 
         return all_daily_income_unfiltered, all_daily_income, months
+
+    @staticmethod
+    def _is_missing_daily_income_column_error(exc: Exception) -> bool:
+        message = str(exc).lower()
+        return (
+            "no such column" in message and "daily_income.payment_method" in message
+        ) or (
+            "has no column named payment_method" in message
+            and "daily_income" in message
+        )
+
+    @staticmethod
+    def _ensure_daily_income_compatibility_columns() -> None:
+        inspector = inspect(db.engine)
+        existing_columns = {
+            column["name"] for column in inspector.get_columns("daily_income")
+        }
+
+        column_defs = {
+            "payment_method": "VARCHAR(20) NOT NULL DEFAULT 'cash'",
+            "debtor_type": "VARCHAR(20)",
+            "debtor_natural_full_name": "VARCHAR(150)",
+            "debtor_natural_identity_number": "VARCHAR(50)",
+            "debtor_natural_bank_account": "VARCHAR(80)",
+            "debtor_legal_entity_name": "VARCHAR(200)",
+            "debtor_legal_reeup_code": "VARCHAR(50)",
+            "debtor_legal_address": "VARCHAR(255)",
+            "debtor_legal_credit_branch": "VARCHAR(120)",
+            "debtor_legal_bank_account": "VARCHAR(80)",
+            "debtor_legal_contract_number": "VARCHAR(80)",
+        }
+
+        missing_columns = [
+            (name, ddl)
+            for name, ddl in column_defs.items()
+            if name not in existing_columns
+        ]
+        if not missing_columns:
+            return
+
+        db.session.rollback()
+        with db.engine.begin() as connection:
+            for column_name, ddl in missing_columns:
+                connection.execute(
+                    text(f"ALTER TABLE daily_income ADD COLUMN {column_name} {ddl}")
+                )
 
     @staticmethod
     def _load_sales_context(filters: dict, date_range):
