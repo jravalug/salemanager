@@ -46,7 +46,10 @@
       src="{{ url_for('main.node_modules', filename='flowbite/dist/flowbite.min.js') }}"
       defer
     ></script>
-    <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+    <script
+      src="{{ url_for('static', filename='js/htmx.min.js') }}"
+      defer
+    ></script>
     {% block vendor_javascript %}
     {% endblock vendor_javascript %}
   </head>
