@@ -6,6 +6,7 @@ Estado: completado (inventario y matriz inicial)
 ## 1) Alcance revisado
 
 ### Rutas web
+
 - `app/routes/income.py`
   - `GET/POST /income/list`
   - `GET/POST /income/<sale_id>`
@@ -13,6 +14,7 @@ Estado: completado (inventario y matriz inicial)
   - `GET/POST /income/funds/settings`
 
 ### Rutas API vinculadas a income/cash-flow
+
 - `app/routes/api/income.py`
   - Registros/pending/reconcile (`/records`, `/pending`, `/events/<id>/reconcile`)
   - Cash-flow (`/cash-flow/*`): balances, transferencias, card-payment, payroll, change-fund
@@ -21,11 +23,13 @@ Estado: completado (inventario y matriz inicial)
   - Reportes contables (`/reports/*` + export)
 
 ### Vistas/templates
+
 - `app/templates/income/list.html`
 - `app/templates/income/details.html`
 - `app/templates/income/funds_settings.html`
 
 ### Formularios
+
 - `app/forms/income.py`
   - `IncomeForm`
   - `IncomeDetailForm`
@@ -34,6 +38,7 @@ Estado: completado (inventario y matriz inicial)
   - `DailyManualIncomeForm`
 
 ### Servicios núcleo
+
 - `app/services/income_service.py` (facade actual)
 - `app/services/income_management_service.py` (lógica principal)
 - `app/services/cash_flow_service.py` (cash-flow + fondos)
@@ -60,7 +65,7 @@ Estado: completado (inventario y matriz inicial)
 ## 3) Matriz de depuración (mantener/refactor/eliminar/crear)
 
 | Elemento | Estado propuesto | Acción |
-|---|---|---|
+| --- | --- | --- |
 | `income/list.html` | Mantener + refactor | Separar en partials (toolbar, tabla diaria, tabla detallada, modales). Migrar filtros/acciones a HTMX. |
 | `income/details.html` | Mantener + refactor fuerte | Extraer modales y tabla de productos a partials; migrar CRUD de detalle a endpoints API + HTMX. |
 | `income/funds_settings.html` | Mantener + refactor incremental | Convertir formularios por fila a swaps HTMX, feedback inline por bloque. |
@@ -71,6 +76,7 @@ Estado: completado (inventario y matriz inicial)
 ## 4) Nuevas vistas/partials recomendadas (F11.2/F11.3)
 
 ### Partials a crear
+
 - `app/templates/income/partials/_income_toolbar.html`
 - `app/templates/income/partials/_income_daily_table.html`
 - `app/templates/income/partials/_income_detailed_table.html`
@@ -84,6 +90,7 @@ Estado: completado (inventario y matriz inicial)
 - `app/templates/income/partials/_fund_custom_form.html`
 
 ### Vistas nuevas (solo si aportan)
+
 - No crear páginas nuevas por defecto.
 - Priorizar fragmentos HTMX sobre páginas completas.
 - Única excepción sugerida: una vista consolidada de operaciones de cash-flow si en F11.4 se demuestra alta fricción de navegación.
@@ -125,6 +132,7 @@ Estado: completado (inventario y matriz inicial)
 ## 9) Recomendación inmediata (siguiente paso)
 
 Iniciar F11.2 con prototipo sobre `income/list`:
+
 - extraer toolbar + tabla diaria/detallada en partials,
 - aplicar HTMX en filtro de mes,
 - mantener fallback sin JS.
@@ -132,6 +140,7 @@ Iniciar F11.2 con prototipo sobre `income/list`:
 ## 10) Estado actualizado de ejecución (2026-03-04)
 
 ### Implementado
+
 - `income/list`: partials `_income_toolbar` + `_income_list_content`, filtro por mes con HTMX y fallback clásico.
 - `income/details`: partials `_sale_detail_panel`, `_sale_products_summary`, y modales extraídos (`_add_product_modal`, `_update_product_modal`, `_update_sale_modal`, `_add_sale_modal`).
 - `income/funds/settings`: partials `_fund_config_table`, `_fund_custom_form`, `_funds_settings_content`.
@@ -142,15 +151,18 @@ Iniciar F11.2 con prototipo sobre `income/list`:
   - `funds/settings`: transferencia interna entre fondos (`action=transfer`) con `hx-post` y refresh parcial de `#funds-settings-content`.
 
 ### Pendiente para F11.5 (cierre)
+
 - Ejecutar barrido final de vistas legacy no referenciadas y documentar eliminación si aplica.
 - Completar smoke UX consolidado desktop/móvil sobre rutas `income/list`, `income/<id>`, `income/funds/settings`.
 - Cerrar checklist de regresión básica con evidencia (status/contains) por flujo HTMX y fallback tradicional.
 
 ### Nota técnica adicional (F11.4 cash-flow)
+
 - En entorno local de smoke, la validación automática de transferencias puede quedar limitada si no existe la tabla `business_cash_fund_config` (migraciones incompletas en DB de prueba).
 - La ruta y el render HTMX quedan implementados; para verificar E2E de transferencia se requiere base con migraciones de fondos aplicadas.
 
 ### Smoke E2E con DB migrada completa (2026-03-04)
+
 - DB usada: `instance/e2e_smoke_migrated.db` (copia de `bookkeeply.db` + `flask db upgrade` hasta `head`).
 - Verificación de migración: tabla `business_cash_fund_config` disponible tras upgrade.
 - Resultado smoke E2E (`webdev`):
@@ -162,10 +174,12 @@ Iniciar F11.2 con prototipo sobre `income/list`:
 ## 11) Evidencia de cierre técnico F11.5 (2026-03-04)
 
 ### Barrido legacy
+
 - No se detectaron rutas legacy activas de `income` en templates/rutas actuales.
 - Coincidencias de "deprecated" encontradas fueron en librerías de terceros (`app/static/js/chart.js`), sin impacto en flujo `income`.
 
 ### Smoke consolidado (webdev)
+
 - `status-main -> 200 200 200`
   - `GET /income/list`
   - `GET /income/<sale_id>`
@@ -185,6 +199,7 @@ Iniciar F11.2 con prototipo sobre `income/list`:
   - Mensaje inline de agregado de producto presente
 
 ### Estado de cierre
+
 - Cierre técnico F11.5: **completado** para cobertura funcional server-render + HTMX + fallback.
 - Pendiente no automatizado: validación visual manual completa desktop/móvil (UI responsive) en navegador.
 
