@@ -51,6 +51,8 @@ class IncomeManagementService:
     )
 
     ALLOWED_PAYMENT_METHODS = {"cash", "transfer", "check"}
+    TRANSFER_LIKE_METHODS = {"transfer", "check"}
+    DEBTOR_TYPES = {"natural", "legal"}
 
     def __init__(self):
         """Inicializa dependencias del servicio de ventas."""
@@ -650,6 +652,115 @@ class IncomeManagementService:
         """Alias temporal para compatibilidad retroactiva."""
         return self.build_income_details_context(sale, filters)
 
+    @staticmethod
+    def _clean_text(value):
+        return (value or "").strip() or None
+
+    def _resolve_debtor_invoice_data(
+        self, form: IncomeForm, payment_method: str
+    ) -> dict:
+        debtor_fields = {
+            "debtor_type": None,
+            "debtor_natural_full_name": None,
+            "debtor_natural_identity_number": None,
+            "debtor_natural_bank_account": None,
+            "debtor_legal_entity_name": None,
+            "debtor_legal_reeup_code": None,
+            "debtor_legal_address": None,
+            "debtor_legal_credit_branch": None,
+            "debtor_legal_bank_account": None,
+            "debtor_legal_contract_number": None,
+        }
+
+        if payment_method not in self.TRANSFER_LIKE_METHODS:
+            return debtor_fields
+
+        debtor_type = self._clean_text(
+            getattr(form, "debtor_type", None) and form.debtor_type.data
+        )
+        if debtor_type:
+            debtor_type = debtor_type.lower()
+
+        if debtor_type not in self.DEBTOR_TYPES:
+            raise ValueError(
+                "Debe seleccionar tipo de deudor (natural/legal) para pagos por transferencia o check."
+            )
+
+        debtor_fields["debtor_type"] = debtor_type
+
+        if debtor_type == "natural":
+            debtor_fields["debtor_natural_full_name"] = self._clean_text(
+                getattr(form, "debtor_natural_full_name", None)
+                and form.debtor_natural_full_name.data
+            )
+            debtor_fields["debtor_natural_identity_number"] = self._clean_text(
+                getattr(form, "debtor_natural_identity_number", None)
+                and form.debtor_natural_identity_number.data
+            )
+            debtor_fields["debtor_natural_bank_account"] = self._clean_text(
+                getattr(form, "debtor_natural_bank_account", None)
+                and form.debtor_natural_bank_account.data
+            )
+
+            missing_fields = [
+                field_name
+                for field_name in [
+                    "debtor_natural_full_name",
+                    "debtor_natural_identity_number",
+                    "debtor_natural_bank_account",
+                ]
+                if not debtor_fields[field_name]
+            ]
+            if missing_fields:
+                raise ValueError(
+                    "Para persona natural debe completar: nombre y apellidos, carnet/NIT y cuenta bancaria."
+                )
+
+        if debtor_type == "legal":
+            debtor_fields["debtor_legal_entity_name"] = self._clean_text(
+                getattr(form, "debtor_legal_entity_name", None)
+                and form.debtor_legal_entity_name.data
+            )
+            debtor_fields["debtor_legal_reeup_code"] = self._clean_text(
+                getattr(form, "debtor_legal_reeup_code", None)
+                and form.debtor_legal_reeup_code.data
+            )
+            debtor_fields["debtor_legal_address"] = self._clean_text(
+                getattr(form, "debtor_legal_address", None)
+                and form.debtor_legal_address.data
+            )
+            debtor_fields["debtor_legal_credit_branch"] = self._clean_text(
+                getattr(form, "debtor_legal_credit_branch", None)
+                and form.debtor_legal_credit_branch.data
+            )
+            debtor_fields["debtor_legal_bank_account"] = self._clean_text(
+                getattr(form, "debtor_legal_bank_account", None)
+                and form.debtor_legal_bank_account.data
+            )
+            debtor_fields["debtor_legal_contract_number"] = self._clean_text(
+                getattr(form, "debtor_legal_contract_number", None)
+                and form.debtor_legal_contract_number.data
+            )
+
+            missing_fields = [
+                field_name
+                for field_name in [
+                    "debtor_legal_entity_name",
+                    "debtor_legal_reeup_code",
+                    "debtor_legal_address",
+                    "debtor_legal_credit_branch",
+                    "debtor_legal_bank_account",
+                    "debtor_legal_contract_number",
+                ]
+                if not debtor_fields[field_name]
+            ]
+            if missing_fields:
+                raise ValueError(
+                    "Para persona jurídica debe completar: entidad, REEUP, dirección, sucursal de crédito, cuenta y contrato."
+                )
+
+        return debtor_fields
+
     def add_income(self, business: Business, form: IncomeForm) -> Sale:
         """
         Crea una nueva venta asociada a un negocio.
@@ -673,6 +784,10 @@ class IncomeManagementService:
         payment_method = (form.payment_method.data or "").strip().lower()
         if payment_method not in self.ALLOWED_PAYMENT_METHODS:
             raise ValueError("Método de pago no válido. Usa: cash, transfer o check.")
+        debtor_data = self._resolve_debtor_invoice_data(
+            form=form,
+            payment_method=payment_method,
+        )
 
         data = {
             "sale_number": form.sale_number.data,
@@ -685,6 +800,7 @@ class IncomeManagementService:
             "subtotal_amount": 0,
             "total_amount": 0,
             "specific_business_id": specific_business_id,
+            **debtor_data,
         }
         return self.repository.add_sale(business_filter["business_id"], **data)
 
@@ -707,6 +823,10 @@ class IncomeManagementService:
         payment_method = (form.payment_method.data or "").strip().lower()
         if payment_method not in self.ALLOWED_PAYMENT_METHODS:
             raise ValueError("Método de pago no válido. Usa: cash, transfer o check.")
+        debtor_data = self._resolve_debtor_invoice_data(
+            form=form,
+            payment_method=payment_method,
+        )
 
         data = {
             "sale_number": form.sale_number.data,
@@ -717,6 +837,7 @@ class IncomeManagementService:
             "discount": form.discount.data or 0,
             "tax": form.tax.data or 0,
             "specific_business_id": form.specific_business_id.data,
+            **debtor_data,
         }
 
         return self.repository.update_sale(income, **data)

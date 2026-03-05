@@ -18,6 +18,7 @@ Este archivo es la fuente de control para ejecutar y auditar el plan de fases ac
 9. Reproceso histórico y reportes operativos de efectivo.
 10. Configuración dinámica de fondos por negocio.
 11. Consolidación UX/UI de vistas income (auditoría, unificación visual y HTMX).
+12. Datos de deudor para facturación en cobros por transferencia/cheque.
 
 ## 2) Criterios de ejecución
 
@@ -302,6 +303,19 @@ Objetivo: auditar y depurar vistas relacionadas con `income`, unificar diseño f
 - [x] Definir guía de convenciones para nuevas vistas/parciales HTMX (nombres, rutas, fragmentos, manejo de errores/flash y estados vacíos).
 - [x] Smoke funcional de UX consolidada (desktop/móvil) y checklist de regresión básica en rutas de ingresos.
 
+## Fase 12 — Datos de deudor para facturación (transfer/check)
+
+Objetivo: capturar y validar información obligatoria del deudor cuando el cobro sea por `transfer` o `check`, distinguiendo persona natural y persona jurídica para soporte de facturación.
+
+### Entregables
+- [x] Definir campos de deudor en `Sale` para persona natural y jurídica.
+- [x] Implementar migración de base de datos para persistencia de nuevos campos.
+- [x] Agregar campos al formulario de ingresos detallados (`IncomeForm`).
+- [x] Implementar validación condicional por método de pago (`transfer`/`check`) y tipo de deudor (`natural`/`legal`).
+- [x] Exigir para persona natural: nombre y apellidos, carnet/NIT, cuenta bancaria.
+- [x] Exigir para persona jurídica: entidad, REEUP, dirección, sucursal de crédito, número de cuenta, número de contrato.
+- [x] Integrar persistencia en backend al crear/actualizar ingresos detallados.
+
 ### Guía de convenciones HTMX (F11)
 
 - **Nombres de partials**: prefijo `_` y responsabilidad única por bloque (`_income_list_content`, `_sale_detail_panel`, `_funds_settings_content`).
@@ -352,6 +366,9 @@ Objetivo: auditar y depurar vistas relacionadas con `income`, unificar diseño f
 - [x] F11.3 Refactor de vistas con modales + partials.
 - [x] F11.4 Integración HTMX + API en flujos de income/cash-flow.
 - [x] F11.5 Limpieza final de vistas innecesarias y smoke UX (cierre técnico).
+- [x] F12.1 Modelo/migración de datos de deudor en `Sale`.
+- [x] F12.2 Validación condicional por método de pago y tipo de deudor.
+- [x] F12.3 Captura UI de datos de deudor en formularios de ingresos detallados.
 
 ---
 
@@ -419,3 +436,4 @@ Objetivo: auditar y depurar vistas relacionadas con `income`, unificar diseño f
 - 2026-03-04: Rectificación final de catálogo de cobro en ingresos (sin legacy): formularios `daily` y `sale` quedaron restringidos a `cash`, `transfer`, `check`; se removieron `card`, `mix`, `other` del flujo de ingreso y se validó en `conda webdev` (`daily_matches_expected=True`, `sale_matches_expected=True`).
 - 2026-03-04: Corrección terminológica solicitada: el código interno usa `check` y la UI mantiene etiqueta en español "Cheque"; se aplicó migración `d8a1c5b7e9f0` para normalizar `sale.payment_method` de `cheque` a `check`.
 - 2026-03-04: Saneo integral de valores legacy en datos de ingresos: se aplicó migración `e3b6a4d1f9c2` para normalizar `sale.payment_method` al catálogo final (`cash`, `transfer`, `check`) mapeando variantes heredadas (`cheque`, `transferencia`, `bank`, `card`, `mix`, `other`, `tarjeta`, `mixto`, `otro`, vacíos) a valores canónicos.
+- 2026-03-04: Se incorporó F12 para facturación por `transfer`/`check`: nuevos campos de deudor en `Sale` (natural/jurídico), validaciones condicionales en formulario/backend y migración `f1c2d3e4b5a6`.
