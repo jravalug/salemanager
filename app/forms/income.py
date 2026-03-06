@@ -51,39 +51,39 @@ class IncomeForm(FlaskForm):
         validators=[Optional()],
     )
     debtor_natural_full_name = StringField(
-        "Nombre y Apellidos (Natural)",
+        "Nombre y Apellidos",
         validators=[Optional()],
     )
     debtor_natural_identity_number = StringField(
-        "Carnet de Identidad / NIT (Natural)",
+        "CI / NIT",
         validators=[Optional()],
     )
     debtor_natural_bank_account = StringField(
-        "Cuenta Bancaria (Natural)",
+        "Cuenta Bancaria",
         validators=[Optional()],
     )
     debtor_legal_entity_name = StringField(
-        "Nombre de la Entidad (Jurídica)",
+        "Nombre de la Entidad",
         validators=[Optional()],
     )
     debtor_legal_reeup_code = StringField(
-        "Código REEUP (Jurídica)",
+        "Código REEUP",
         validators=[Optional()],
     )
     debtor_legal_address = StringField(
-        "Dirección (Jurídica)",
+        "Dirección",
         validators=[Optional()],
     )
     debtor_legal_credit_branch = StringField(
-        "Sucursal de Crédito (Jurídica)",
+        "Sucursal de Crédito",
         validators=[Optional()],
     )
     debtor_legal_bank_account = StringField(
-        "Número de Cuenta (Jurídica)",
+        "Número de Cuenta",
         validators=[Optional()],
     )
     debtor_legal_contract_number = StringField(
-        "Número de Contrato (Jurídica)",
+        "Número de Contrato",
         validators=[Optional()],
     )
     status = SelectField(
@@ -97,7 +97,6 @@ class IncomeForm(FlaskForm):
         default="completed",
         validators=[DataRequired(message="El estado del ingreso es obligatorio.")],
     )
-    customer_name = StringField("Nombre del Cliente", validators=[Optional()])
     discount = FloatField(
         "Descuento (%)",
         default=0.0,

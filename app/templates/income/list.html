@@ -390,7 +390,7 @@
                 {% endfor %}
               </div>
 
-              <div class="sm:col-span-4">
+              <div name="add_sale_transfer_check_note" class="sm:col-span-4">
                 <p class="text-xs text-gray-500 dark:text-gray-400">
                   Para pagos por transferencia/cheque complete los datos del
                   deudor según tipo.
@@ -548,22 +548,6 @@
                 {% endfor %}
               </div>
 
-              <!-- Campo de Nombre del cliente -->
-              <div class="sm:col-span-4">
-                {{ add_sale_form.customer_name.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
-                {{
-                  add_sale_form.customer_name(
-                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
-                    placeholder="Nombre del cliente ..."
-                  )
-                }}
-                {% for error in add_sale_form.customer_name.errors %}
-                  <span class="mt-2 text-sm text-red-600 dark:text-red-500"
-                    >{{ error }}</span
-                  >
-                {% endfor %}
-              </div>
-
               <!-- Campo de Descuento -->
               <div class="sm:col-span-2">
                 {{ add_sale_form.discount.label(class="block mb-2 text-sm font-medium text-gray-900 dark:text-white") }}
@@ -682,5 +666,215 @@
         }
       }
     })();
+  </script>
+  <script>
+    //import TomSelect from "tom-select/base";
+
+    const DEBTOR_COMMON_FIELD_NAMES = ["debtor_type", "transfer_check_note"];
+    const DEBTOR_NATURAL_FIELD_NAMES = [
+      "debtor_natural_full_name",
+      "debtor_natural_identity_number",
+      "debtor_natural_bank_account",
+    ];
+    const DEBTOR_LEGAL_FIELD_NAMES = [
+      "debtor_legal_entity_name",
+      "debtor_legal_reeup_code",
+      "debtor_legal_credit_branch",
+      "debtor_legal_address",
+      "debtor_legal_bank_account",
+      "debtor_legal_contract_number",
+    ];
+
+    function normalizePaymentMethod(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase();
+    }
+
+    function isCashPayment(value) {
+      const normalizedValue = normalizePaymentMethod(value);
+      return ["cash", "efectivo"].includes(normalizedValue);
+    }
+
+    function normalizeDebtorType(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase();
+    }
+
+    function getFieldContainer(fieldEl) {
+      if (!fieldEl) return null;
+      return fieldEl.closest("div.sm\\:col-span-2, div.sm\\:col-span-4");
+    }
+
+    function findFieldByBaseName(formEl, baseName) {
+      if (!formEl || !baseName) return null;
+
+      // Support both plain names (payment_method) and prefixed names (update_sale-payment_method).
+      return (
+        formEl.querySelector(`[name="${baseName}"]`) ||
+        formEl.querySelector(`[name$="-${baseName}"]`)
+      );
+    }
+
+    function initDebtorVisibilityByPayment(formEl) {
+      if (!formEl) return;
+      if (formEl.dataset.debtorVisibilityBound === "true") return;
+
+      const paymentField = findFieldByBaseName(formEl, "payment_method");
+
+      if (!paymentField) return;
+
+      formEl.dataset.debtorVisibilityBound = "true";
+
+      const commonFields = DEBTOR_COMMON_FIELD_NAMES.map((name) =>
+        findFieldByBaseName(formEl, name),
+      ).filter(Boolean);
+      const naturalFields = DEBTOR_NATURAL_FIELD_NAMES.map((name) =>
+        findFieldByBaseName(formEl, name),
+      ).filter(Boolean);
+      const legalFields = DEBTOR_LEGAL_FIELD_NAMES.map((name) =>
+        findFieldByBaseName(formEl, name),
+      ).filter(Boolean);
+      const debtorFields = [...commonFields, ...naturalFields, ...legalFields];
+
+      console.log(DEBTOR_COMMON_FIELD_NAMES);
+
+      if (!debtorFields.length) return;
+
+      const originalRequiredState = new WeakMap();
+      debtorFields.forEach((fieldEl) => {
+        originalRequiredState.set(fieldEl, Boolean(fieldEl.required));
+      });
+
+      function setFieldVisibility(fieldEl, visible) {
+        const containerEl = getFieldContainer(fieldEl);
+        if (!containerEl) return;
+
+        containerEl.classList.toggle("hidden", !visible);
+        fieldEl.disabled = !visible;
+        fieldEl.required = visible && originalRequiredState.get(fieldEl);
+      }
+
+      function updateDebtorVisibility() {
+        const paymentIsCash = isCashPayment(paymentField.value);
+
+        if (paymentIsCash) {
+          debtorFields.forEach((fieldEl) => setFieldVisibility(fieldEl, false));
+          return;
+        }
+
+        commonFields.forEach((fieldEl) => setFieldVisibility(fieldEl, true));
+
+        const debtorTypeField = commonFields[0] || null;
+        const debtorType = normalizeDebtorType(
+          debtorTypeField ? debtorTypeField.value : "",
+        );
+
+        if (debtorType === "natural") {
+          naturalFields.forEach((fieldEl) => setFieldVisibility(fieldEl, true));
+          legalFields.forEach((fieldEl) => setFieldVisibility(fieldEl, false));
+          return;
+        }
+
+        if (debtorType === "legal") {
+          naturalFields.forEach((fieldEl) =>
+            setFieldVisibility(fieldEl, false),
+          );
+          legalFields.forEach((fieldEl) => setFieldVisibility(fieldEl, true));
+          return;
+        }
+
+        naturalFields.forEach((fieldEl) => setFieldVisibility(fieldEl, false));
+        legalFields.forEach((fieldEl) => setFieldVisibility(fieldEl, false));
+      }
+
+      paymentField.addEventListener("change", updateDebtorVisibility);
+      paymentField.addEventListener("input", updateDebtorVisibility);
+
+      const debtorTypeField = findFieldByBaseName(formEl, "debtor_type");
+      if (debtorTypeField) {
+        debtorTypeField.addEventListener("change", updateDebtorVisibility);
+        debtorTypeField.addEventListener("input", updateDebtorVisibility);
+      }
+
+      updateDebtorVisibility();
+    }
+
+    function initDebtorVisibilityForSaleModals() {
+      document
+        .querySelectorAll("#add_sale_modal form, #update_sale_modal form")
+        .forEach((formEl) => initDebtorVisibilityByPayment(formEl));
+    }
+
+    function closeModalById(modalId) {
+      var modal = document.getElementById(modalId);
+      if (!modal) return;
+
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+      modal.classList.remove("items-center");
+      modal.classList.remove("justify-center");
+      modal.setAttribute("aria-hidden", "true");
+
+      document.querySelectorAll("[modal-backdrop]").forEach(function (node) {
+        node.remove();
+      });
+      document.body.classList.remove("overflow-hidden");
+    }
+
+    function setFocus() {
+      new TomSelect("#add_product-product_id", {
+        create: true,
+        sortField: {
+          field: "text",
+          direction: "asc",
+        },
+      });
+      // Enfocar después de 500 ms (ajusta según necesidad)
+      setTimeout(() => {
+        document.getElementById("add_product-product_id-ts-control").focus();
+      }, 100);
+    }
+
+    function openEditModal(
+      currentId,
+      currentQuantity,
+      currentDiscount,
+      productName,
+    ) {
+      // Rellenar el formulario con los datos actuales
+      document.getElementById("update_product-sale_detail_id").value =
+        currentId;
+      document.getElementById("update_product-quantity").value =
+        currentQuantity;
+      document.getElementById("update_product-discount").value =
+        currentDiscount;
+
+      // Actualizar texto del modal
+      document.querySelector("#update_product_modal h3").textContent =
+        `Actualizar ${productName}`;
+    }
+
+    document.body.addEventListener("htmx:afterSwap", function (event) {
+      if (!event || !event.detail || !event.detail.target) return;
+
+      var targetId = event.detail.target.id;
+      if (targetId === "sale-detail-panel") {
+        closeModalById("add_product_modal");
+        closeModalById("update_product_modal");
+        closeModalById("update_sale_modal");
+      }
+
+      if (typeof initFlowbite === "function") {
+        initFlowbite();
+      }
+
+      initDebtorVisibilityForSaleModals();
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+      initDebtorVisibilityForSaleModals();
+    });
   </script>
 {% endblock custom_javascript %}

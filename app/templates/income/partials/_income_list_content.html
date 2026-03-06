@@ -135,17 +135,6 @@
                               >{{ sale.status }}</span
                             >
                           </div>
-                          {% if sale.customer_name %}
-                            <div
-                              class="text-sm text-gray-600 dark:text-gray-300 mt-1"
-                            >
-                              Cliente:
-                              <span
-                                class="font-medium text-gray-800 dark:text-white"
-                                >{{ sale.customer_name }}</span
-                              >
-                            </div>
-                          {% endif %}
                           {% set summary = sale_summaries.get(sale.id) if sale_summaries is defined else none %}
                           {% if summary %}
                             <div
